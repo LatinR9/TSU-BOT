@@ -26,12 +26,13 @@ async function main() {
     console.log('[LOG] Opening Chrome for manual login...');
     const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
       headless: false,
-      viewport: { width: 1280, height: 800 },
-      args: ['--disable-blink-features=AutomationControlled']
+      viewport: null,
+      args: ['--disable-blink-features=AutomationControlled', '--start-maximized']
     });
-    const page = await context.newPage();
-    await page.goto('https://apps.course.tsu.ac.th/login');
-    console.log('[LOG] Browser is open. Log in now. You can close the browser when finished.');
+    const page = context.pages().length > 0 ? context.pages()[0] : await context.newPage();
+    console.log('[LOG] Loading TSU Login page...');
+    await page.goto('https://course.tsu.ac.th/login', { timeout: 60000 });
+    console.log('[LOG] Browser is open. Please log in with your TSU account. You can close Chrome when finished.');
     
     // Keep alive until browser closed by user
     while (context.pages().length > 0) {

@@ -61,11 +61,11 @@ class AutomationWorker {
     try {
       this.browserContext = await chromium.launchPersistentContext(USER_DATA_DIR, {
         headless: false,
-        viewport: { width: 1280, height: 800 },
-        args: ['--disable-blink-features=AutomationControlled', '--mute-audio']
+        viewport: null,
+        args: ['--disable-blink-features=AutomationControlled', '--mute-audio', '--start-maximized']
       });
 
-      this.page = await this.browserContext.newPage();
+      this.page = this.browserContext.pages().length > 0 ? this.browserContext.pages()[0] : await this.browserContext.newPage();
       const startUrl = this.targetUrl || 'https://apps.course.tsu.ac.th/learning/courses';
       this.log(`🌐 Navigating to ${startUrl}...`);
       await this.page.goto(startUrl, { timeout: 60000 }).catch(e => this.log(`Nav warning: ${e.message}`, 'warn'));
