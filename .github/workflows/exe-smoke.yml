@@ -48,6 +48,16 @@ jobs:
         shell: pwsh
         run: |
           Add-Type -AssemblyName System.Windows.Forms, System.Drawing
+          # version.json on a release PR differs from GitHub main, so the update prompt
+          # covers the window. Close it before the screenshot (does not touch the exe).
+          if (-not ('Tsu.SmokeWin' -as [type])) {
+            Add-Type -Namespace Tsu -Name SmokeWin -MemberDefinition @'
+[DllImport("user32.dll", CharSet = CharSet.Unicode)]
+public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+[DllImport("user32.dll")]
+public static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+'@
+          }
           New-Item -ItemType Directory -Force shots | Out-Null
           $start = Get-Date
           $bad = @()
@@ -61,6 +71,17 @@ jobs:
             $p = Start-Process -FilePath "$dir\TSU-BOT-Pro.exe" -WorkingDirectory $dir -PassThru
             Start-Sleep -Seconds 20
             $p.Refresh()
+            if ($name -ne 'crash-probe') {
+              for ($i = 0; $i -lt 8; $i++) {
+                $dlg = [Tsu.SmokeWin]::FindWindow($null, 'อัปเดต TSU-BOT Pro')
+                if ($dlg -ne [IntPtr]::Zero) {
+                  [void][Tsu.SmokeWin]::PostMessage($dlg, 0x0010, [IntPtr]::Zero, [IntPtr]::Zero)
+                  Start-Sleep -Milliseconds 800
+                  break
+                }
+                Start-Sleep -Milliseconds 400
+              }
+            }
             $bmp = New-Object System.Drawing.Bitmap ([System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Width), ([System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Height)
             $g = [System.Drawing.Graphics]::FromImage($bmp)
             $g.CopyFromScreen(0, 0, 0, 0, $bmp.Size)
