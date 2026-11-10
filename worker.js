@@ -88,6 +88,47 @@ function collectQuizResponses() {
   });
 }
 
+// Runs inside each frame (serialized by Playwright): must not reference anything outside itself.
+function unitCompletionProbe() {
+  const out = { navDone: '', problems: 0, problemsDone: 0 };
+  const CHECK = '[data-icon*="check"], .fa-check, .fa-check-circle, svg.text-success, svg[class*="success"], .text-success, .complete-checkmark';
+  const inBreadcrumb = el => !!el.closest('[aria-label*="breadcrumb" i], .breadcrumbs, .breadcrumb');
+  const ACTIVE = [
+    '.sequence-navigation button[aria-current]', '.sequence-navigation button.active',
+    'nav button[aria-current="page"]', 'nav button[aria-current="step"]', 'nav button[aria-current="true"]',
+    'nav [aria-current="page"]', 'nav [aria-current="step"]', 'nav li.active button', 'nav button.active',
+    'button[aria-current="page"]', 'button[aria-current="step"]', 'button[aria-current="true"]'
+  ];
+  let active = null;
+  for (const sel of ACTIVE) {
+    active = Array.from(document.querySelectorAll(sel)).find(el => !inBreadcrumb(el)) || null;
+    if (active) break;
+  }
+  if (active) {
+    const li = active.closest('li');
+    const label = ((active.getAttribute('aria-label') || '') + ' ' + (active.getAttribute('title') || '') + ' ' +
+                   (li ? li.getAttribute('aria-label') || '' : '')).toLowerCase();
+    const txt = active.innerText || '';
+    if (active.querySelector(CHECK) || (li && li.querySelector(CHECK))) out.navDone = 'ตรวจพบไอคอนติ๊กถูกสีเขียวบนปุ่มบทเรียนปัจจุบัน';
+    else if (txt.includes('✓') || txt.includes('✔')) out.navDone = 'พบสัญลักษณ์ติ๊กถูก (✓) บนปุ่มบทเรียนปัจจุบัน';
+    else if (/\bcompleted?\b|ผ่านแล้ว|เสร็จสิ้น/.test(label) && !/incomplete|not completed/.test(label)) out.navDone = `aria-label ระบุว่าเสร็จสิ้น (${label.trim()})`;
+  }
+
+  const all = Array.from(document.querySelectorAll('.problems-wrapper, .xblock-student_view[data-block-type="problem"], div[data-block-type="problem"], .problem'));
+  const problems = all.filter(p => !all.some(o => o !== p && o.contains(p)));
+  for (const p of problems) {
+    out.problems++;
+    const text = p.innerText || '';
+    const score = text.match(/(\d+(?:\.\d+)?)\s*(?:\/|of|เต็ม|จาก)\s*(\d+(?:\.\d+)?)\s*points?/i);
+    const full = score && parseFloat(score[2]) > 0 && parseFloat(score[1]) >= parseFloat(score[2]);
+    const correct = !!p.querySelector('.status.correct, .message.correct, .correct, [data-icon="check-circle"]');
+    const used = text.match(/used\s*(\d+)\s*of\s*(\d+)\s*attempts?/i);
+    const exhausted = used && used[1] === used[2];
+    if (full || correct || exhausted) out.problemsDone++;
+  }
+  return out;
+}
+
 class AutomationWorker {
   constructor(id, options = {}, onLog = () => {}, onStatus = () => {}) {
     this.id = id;
@@ -265,6 +306,10 @@ class AutomationWorker {
 
     // Wait a brief moment for dynamic React / Open edX MFE DOM to settle
     await this.sleep(1500);
+    // The MFE swaps units without a page load; wait for the unit iframe's document too.
+    for (const f of this.page.frames()) {
+      if (f !== this.page.mainFrame()) await f.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
+    }
 
     // 1. Comprehensive check: Is the current unit already completed (Green Checkmark / Full Marks)?
     const isCompleted = await this.isCurrentUnitCompleted();
@@ -338,99 +383,29 @@ class AutomationWorker {
 
   async isCurrentUnitCompleted() {
     try {
-      // 1. Direct Instant Check: Page body text (catches "1/1 point (graded)" in <10ms)
-      const instantCheck = await this.page.evaluate(() => {
-        const bodyTxt = document.body ? document.body.innerText : '';
-        
-        // Check full score: "1/1 point", "1 of 1 point", "1.0/1.0 point", "คะแนน 1/1"
-        if (/1\s*\/\s*1\s*point/i.test(bodyTxt) || /1\s*of\s*1\s*point/i.test(bodyTxt) || /1\.0\s*\/\s*1\.0\s*point/i.test(bodyTxt) || /คะแนน\s*1\s*\/\s*1/i.test(bodyTxt)) {
-          return { done: true, reason: 'ตรวจพบข้อความ 1/1 point (graded) ได้คะแนนเต็มแล้ว' };
-        }
+      const probes = [];
+      for (const f of this.page.frames()) {
+        const r = await f.evaluate(unitCompletionProbe).catch(() => null);
+        if (r) probes.push({ main: f === this.page.mainFrame(), ...r });
+      }
 
-        // Check exhausted attempts with answer submitted
-        if ((bodyTxt.includes('Your Answer has been receive') || bodyTxt.includes('Your answer has been received')) &&
-            /used\s*(\d+)\s*of\s*\1\s*attempts/i.test(bodyTxt)) {
-          return { done: true, reason: 'ใช้โควตาส่งคำตอบครบแล้วและระบบบันทึกผลแล้ว' };
-        }
-
-        // Check green checkmark icon in navigation bar between Previous and Next
-        const prevBtn = document.querySelector('button[aria-label*="Previous" i], button:has-text("Previous"), button:has-text("ก่อนหน้า")');
-        const nextBtn = document.querySelector('button[aria-label*="Next" i], button:has-text("Next"), button:has-text("ถัดไป")');
-        if (prevBtn && nextBtn && prevBtn.parentElement) {
-          const barContainer = prevBtn.parentElement;
-          const greenIcons = barContainer.querySelectorAll('[data-icon="check"], [data-icon="check-circle"], .fa-check, svg.text-success, svg[class*="success"], .text-success');
-          if (greenIcons.length > 0) {
-            return { done: true, reason: 'ตรวจพบเครื่องหมายติ๊กถูกสีเขียว (Green Checkmark) บนแถบนำทาง' };
-          }
-        }
-
-        // Check active unit tab in any sequence / unit navigation container
-        const activeNav = document.querySelector(`
-          nav button[aria-current],
-          nav [aria-current="step"],
-          nav [aria-current="page"],
-          nav [aria-current="true"],
-          nav button.active,
-          nav li.active button,
-          .sequence-navigation button[aria-current],
-          .sequence-navigation button.active,
-          .unit-navigation button[aria-current],
-          .unit-navigation button.active,
-          button[aria-current="step"],
-          button[aria-current="page"],
-          button[aria-current="true"],
-          [aria-selected="true"]
-        `);
-
-        if (activeNav) {
-          const parentLi = activeNav.closest('li') || activeNav;
-          const checkIcon = activeNav.querySelector('[data-icon*="check"], .fa-check, svg.text-success, svg[class*="success"], .text-success, .complete, .completed')
-                         || parentLi.querySelector('[data-icon*="check"], .fa-check, svg.text-success, svg[class*="success"], .text-success, .complete, .completed');
-          if (checkIcon) {
-            return { done: true, reason: 'ตรวจพบไอคอนติ๊กถูกบนปุ่มบทเรียนปัจจุบัน' };
-          }
-
-          const txt = (activeNav.innerText || '') + ' ' + (parentLi.innerText || '');
-          if (txt.includes('✓') || txt.includes('✔')) {
-            return { done: true, reason: 'พบสัญลักษณ์ติ๊กถูก (✓) บนปุ่มบทเรียน' };
-          }
-
-          // Check aria-label / title
-          const aria = ((activeNav.getAttribute('aria-label') || '') + ' ' + (parentLi.getAttribute('aria-label') || '')).toLowerCase();
-          if (aria.includes('completed') || aria.includes('complete') || aria.includes('ผ่านแล้ว')) {
-            if (!aria.includes('incomplete') && !aria.includes('not completed')) {
-              return { done: true, reason: `aria-label ระบุว่าเสร็จสิ้น (${aria})` };
-            }
-          }
-        }
-
-        return { done: false };
-      }).catch(() => ({ done: false }));
-
-      if (instantCheck && instantCheck.done) {
-        this.log(`⏭️ [ข้ามทันที] ${instantCheck.reason} ข้ามไปบทเรียนถัดไปตามที่กำหนด!`);
+      const nav = probes.find(p => p.main && p.navDone);
+      if (nav) {
+        this.log(`⏭️ [ข้ามทันที] ${nav.navDone} ข้ามไปบทเรียนถัดไปตามที่กำหนด!`);
         return true;
       }
 
-      // Check across child frames as well
-      const allFrames = this.page.frames();
-      for (const frame of allFrames) {
-        if (frame === this.page.mainFrame()) continue;
-        const frameCheck = await frame.evaluate(() => {
-          const txt = document.body ? document.body.innerText : '';
-          if (/1\s*\/\s*1\s*point/i.test(txt) || /คะแนน\s*1\s*\/\s*1/i.test(txt) || /1\.0\s*\/\s*1\.0\s*point/i.test(txt)) {
-            return true;
-          }
-          const c = document.querySelector('.correct, .status.correct, [data-icon="check-circle"], svg.text-success');
-          return !!c;
-        }).catch(() => false);
-
-        if (frameCheck) {
-          this.log(`⏭️ [ข้ามทันที] พบข้อสอบใน Frame ได้คะแนนเต็ม 1/1 point แล้ว -> ข้ามทันที!`);
-          return true;
-        }
+      // A quiz unit is done only when every problem in it is done; partially graded units
+      // go to handleQuiz, which skips the finished problems one by one.
+      const problems = probes.reduce((n, p) => n + p.problems, 0);
+      const problemsDone = probes.reduce((n, p) => n + p.problemsDone, 0);
+      if (problems > 0 && problemsDone === problems) {
+        this.log(`⏭️ [ข้ามทันที] ข้อสอบทั้ง ${problems} ข้อในหน่วยนี้ได้คะแนนเต็ม/ส่งครบแล้ว -> ข้ามทันที!`);
+        return true;
       }
-
+      if (problemsDone > 0) {
+        this.log(`ℹ️ หน่วยนี้ทำเสร็จแล้ว ${problemsDone}/${problems} ข้อ — จะทำเฉพาะข้อที่เหลือ`);
+      }
       return false;
     } catch (e) {
       return false;
@@ -461,7 +436,7 @@ class AutomationWorker {
         const submitBtn = el.querySelector('button.submit, button[data-value="Submit"]');
         const isSubmitDisabled = submitBtn && (submitBtn.disabled || submitBtn.getAttribute('aria-disabled') === 'true');
         const isSubmitted = text.includes('Your Answer has been receive') || text.includes('Your answer has been received') || text.includes('คำตอบของคุณถูกบันทึกแล้ว');
-        const attemptsUsedMatch = text.match(/used\s*(\d+)\s*of\s*(\d+)\s*attempts/i);
+        const attemptsUsedMatch = text.match(/used\s*(\d+)\s*of\s*(\d+)\s*attempts?/i);
         const attemptsExhausted = attemptsUsedMatch && attemptsUsedMatch[1] === attemptsUsedMatch[2];
 
         if (attemptsExhausted) {
@@ -482,18 +457,25 @@ class AutomationWorker {
     this.setStatus('running', 'Reading Document/Sheet');
     this.log(`📄 ตรวจพบเอกสาร/ชีทเรียน (Sheet/Document) รอเอกสารโหลดและรอครบ 5 วินาทีตามเกณฑ์...`);
 
-    // Ensure document or iframe contents have rendered
+    // Ensure document or iframe contents (sheet / PDF viewer) have fully loaded before timing
     await this.page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
+    for (const f of this.page.frames()) {
+      if (f !== this.page.mainFrame()) await f.waitForLoadState('load', { timeout: 10000 }).catch(() => {});
+    }
 
-    // Smooth scroll down to simulate real reading behavior
-    await this.page.evaluate(() => {
-      window.scrollTo({ top: document.body.scrollHeight / 2, behavior: 'smooth' });
-    }).catch(() => {});
+    // Smooth scroll down to simulate real reading behavior (MFE page and any self-scrolling iframe)
+    const scrollAll = async (ratio) => {
+      for (const f of this.page.frames()) {
+        await f.evaluate((r) => {
+          const el = document.scrollingElement || document.documentElement;
+          window.scrollTo({ top: el.scrollHeight * r, behavior: 'smooth' });
+        }, ratio).catch(() => {});
+      }
+    };
+    await scrollAll(0.5);
     await this.sleep(2500);
 
-    await this.page.evaluate(() => {
-      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-    }).catch(() => {});
+    await scrollAll(1);
     await this.sleep(2500);
 
     this.log(`✅ เอกสาร/ชีทอ่านครบ 5 วินาทีเรียบร้อยตามเกณฑ์ TSU พร้อมกด Next ทันที.`);
@@ -531,23 +513,28 @@ class AutomationWorker {
       '.tc-wrapper'
     ];
 
+    // Prefer the real player inside the frame that holds the video over the whole unit iframe.
+    const playerSelectors = videoSelectors.filter(s => s !== 'iframe#unit-iframe');
+    const searchFrames = [frame, ...allFrames.filter(f => f !== frame)].filter(Boolean);
     let playerBox = null;
-    for (const sel of videoSelectors) {
-      try {
-        const el = await this.page.$(sel);
-        if (el) {
-          const b = await el.boundingBox();
-          if (b && b.width > 60 && b.height > 60) {
-            playerBox = b;
-            break;
+    for (const f of searchFrames) {
+      for (const sel of playerSelectors) {
+        try {
+          const el = await f.$(sel);
+          if (el) {
+            const b = await el.boundingBox();
+            if (b && b.width > 60 && b.height > 60) {
+              playerBox = b;
+              break;
+            }
           }
-        }
-      } catch (e) {}
+        } catch (e) {}
+      }
+      if (playerBox) break;
     }
 
-    // If still null, check inside child frames
     if (!playerBox) {
-      for (const f of allFrames) {
+      for (const f of [this.page.mainFrame()]) {
         for (const sel of videoSelectors) {
           try {
             const el = await f.$(sel);
@@ -628,8 +615,9 @@ class AutomationWorker {
       }).catch(() => {});
     }
 
-    // D. Press Space key
-    await this.page.keyboard.press('Space').catch(() => {});
+    // D. Press Space key — only once focus is inside the player; otherwise Space would hit the
+    // still-focused MFE "Next" button and leave the unit.
+    if (playerBox) await this.page.keyboard.press('Space').catch(() => {});
     await this.sleep(1500);
 
     // Verify playback started
@@ -768,21 +756,46 @@ class AutomationWorker {
     // D. Press media shortcut key '9' (jumps to 90%)
     await this.page.keyboard.press('9').catch(() => {});
 
-    // 5. STEP 3: PLAY FOR 5 SECONDS IN THE LAST 10 SECONDS
+    // 5. STEP 3: PLAY IN THE LAST 10 SECONDS UNTIL THE COMPLETION MARK IS PASSED
     this.log(`⏳ [ขั้นตอนที่ 3] กำลังเล่นช่วง 10 วินาทีสุดท้ายเพื่อบันทึกผลการเรียนลงระบบ TSU...`);
-    await this.sleep(5000);
-
-    // Final safety: ensure video reached end
-    for (const f of allFrames) {
-      await f.evaluate(() => {
-        const v = document.querySelector('video');
-        if (v && v.duration > 0 && v.currentTime < v.duration - 2) {
-          v.currentTime = Math.max(0, v.duration - 2);
-        }
-      }).catch(() => {});
+    const result = await this.waitForVideoCompletion(allFrames);
+    if (!result) {
+      // No readable <video> (e.g. cross-origin YouTube embed): keep it playing for a fixed time.
+      await this.sleep(5000);
+      this.log(`✅ เล่นช่วงท้ายคลิปครบ 5 วินาที (อ่านเวลาวิดีโอไม่ได้ เช่น YouTube) เตรียมกด Next.`);
+    } else if (result.ended || result.cur >= result.dur * 0.97) {
+      this.log(`✅ วิดีโอเล่นถึง ${Math.round((result.cur / result.dur) * 100)}%${result.ended ? ' (จบคลิป)' : ''} ผ่านเกณฑ์บันทึกผลแล้ว เตรียมกด Next ทันที.`);
+    } else {
+      this.log(`⚠️ วิดีโอเล่นได้ ${Math.round((result.cur / result.dur) * 100)}% ภายในเวลาที่กำหนด อาจยังไม่ขึ้นติ๊กถูก — ไปหน่วยถัดไปเพื่อไม่ให้ค้าง`, 'warn');
     }
+  }
 
-    this.log(`✅ วิดีโอเล่นครบเกณฑ์เรียบร้อยตามเงื่อนไข เตรียมกด Next ทันที.`);
+  // Keeps the clip playing until it passes ~97% (Open edX marks video complete at 95% by
+  // default) or ends. Returns the last { cur, dur, ended } seen, or null if no <video> is readable.
+  async waitForVideoCompletion(frames) {
+    const started = Date.now();
+    let last = null;
+    while (!this.shouldStop && Date.now() - started < 25000) {
+      let info = null;
+      for (const f of frames) {
+        info = await f.evaluate(() => {
+          const v = document.querySelector('video');
+          if (!v || !v.duration || !isFinite(v.duration)) return null;
+          if (v.paused && !v.ended) {
+            v.muted = true;
+            const p = v.play();
+            if (p && p.catch) p.catch(() => {});
+          }
+          return { cur: v.currentTime, dur: v.duration, ended: v.ended };
+        }).catch(() => null);
+        if (info) break;
+      }
+      if (!info) return last;
+      last = info;
+      if (info.ended || (Date.now() - started >= 3000 && info.cur >= info.dur * 0.97)) return info;
+      await this.sleep(400);
+    }
+    return last;
   }
 
   async findQuizFrame() {

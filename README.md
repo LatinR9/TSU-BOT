@@ -65,6 +65,8 @@ In-app updates read `version.json` from GitHub (`version`, `changelog`, `sha256`
 ```bash
 npm ci
 npm test                                  # unit tests + Chromium end-to-end on test/fixtures/*.html
+                                          # + readiness: full worker.start() runs on an Open edX-like
+                                          #   course server (test/fixtures/course/) for every --modes combo
 node test/hit_rate.js --legacy origin/main # simulate every bank question, compare with old logic
 ```
 
