@@ -41,27 +41,11 @@
   },
   {
     "course": "TSUGE00152",
-    "section": "Unit 3 Chapter 3",
-    "question": "I'd rather _______ here if you don't mind.",
-    "type": "text",
-    "wrong_answers": "stay",
-    "hint": "หลัง would rather ต้องเป็นกริยาช่อง 1 (ห้ามใช้ staying หรือ to stay) ดูกริยาในวงเล็บของโจทย์ หรือลองรูปปฏิเสธ not + กริยา"
-  },
-  {
-    "course": "TSUGE00152",
     "section": "Unit 4 Chapter 1",
     "question": "The money, $30,000 was taken from t... (match sentence to crime; sentence truncated)",
     "type": "choice",
     "wrong_answers": "Robbery",
     "hint": "ตัด Robbery ออก ถ้าเอาไปจากบ้านหรืออาคารให้ตอบ Burglary ถ้าไม่ใช่ให้ตอบ Theft"
-  },
-  {
-    "course": "TSUGE00152",
-    "section": "Unit 4 Chapter 2",
-    "question": "Noun from \"produce\" (\"As a result...\")",
-    "type": "text",
-    "wrong_answers": "produceion",
-    "hint": "น่าจะเป็น production"
   },
   {
     "course": "TSUGE000271",

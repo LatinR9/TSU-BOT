@@ -1112,7 +1112,7 @@ class AutomationWorker {
         return { filled: false, reason: 'could not fill the inputs' };
       }
       const shown = d.fills.map(f => (f.kind === 'text' ? `พิมพ์ "${f.value}"` : `เลือก "${f.choiceText}"`)).join(' + ');
-      const tag = d.inferred ? ' [inferred — คำตอบที่อนุมาน ยังไม่ยืนยัน]' : d.hint ? ', จากคำแนะนำ tsu_missing.json' : '';
+      const tag = d.inferred ? ' [inferred — คำตอบที่อนุมาน ยังไม่ยืนยัน]' : d.userSupplied ? ' [user-supplied — คำตอบที่ผู้ใช้เลือก ยังไม่ยืนยัน]' : d.hint ? ', จากคำแนะนำ tsu_missing.json' : '';
       this.log(`🎯 ข้อ ${qNo}: ${shown} (เฉลย "${d.answer}"${tag})`);
     }
     return { filled: true, reason: '' };
@@ -1178,7 +1178,7 @@ class AutomationWorker {
       if (s.choices && s.choices.length) this.log(`   ตัวเลือกบนหน้า${slots.length > 1 ? ` (ช่อง ${i + 1})` : ''}: ${s.choices.join(' | ')}`, 'warn');
     });
     const m = decision.match;
-    if (m && m.correct_answer && (m.status === 'confirmed' || m.status === 'inferred')) {
+    if (m && m.correct_answer && ['confirmed', 'inferred', 'user_supplied'].includes(m.status)) {
       this.log(`   เฉลยในฐาน: "${m.correct_answer}" [${m.status}] (ไม่ตรงกับตัวเลือก/ช่องในข้อนี้)`, 'warn');
     }
     if (decision.hint && decision.hint.hint) this.log(`   💡 คำแนะนำ: ${decision.hint.hint}`, 'warn');

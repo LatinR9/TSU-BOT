@@ -44,8 +44,8 @@ function buildCases() {
       const sectionAnswers = section.questions.map(q => q.correct_answer).filter(Boolean);
       section.questions.forEach((q, qIdx) => {
         const positional = /not captured/i.test(q.question);
-        const kind = !q.correct_answer || (q.status !== 'confirmed' && q.status !== 'inferred') ? 'unconfirmed'
-          : q.status === 'inferred' ? 'inferred' : positional ? 'positional' : 'stem';
+        const kind = !q.correct_answer || !['confirmed', 'inferred', 'user_supplied'].includes(q.status) ? 'unconfirmed'
+          : q.status !== 'confirmed' ? 'inferred' : positional ? 'positional' : 'stem';
         let choices = [];
         if (q.answer_type !== 'text') {
           const set = [];
@@ -194,7 +194,7 @@ function printTable(name, table) {
 
 const cases = buildCases();
 const counts = cases.reduce((m, c) => (m[c.kind] = (m[c.kind] || 0) + 1, m), {});
-console.log(`Bank: ${cases.length} questions (${counts.stem || 0} confirmed with question text, ${counts.positional || 0} confirmed "not captured"/listed-order, ${counts.inferred || 0} inferred, ${counts.unconfirmed || 0} unconfirmed)`);
+console.log(`Bank: ${cases.length} questions (${counts.stem || 0} confirmed with question text, ${counts.positional || 0} confirmed "not captured"/listed-order, ${counts.inferred || 0} inferred/user-supplied, ${counts.unconfirmed || 0} unconfirmed)`);
 
 const cur = evaluate('current', runCurrent, cases);
 printTable('current', cur.table);

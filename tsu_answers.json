@@ -1394,12 +1394,12 @@
             {
               "question": "I'd rather _______ here if you don't mind.",
               "answer_type": "text",
-              "correct_answer": "not stay",
+              "correct_answer": "to stay",
               "known_wrong_answers": [
                 "stay"
               ],
-              "status": "inferred",
-              "notes": "INFERRED by assistant 2026-11-10 (not graded yet): \"I'd rather ___ here if you don't mind\": \"stay\" was graded wrong; \"if you don't mind\" goes with a polite refusal -> \"I'd rather not stay here\". If the live block is a dropdown of staying / to stay / stay, no option is left and the bot logs it as missing. Previous note: gerund / infinitive submitted answer was marked incorrect; correct answer unknown"
+              "status": "confirmed",
+              "notes": "User-supplied answer 2026-11-10, confirmed by the user's screenshot (graded 1/1). Live page: radio options staying / to stay / stay. gerund / infinitive"
             },
             {
               "question": "She pretended _______ interested.",
@@ -1586,12 +1586,12 @@
             {
               "question": "Which noun formed from the verb produce, can be used to fill in the blank? \"As a result...",
               "answer_type": "choice",
-              "correct_answer": "production",
+              "correct_answer": "refused",
               "known_wrong_answers": [
                 "produceion"
               ],
-              "status": "inferred",
-              "notes": "INFERRED by assistant 2026-11-10 (not graded yet): the noun of \"produce\" is \"production\"; user's answer is unconfirmed and produceion was graded wrong. Live options seen: producter / producement / produceion / refused (none is a real noun of produce), so when \"production\" is not offered the bot logs the item as missing instead of guessing."
+              "status": "user_supplied",
+              "notes": "USER-SUPPLIED 2026-11-10, not confirmed: the user chose \"refused\" explicitly, although their screenshot shows it graded 0/1 (produceion was also graded wrong). Live page: radio options producter / producement / produceion / refused; full prompt \"As a result, the cotton ____ went up.\""
             },
             {
               "question": "Which noun formed from the verb appoint, can be used to fill in the blank? ...",

@@ -115,7 +115,9 @@ const PAGE_BLANK_RE = /_+\s*\(?\d\)?\s*_+/g;
 const MIN_FUZZY_LOOSE = 20;
 const MULTI_PART_SPLIT_RE = /\s+[;/]\s+/;
 
-const answerable = c => !!(c && c.correct_answer && (c.status === 'confirmed' || c.status === 'inferred'));
+// user_supplied: the user's chosen answer, answered as given even though it is not graded correct.
+const ANSWERABLE_STATUSES = new Set(['confirmed', 'inferred', 'user_supplied']);
+const answerable = c => !!(c && c.correct_answer && ANSWERABLE_STATUSES.has(c.status));
 
 // Typed contractions: some graders compare the exact apostrophe character.
 function applyApostropheStyle(value, style) {
@@ -311,7 +313,7 @@ class DBManager {
       rank += Math.min(entry.loose.length, 400) / 1e5;
       if (section && entry.section === section) rank += 0.05;
       if (entry.q.status === 'confirmed') rank += 0.001;
-      else if (entry.q.status === 'inferred') rank += 0.0005;
+      else if (entry.q.status === 'inferred' || entry.q.status === 'user_supplied') rank += 0.0005;
       out.push(this.toResult(entry, best.score, best.method, rank));
     }
     out.sort((a, b) => b.rank - a.rank);
@@ -461,7 +463,7 @@ class DBManager {
    * info: { courseCode, section, texts[], slots[], index, problemIndex, problemCount }
    *   slots: in page order, { kind: 'choice'|'checkbox'|'select'|'text', choices?: string[] }
    *   index: page position of the first response (listed-order bank items)
-   * Returns { action: 'fill', fills[], answer, match, inferred } or { action: 'skip', reason, ... }.
+   * Returns { action: 'fill', fills[], answer, match, inferred, userSupplied } or { action: 'skip', reason, ... }.
    *   fills[i]: { kind, index, choiceText, choiceMethod } | { kind: 'checkbox', indices } | { kind: 'text', value }
    */
   decideProblem(info) {
@@ -523,7 +525,7 @@ class DBManager {
         fills.push(f);
       }
       if (slots.length === 1 && slots[0].kind === 'text') ans = fills[0].value;
-      return { ...base, action: 'fill', fills, answer: ans, match: cand, inferred: cand.status === 'inferred', ...extra };
+      return { ...base, action: 'fill', fills, answer: ans, match: cand, inferred: cand.status === 'inferred', userSupplied: cand.status === 'user_supplied', ...extra };
     };
 
     if (!blockOtherSections) {
