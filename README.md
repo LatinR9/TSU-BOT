@@ -35,9 +35,35 @@ python tsu_bot.py
 python bot.py
 ```
 
+## Desktop WinForms UI (`TSU-BOT-Pro.exe`)
+
+The desktop control panel is a .NET Framework 4.x WinForms app sourced from `AppUI.cs` (namespace `TSUBotDesktop`).
+
+### Build on Windows
+Requires .NET Framework 4.x (`csc.exe` ships with the Framework runtime / Developer Pack):
+
+```bat
+build_desktop.bat
+```
+
+This compiles `AppUI.cs` to `TSU-BOT-Pro.exe` and copies it to `dist\TSU-BOT-Pro.exe`.
+
+Manual equivalent:
+
+```bat
+%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\csc.exe /target:winexe /optimize+ /out:TSU-BOT-Pro.exe /reference:System.dll /reference:System.Drawing.dll /reference:System.Windows.Forms.dll /reference:System.Core.dll AppUI.cs
+```
+
+Linux CI / Cloud Agent environments cannot produce a trustworthy Windows WinForms PE here (no Windows `csc` / Wine toolchain in this image). Ship polished `AppUI.cs` and rebuild the `.exe` on a Windows machine with the script above.
+
+### Related
+- `Launcher.cs` — tray launcher that starts the Node web dashboard (`localhost:3000`), separate from the WinForms desktop suite.
+- `build_exe.bat` — packages the Node server with `pkg` (web control panel), not the WinForms UI.
+
 ## ไฟล์ภายในโปรเจกต์
 - `tsu_bot.py` : สคริปต์บอทสำหรับ TSU MOOC โดยเฉพาะ
 - `bot.py` : บอทสำหรับแพลตฟอร์มการเรียนทั่วไป
+- `AppUI.cs` / `TSU-BOT-Pro.exe` : WinForms desktop suite
 - `tsu_answers.json` / `tsu_answers.csv` : ฐานข้อมูลเฉลยรายวิชา
 - `video_handler.py` / `doc_handler.py` / `quiz_solver.py` : โมดูลแยกตามประเภทสื่อ
 - `config.json` : ไฟล์ตั้งค่าการทำงาน

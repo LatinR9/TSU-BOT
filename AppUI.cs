@@ -1,8 +1,9 @@
-// C:\Users\acer\.gemini\antigravity\scratch\elearn_bot\AppUI.cs
+// TSU-BOT Pro — Desktop Suite (WinForms)
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -12,6 +13,88 @@ using System.Windows.Forms;
 
 namespace TSUBotDesktop
 {
+    /// <summary>
+    /// Visual tokens aligned with the polished web control panel
+    /// (teal mist atmosphere, brand-first hierarchy).
+    /// </summary>
+    internal static class UiTheme
+    {
+        public static readonly Color BgWash = Color.FromArgb(238, 247, 242);
+        public static readonly Color BgMist = Color.FromArgb(217, 235, 228);
+        public static readonly Color Surface = Color.FromArgb(255, 255, 255);
+        public static readonly Color SurfaceSoft = Color.FromArgb(247, 252, 249);
+        public static readonly Color Line = Color.FromArgb(198, 216, 208);
+        public static readonly Color Text = Color.FromArgb(22, 53, 44);
+        public static readonly Color TextMuted = Color.FromArgb(90, 115, 105);
+        public static readonly Color Brand = Color.FromArgb(11, 95, 75);
+        public static readonly Color BrandDeep = Color.FromArgb(8, 69, 54);
+        public static readonly Color BrandSoft = Color.FromArgb(215, 238, 229);
+        public static readonly Color Accent = Color.FromArgb(196, 122, 26);
+        public static readonly Color Success = Color.FromArgb(31, 138, 91);
+        public static readonly Color SuccessSoft = Color.FromArgb(225, 245, 234);
+        public static readonly Color Warning = Color.FromArgb(183, 121, 31);
+        public static readonly Color WarningSoft = Color.FromArgb(248, 236, 214);
+        public static readonly Color Danger = Color.FromArgb(192, 57, 43);
+        public static readonly Color DangerSoft = Color.FromArgb(248, 228, 225);
+        public static readonly Color Info = Color.FromArgb(29, 107, 138);
+        public static readonly Color InfoSoft = Color.FromArgb(223, 241, 247);
+        public static readonly Color LogBg = Color.FromArgb(18, 48, 40);
+        public static readonly Color LogFg = Color.FromArgb(196, 224, 212);
+        public static readonly Color LogDefault = Color.FromArgb(168, 210, 194);
+
+        public static Font UiFont(float size, FontStyle style)
+        {
+            string[] candidates = new string[] { "Segoe UI", "Noto Sans Thai", "Tahoma", "Microsoft Sans Serif" };
+            foreach (string name in candidates)
+            {
+                try
+                {
+                    Font f = new Font(name, size, style, GraphicsUnit.Point);
+                    if (string.Equals(f.FontFamily.Name, name, StringComparison.OrdinalIgnoreCase))
+                        return f;
+                    f.Dispose();
+                }
+                catch { }
+            }
+            return new Font(SystemFonts.DefaultFont.FontFamily, size, style, GraphicsUnit.Point);
+        }
+
+        public static Font MonoFont(float size)
+        {
+            string[] candidates = new string[] { "Cascadia Mono", "Consolas", "JetBrains Mono", "Courier New" };
+            foreach (string name in candidates)
+            {
+                try
+                {
+                    Font f = new Font(name, size, FontStyle.Regular, GraphicsUnit.Point);
+                    if (string.Equals(f.FontFamily.Name, name, StringComparison.OrdinalIgnoreCase))
+                        return f;
+                    f.Dispose();
+                }
+                catch { }
+            }
+            return new Font(FontFamily.GenericMonospace, size, FontStyle.Regular, GraphicsUnit.Point);
+        }
+
+        public static Color Lighten(Color c, int amount)
+        {
+            return Color.FromArgb(
+                c.A,
+                Math.Min(255, c.R + amount),
+                Math.Min(255, c.G + amount),
+                Math.Min(255, c.B + amount));
+        }
+
+        public static Color Darken(Color c, int amount)
+        {
+            return Color.FromArgb(
+                c.A,
+                Math.Max(0, c.R - amount),
+                Math.Max(0, c.G - amount),
+                Math.Max(0, c.B - amount));
+        }
+    }
+
     public class CourseItem
     {
         public string Code { get; set; }
@@ -33,6 +116,8 @@ namespace TSUBotDesktop
         private RichTextBox rtbLogs;
         private ListView lvWorkers;
         private Label lblVersion;
+        private Label lblBrand;
+        private Label lblTagline;
         private Button btnLogin;
         private Button btnStart;
         private Button btnPause;
@@ -42,6 +127,9 @@ namespace TSUBotDesktop
         private Button btnAddCourse;
         private Button btnSettings;
         private Button btnCheckUpdate;
+        private Panel pnlHeader;
+        private Panel pnlWorkersHeader;
+        private SplitContainer splitMain;
 
         private List<CourseItem> courses = new List<CourseItem>();
         private Dictionary<string, Process> runningWorkers = new Dictionary<string, Process>();
@@ -87,90 +175,140 @@ namespace TSUBotDesktop
                 nodePath = "node.exe";
         }
 
+        protected override void OnPaintBackground(PaintEventArgs e)
+        {
+            Rectangle rect = this.ClientRectangle;
+            if (rect.Width <= 0 || rect.Height <= 0)
+            {
+                base.OnPaintBackground(e);
+                return;
+            }
+
+            using (LinearGradientBrush wash = new LinearGradientBrush(
+                rect,
+                UiTheme.BgWash,
+                UiTheme.BgMist,
+                LinearGradientMode.Vertical))
+            {
+                e.Graphics.FillRectangle(wash, rect);
+            }
+
+            using (GraphicsPath path = new GraphicsPath())
+            {
+                path.AddEllipse(-120, -160, 520, 360);
+                using (PathGradientBrush glow = new PathGradientBrush(path))
+                {
+                    glow.CenterColor = Color.FromArgb(70, 36, 140, 112);
+                    glow.SurroundColors = new Color[] { Color.FromArgb(0, 36, 140, 112) };
+                    e.Graphics.FillPath(glow, path);
+                }
+            }
+
+            using (GraphicsPath path2 = new GraphicsPath())
+            {
+                path2.AddEllipse(rect.Width - 380, -40, 460, 300);
+                using (PathGradientBrush glow2 = new PathGradientBrush(path2))
+                {
+                    glow2.CenterColor = Color.FromArgb(42, 196, 122, 26);
+                    glow2.SurroundColors = new Color[] { Color.FromArgb(0, 196, 122, 26) };
+                    e.Graphics.FillPath(glow2, path2);
+                }
+            }
+        }
+
         private void InitializeComponent()
         {
-            this.Text = "TSU-BOT Pro — Desktop Suite (Multi-Browser)";
-            this.Size = new Size(950, 700);
+            this.Text = "TSU-BOT Pro — Desktop Suite";
+            this.Size = new Size(1040, 760);
+            this.MinimumSize = new Size(960, 680);
             this.StartPosition = FormStartPosition.CenterScreen;
-            this.BackColor = Color.FromArgb(15, 23, 42);
-            this.ForeColor = Color.FromArgb(248, 250, 252);
-            this.Font = new Font("Segoe UI", 9.5f, FontStyle.Regular);
+            this.BackColor = UiTheme.BgWash;
+            this.ForeColor = UiTheme.Text;
+            this.Font = UiTheme.UiFont(9.5f, FontStyle.Regular);
+            this.DoubleBuffered = true;
+            this.Padding = new Padding(16, 12, 16, 16);
 
-            // Header Panel
-            Panel pnlHeader = new Panel
-            {
-                Dock = DockStyle.Top,
-                Height = 65,
-                BackColor = Color.FromArgb(30, 41, 59),
-                Padding = new Padding(20, 12, 20, 12)
-            };
+            // —— Brand header ——
+            pnlHeader = CreateSurfacePanel(DockStyle.Top, 96);
+            pnlHeader.Padding = new Padding(22, 16, 22, 14);
+            pnlHeader.Paint += PaintSurfaceCard;
 
-            Label lblTitle = new Label
+            lblBrand = new Label
             {
-                Text = "⚡ TSU-BOT Pro (Desktop)",
-                Font = new Font("Segoe UI", 16f, FontStyle.Bold),
-                ForeColor = Color.FromArgb(96, 165, 250),
+                Text = "TSU-BOT",
+                Font = UiTheme.UiFont(28f, FontStyle.Bold),
+                ForeColor = UiTheme.Brand,
                 AutoSize = true,
-                Location = new Point(18, 16)
+                Location = new Point(22, 14),
+                BackColor = Color.Transparent
             };
-            pnlHeader.Controls.Add(lblTitle);
+            pnlHeader.Controls.Add(lblBrand);
+
+            lblTagline = new Label
+            {
+                Text = "Pro Desktop Suite  ·  Multi-Browser Workers",
+                Font = UiTheme.UiFont(10f, FontStyle.Regular),
+                ForeColor = UiTheme.TextMuted,
+                AutoSize = true,
+                Location = new Point(26, 58),
+                BackColor = Color.Transparent
+            };
+            pnlHeader.Controls.Add(lblTagline);
 
             lblVersion = new Label
             {
                 Text = "v" + APP_VERSION,
-                Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
-                ForeColor = Color.FromArgb(147, 197, 253),
-                BackColor = Color.FromArgb(51, 65, 85),
+                Font = UiTheme.UiFont(9f, FontStyle.Bold),
+                ForeColor = UiTheme.Brand,
+                BackColor = UiTheme.BrandSoft,
                 AutoSize = true,
-                Padding = new Padding(6, 3, 6, 3),
-                Location = new Point(310, 18)
+                Padding = new Padding(10, 4, 10, 4),
+                Location = new Point(210, 28)
             };
             pnlHeader.Controls.Add(lblVersion);
 
-            btnCheckUpdate = CreateButton("🔄 เช็คอัปเดต", Color.FromArgb(59, 130, 246), 110, 34);
-            btnCheckUpdate.Location = new Point(800, 15);
+            btnCheckUpdate = CreateButton("เช็คอัปเดต", UiTheme.Info, 128, 36, false);
             btnCheckUpdate.Click += (s, e) => CheckUpdateAsync(true);
             pnlHeader.Controls.Add(btnCheckUpdate);
 
             this.Controls.Add(pnlHeader);
 
-            // Controls Panel
-            Panel pnlControls = new Panel
-            {
-                Dock = DockStyle.Top,
-                Height = 165,
-                BackColor = Color.FromArgb(30, 41, 59),
-                Padding = new Padding(20)
-            };
+            // —— Launch / controls ——
+            Panel pnlControls = CreateSurfacePanel(DockStyle.Top, 188);
+            pnlControls.Padding = new Padding(18, 14, 18, 14);
+            pnlControls.Paint += PaintSurfaceCard;
+            pnlControls.Margin = new Padding(0, 10, 0, 0);
 
-            // Login Button
-            btnLogin = CreateButton("🔐 เปิด Chrome เข้าสู่ระบบ (Manual Login)", Color.FromArgb(16, 185, 129), 270, 36);
-            btnLogin.Location = new Point(20, 15);
+            Label lblSetup = new Label
+            {
+                Text = "ตั้งค่าและเริ่มทำงาน",
+                Font = UiTheme.UiFont(11f, FontStyle.Bold),
+                ForeColor = UiTheme.BrandDeep,
+                AutoSize = true,
+                Location = new Point(18, 12),
+                BackColor = Color.Transparent
+            };
+            pnlControls.Controls.Add(lblSetup);
+
+            btnLogin = CreateButton("เปิด Chrome เข้าสู่ระบบ", UiTheme.Success, 220, 36, true);
+            btnLogin.Location = new Point(18, 42);
             btnLogin.Click += BtnLogin_Click;
             pnlControls.Controls.Add(btnLogin);
 
-            btnSettings = CreateButton("⚙️ ตั้งค่ารายวิชา & ลิงก์ URL (Settings)", Color.FromArgb(99, 102, 241), 250, 36);
-            btnSettings.Location = new Point(300, 15);
+            btnSettings = CreateButton("ตั้งค่ารายวิชา & URL", UiTheme.Info, 180, 36, false);
+            btnSettings.Location = new Point(248, 42);
             btnSettings.Click += BtnSettings_Click;
             pnlControls.Controls.Add(btnSettings);
 
-            btnAddCourse = CreateButton("➕ เพิ่มวิชาด่วน", Color.FromArgb(59, 130, 246), 130, 36);
-            btnAddCourse.Location = new Point(560, 15);
+            btnAddCourse = CreateButton("เพิ่มวิชาด่วน", UiTheme.Brand, 130, 36, false);
+            btnAddCourse.Location = new Point(438, 42);
             btnAddCourse.Click += BtnSettings_Click;
             pnlControls.Controls.Add(btnAddCourse);
 
-            // Course Selector
-            Label lblCourse = new Label { Text = "เลือกวิชาที่จะทำ:", Location = new Point(20, 68), AutoSize = true, ForeColor = Color.FromArgb(203, 213, 225) };
+            Label lblCourse = CreateFieldLabel("เลือกวิชาที่จะทำ", new Point(18, 92));
             pnlControls.Controls.Add(lblCourse);
 
-            comboCourse = new ComboBox
-            {
-                Location = new Point(130, 65),
-                Width = 440,
-                DropDownStyle = ComboBoxStyle.DropDownList,
-                BackColor = Color.FromArgb(15, 23, 42),
-                ForeColor = Color.White
-            };
+            comboCourse = CreateCombo(new Point(18, 114), 460);
             comboCourse.SelectedIndexChanged += (s, ev) =>
             {
                 CourseItem ci = comboCourse.SelectedItem as CourseItem;
@@ -181,115 +319,165 @@ namespace TSUBotDesktop
             };
             pnlControls.Controls.Add(comboCourse);
 
-            // Speed Selector
-            Label lblSpeed = new Label { Text = "ความเร็ว:", Location = new Point(590, 68), AutoSize = true, ForeColor = Color.FromArgb(203, 213, 225) };
+            Label lblSpeed = CreateFieldLabel("ความเร็ว", new Point(498, 92));
             pnlControls.Controls.Add(lblSpeed);
 
-            comboSpeed = new ComboBox
-            {
-                Location = new Point(660, 65),
-                Width = 140,
-                DropDownStyle = ComboBoxStyle.DropDownList,
-                BackColor = Color.FromArgb(15, 23, 42),
-                ForeColor = Color.White
-            };
+            comboSpeed = CreateCombo(new Point(498, 114), 160);
             comboSpeed.Items.AddRange(new object[] { "turbo (สายฟ้า)", "normal (สมดุล)", "safe (ปลอดภัย)" });
             comboSpeed.SelectedIndex = 1;
             pnlControls.Controls.Add(comboSpeed);
 
-            // URL input (optional)
-            Label lblUrl = new Label { Text = "URL เจาะจง (ถ้ามี):", Location = new Point(20, 115), AutoSize = true, ForeColor = Color.FromArgb(203, 213, 225) };
+            Label lblUrl = CreateFieldLabel("URL เจาะจง (ถ้ามี)", new Point(18, 148));
             pnlControls.Controls.Add(lblUrl);
 
-            txtUrl = new TextBox
-            {
-                Location = new Point(135, 112),
-                Width = 310,
-                BackColor = Color.FromArgb(15, 23, 42),
-                ForeColor = Color.White
-            };
+            txtUrl = CreateTextBox(new Point(150, 144), 300);
             pnlControls.Controls.Add(txtUrl);
 
-            // Start Bot Button
-            btnStart = CreateButton("▶️ เริ่มบอท (+ New)", Color.FromArgb(37, 99, 235), 170, 36);
-            btnStart.Location = new Point(460, 108);
+            btnStart = CreateButton("เริ่มบอท (+ New)", UiTheme.Brand, 168, 36, true);
+            btnStart.Location = new Point(468, 142);
             btnStart.Click += BtnStart_Click;
             pnlControls.Controls.Add(btnStart);
 
-            // Pause Bot Button
-            btnPause = CreateButton("⏸️ หยุดชั่วคราว", Color.FromArgb(217, 119, 6), 140, 36);
-            btnPause.Location = new Point(640, 108);
+            btnPause = CreateButton("หยุดชั่วคราว", UiTheme.Warning, 128, 36, false);
+            btnPause.Location = new Point(646, 142);
             btnPause.Click += BtnPause_Click;
             pnlControls.Controls.Add(btnPause);
 
-            // Cancel Bot Button
-            btnCancel = CreateButton("⏹️ ยกเลิกการทำงาน", Color.FromArgb(220, 38, 38), 145, 36);
-            btnCancel.Location = new Point(790, 108);
+            btnCancel = CreateButton("ยกเลิกการทำงาน", UiTheme.Danger, 148, 36, false);
+            btnCancel.Location = new Point(784, 142);
             btnCancel.Click += BtnCancel_Click;
             pnlControls.Controls.Add(btnCancel);
 
-            this.Controls.Add(pnlControls);
+            // Spacer between header/controls and content
+            Panel spacer = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 12,
+                BackColor = Color.Transparent
+            };
 
-            // Split Container for Workers List & Logs
-            SplitContainer split = new SplitContainer
+            // —— Workers + logs ——
+            splitMain = new SplitContainer
             {
                 Dock = DockStyle.Fill,
                 Orientation = Orientation.Horizontal,
-                SplitterDistance = 180,
-                BackColor = Color.FromArgb(15, 23, 42)
+                SplitterDistance = 210,
+                SplitterWidth = 8,
+                BackColor = Color.Transparent,
+                Panel1MinSize = 120,
+                Panel2MinSize = 140
+            };
+            splitMain.Panel1.BackColor = Color.Transparent;
+            splitMain.Panel2.BackColor = Color.Transparent;
+
+            Panel pnlWorkersCard = CreateSurfacePanel(DockStyle.Fill, 0);
+            pnlWorkersCard.Paint += PaintSurfaceCard;
+            pnlWorkersCard.Padding = new Padding(2);
+
+            pnlWorkersHeader = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 44,
+                BackColor = Color.Transparent,
+                Padding = new Padding(14, 8, 14, 4)
             };
 
-            // Top: Workers List
-            Panel pnlWorkersHeader = new Panel { Dock = DockStyle.Top, Height = 32, BackColor = Color.FromArgb(15, 23, 42) };
-            Label lblWorkersTitle = new Label { Text = "🖥️ หน้าต่าง Chrome บอทที่กำลังทำงาน (Multi-Browser Workers):", AutoSize = true, Location = new Point(10, 8), Font = new Font("Segoe UI", 9.5f, FontStyle.Bold) };
-            
-            btnPauseWorker = CreateButton("⏸️ พัก / ▶️ ต่อ", Color.FromArgb(217, 119, 6), 125, 26);
-            btnPauseWorker.Location = new Point(640, 3);
+            Label lblWorkersTitle = new Label
+            {
+                Text = "หน้าต่าง Chrome ที่กำลังทำงาน",
+                Font = UiTheme.UiFont(11f, FontStyle.Bold),
+                ForeColor = UiTheme.BrandDeep,
+                AutoSize = true,
+                Location = new Point(14, 12),
+                BackColor = Color.Transparent
+            };
+            pnlWorkersHeader.Controls.Add(lblWorkersTitle);
+
+            btnPauseWorker = CreateButton("พัก / ต่อ", UiTheme.Warning, 108, 30, false);
             btnPauseWorker.Click += BtnPause_Click;
             pnlWorkersHeader.Controls.Add(btnPauseWorker);
 
-            btnStop = CreateButton("⏹️ ยกเลิกบอทที่เลือก", Color.FromArgb(220, 38, 38), 145, 26);
-            btnStop.Location = new Point(780, 3);
+            btnStop = CreateButton("ยกเลิกที่เลือก", UiTheme.Danger, 124, 30, false);
             btnStop.Click += BtnCancel_Click;
-            pnlWorkersHeader.Controls.Add(lblWorkersTitle);
             pnlWorkersHeader.Controls.Add(btnStop);
-            split.Panel1.Controls.Add(pnlWorkersHeader);
+
+            pnlWorkersCard.Controls.Add(pnlWorkersHeader);
 
             lvWorkers = new ListView
             {
                 Dock = DockStyle.Fill,
                 View = View.Details,
                 FullRowSelect = true,
-                BackColor = Color.FromArgb(30, 41, 59),
-                ForeColor = Color.White,
-                BorderStyle = BorderStyle.None
+                BackColor = UiTheme.SurfaceSoft,
+                ForeColor = UiTheme.Text,
+                BorderStyle = BorderStyle.None,
+                Font = UiTheme.UiFont(9.5f, FontStyle.Regular),
+                HeaderStyle = ColumnHeaderStyle.Nonclickable,
+                HideSelection = false,
+                GridLines = false
             };
-            lvWorkers.Columns.Add("Worker ID", 110);
-            lvWorkers.Columns.Add("รหัสวิชา", 130);
-            lvWorkers.Columns.Add("โหมด", 90);
-            lvWorkers.Columns.Add("สถานะการทำงาน", 350);
-            split.Panel1.Controls.Add(lvWorkers);
+            lvWorkers.Columns.Add("Worker ID", 120);
+            lvWorkers.Columns.Add("รหัสวิชา", 140);
+            lvWorkers.Columns.Add("โหมด", 100);
+            lvWorkers.Columns.Add("สถานะการทำงาน", 420);
+            pnlWorkersCard.Controls.Add(lvWorkers);
+            // Ensure header stays on top of list
+            lvWorkers.BringToFront();
+            pnlWorkersHeader.BringToFront();
+            // Fix z-order: Dock Fill then Dock Top means Top wins for layout; add header first then list is wrong.
+            // Re-add in correct order: list first (fill), header second (top).
+            pnlWorkersCard.Controls.Clear();
+            pnlWorkersCard.Controls.Add(lvWorkers);
+            pnlWorkersCard.Controls.Add(pnlWorkersHeader);
 
-            // Bottom: Logs
-            Panel pnlLogsHeader = new Panel { Dock = DockStyle.Top, Height = 28, BackColor = Color.FromArgb(15, 23, 42) };
-            Label lblLogsTitle = new Label { Text = "📜 บันทึกการทำงานเรียลไทม์ (Live Logs):", AutoSize = true, Location = new Point(10, 6), Font = new Font("Segoe UI", 9.5f, FontStyle.Bold) };
+            splitMain.Panel1.Controls.Add(pnlWorkersCard);
+
+            Panel pnlLogsCard = CreateSurfacePanel(DockStyle.Fill, 0);
+            pnlLogsCard.Paint += PaintSurfaceCard;
+
+            Panel pnlLogsHeader = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 40,
+                BackColor = Color.Transparent
+            };
+            Label lblLogsTitle = new Label
+            {
+                Text = "บันทึกการทำงานเรียลไทม์",
+                Font = UiTheme.UiFont(11f, FontStyle.Bold),
+                ForeColor = UiTheme.BrandDeep,
+                AutoSize = true,
+                Location = new Point(14, 10),
+                BackColor = Color.Transparent
+            };
             pnlLogsHeader.Controls.Add(lblLogsTitle);
-            split.Panel2.Controls.Add(pnlLogsHeader);
 
             rtbLogs = new RichTextBox
             {
                 Dock = DockStyle.Fill,
-                BackColor = Color.FromArgb(9, 13, 22),
-                ForeColor = Color.FromArgb(165, 180, 252),
-                Font = new Font("Consolas", 9.5f),
+                BackColor = UiTheme.LogBg,
+                ForeColor = UiTheme.LogDefault,
+                Font = UiTheme.MonoFont(9.5f),
                 ReadOnly = true,
-                BorderStyle = BorderStyle.None
+                BorderStyle = BorderStyle.None,
+                DetectUrls = false
             };
-            split.Panel2.Controls.Add(rtbLogs);
 
-            this.Controls.Add(split);
+            pnlLogsCard.Controls.Add(rtbLogs);
+            pnlLogsCard.Controls.Add(pnlLogsHeader);
+            splitMain.Panel2.Controls.Add(pnlLogsCard);
 
-            this.FormClosing += (s, e) => {
+            // Add in reverse dock order: Fill first, then Top panels
+            this.Controls.Add(splitMain);
+            this.Controls.Add(spacer);
+            this.Controls.Add(pnlControls);
+            this.Controls.Add(pnlHeader);
+
+            this.Resize += (s, e) => LayoutChrome();
+            LayoutChrome();
+
+            this.FormClosing += (s, e) =>
+            {
                 foreach (var p in runningWorkers.Values)
                 {
                     try { if (!p.HasExited) p.Kill(); } catch { }
@@ -297,7 +485,106 @@ namespace TSUBotDesktop
             };
         }
 
-        private Button CreateButton(string text, Color bg, int width, int height)
+        private void LayoutChrome()
+        {
+            if (pnlHeader != null && btnCheckUpdate != null)
+            {
+                int rightPad = 22;
+                btnCheckUpdate.Location = new Point(
+                    Math.Max(360, pnlHeader.ClientSize.Width - btnCheckUpdate.Width - rightPad),
+                    28);
+                if (lblVersion != null && lblBrand != null)
+                {
+                    lblVersion.Location = new Point(lblBrand.Right + 12, 28);
+                }
+            }
+
+            if (pnlWorkersHeader != null && btnStop != null && btnPauseWorker != null)
+            {
+                int right = pnlWorkersHeader.ClientSize.Width - 14;
+                btnStop.Location = new Point(right - btnStop.Width, 7);
+                btnPauseWorker.Location = new Point(btnStop.Left - 10 - btnPauseWorker.Width, 7);
+            }
+
+            if (lvWorkers != null && lvWorkers.Columns.Count >= 4 && lvWorkers.ClientSize.Width > 100)
+            {
+                int w = lvWorkers.ClientSize.Width;
+                lvWorkers.Columns[0].Width = 120;
+                lvWorkers.Columns[1].Width = 140;
+                lvWorkers.Columns[2].Width = 100;
+                lvWorkers.Columns[3].Width = Math.Max(200, w - 370);
+            }
+        }
+
+        private Panel CreateSurfacePanel(DockStyle dock, int height)
+        {
+            Panel p = new Panel
+            {
+                Dock = dock,
+                Height = height,
+                BackColor = UiTheme.Surface
+            };
+            return p;
+        }
+
+        private void PaintSurfaceCard(object sender, PaintEventArgs e)
+        {
+            Panel p = sender as Panel;
+            if (p == null) return;
+            Rectangle r = new Rectangle(0, 0, p.Width - 1, p.Height - 1);
+            using (Pen pen = new Pen(UiTheme.Line))
+            {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                e.Graphics.DrawRectangle(pen, r);
+            }
+            using (Pen accent = new Pen(Color.FromArgb(90, UiTheme.Brand), 2))
+            {
+                e.Graphics.DrawLine(accent, 0, 0, p.Width, 0);
+            }
+        }
+
+        private Label CreateFieldLabel(string text, Point location)
+        {
+            return new Label
+            {
+                Text = text,
+                Location = location,
+                AutoSize = true,
+                ForeColor = UiTheme.TextMuted,
+                BackColor = Color.Transparent,
+                Font = UiTheme.UiFont(9f, FontStyle.Regular)
+            };
+        }
+
+        private ComboBox CreateCombo(Point location, int width)
+        {
+            return new ComboBox
+            {
+                Location = location,
+                Width = width,
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                BackColor = UiTheme.SurfaceSoft,
+                ForeColor = UiTheme.Text,
+                FlatStyle = FlatStyle.Flat,
+                Font = UiTheme.UiFont(9.5f, FontStyle.Regular)
+            };
+        }
+
+        private TextBox CreateTextBox(Point location, int width)
+        {
+            return new TextBox
+            {
+                Location = location,
+                Width = width,
+                Height = 28,
+                BackColor = UiTheme.SurfaceSoft,
+                ForeColor = UiTheme.Text,
+                BorderStyle = BorderStyle.FixedSingle,
+                Font = UiTheme.UiFont(9.5f, FontStyle.Regular)
+            };
+        }
+
+        private Button CreateButton(string text, Color bg, int width, int height, bool primary)
         {
             Button btn = new Button
             {
@@ -308,9 +595,25 @@ namespace TSUBotDesktop
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand,
-                Font = new Font("Segoe UI", 9.5f, FontStyle.Bold)
+                Font = UiTheme.UiFont(primary ? 9.5f : 9f, FontStyle.Bold),
+                TextAlign = ContentAlignment.MiddleCenter,
+                UseVisualStyleBackColor = false
             };
             btn.FlatAppearance.BorderSize = 0;
+            btn.FlatAppearance.MouseOverBackColor = UiTheme.Lighten(bg, 18);
+            btn.FlatAppearance.MouseDownBackColor = UiTheme.Darken(bg, 18);
+            btn.Padding = new Padding(4, 0, 4, 0);
+            btn.Tag = bg;
+
+            btn.MouseEnter += (s, e) =>
+            {
+                Color baseBg = (btn.Tag is Color) ? (Color)btn.Tag : btn.BackColor;
+                btn.BackColor = UiTheme.Lighten(baseBg, 14);
+            };
+            btn.MouseLeave += (s, e) =>
+            {
+                if (btn.Tag is Color) btn.BackColor = (Color)btn.Tag;
+            };
             return btn;
         }
 
@@ -323,7 +626,7 @@ namespace TSUBotDesktop
             }
             rtbLogs.SelectionStart = rtbLogs.TextLength;
             rtbLogs.SelectionLength = 0;
-            rtbLogs.SelectionColor = color ?? Color.FromArgb(165, 180, 252);
+            rtbLogs.SelectionColor = color ?? UiTheme.LogDefault;
             rtbLogs.AppendText(string.Format("[{0}] {1}\n", DateTime.Now.ToString("HH:mm:ss"), text));
             rtbLogs.ScrollToCaret();
         }
@@ -427,7 +730,7 @@ namespace TSUBotDesktop
             string pwDir = Path.Combine(appDir, "node_modules", "playwright");
             if (!Directory.Exists(pwDir))
             {
-                AppendLog("⚠️ ยังไม่พบโมดูล playwright กำลังติดตั้งระบบให้อัตโนมัติ (ครั้งแรกครั้งเดียว)...", Color.FromArgb(245, 158, 11));
+                AppendLog("ยังไม่พบโมดูล playwright กำลังติดตั้งระบบให้อัตโนมัติ (ครั้งแรกครั้งเดียว)...", UiTheme.Warning);
                 try
                 {
                     ProcessStartInfo psi = new ProcessStartInfo
@@ -442,18 +745,18 @@ namespace TSUBotDesktop
                     };
                     Process p = Process.Start(psi);
                     p.WaitForExit();
-                    AppendLog("✅ ติดตั้งระบบเรียบร้อยแล้ว!", Color.FromArgb(52, 211, 153));
+                    AppendLog("ติดตั้งระบบเรียบร้อยแล้ว!", UiTheme.Success);
                 }
                 catch (Exception ex)
                 {
-                    AppendLog("❌ ไม่สามารถติดตั้งแพ็กเกจได้: " + ex.Message, Color.FromArgb(248, 113, 113));
+                    AppendLog("ไม่สามารถติดตั้งแพ็กเกจได้: " + ex.Message, UiTheme.Danger);
                 }
             }
         }
 
         private void BtnLogin_Click(object sender, EventArgs e)
         {
-            AppendLog("กำลังตรวจสอบระบบและเปิดหน้าต่าง Chrome สำหรับล็อกอินเข้าสู่ระบบ TSU...", Color.FromArgb(52, 211, 153));
+            AppendLog("กำลังตรวจสอบระบบและเปิดหน้าต่าง Chrome สำหรับล็อกอินเข้าสู่ระบบ TSU...", UiTheme.Success);
             Thread t = new Thread(() =>
             {
                 EnsureDependencies();
@@ -482,16 +785,16 @@ namespace TSUBotDesktop
                     p.ErrorDataReceived += (s, ev) =>
                     {
                         if (!string.IsNullOrEmpty(ev.Data))
-                            AppendLog("[ERROR] " + ev.Data, Color.FromArgb(248, 113, 113));
+                            AppendLog("[ERROR] " + ev.Data, UiTheme.Danger);
                     };
                     p.BeginOutputReadLine();
                     p.BeginErrorReadLine();
                     p.WaitForExit();
-                    AppendLog("ปิดหน้าต่างล็อกอินแล้ว บัญชีถูกบันทึกในระบบเรียบร้อย", Color.FromArgb(52, 211, 153));
+                    AppendLog("ปิดหน้าต่างล็อกอินแล้ว บัญชีถูกบันทึกในระบบเรียบร้อย", UiTheme.Success);
                 }
                 catch (Exception ex)
                 {
-                    AppendLog("ข้อผิดพลาดในการเปิดล็อกอิน: " + ex.Message, Color.FromArgb(248, 113, 113));
+                    AppendLog("ข้อผิดพลาดในการเปิดล็อกอิน: " + ex.Message, UiTheme.Danger);
                 }
             });
             t.IsBackground = true;
@@ -513,7 +816,7 @@ namespace TSUBotDesktop
 
             string workerId = "Worker-" + (workerCounter++);
 
-            AppendLog(string.Format("🚀 เริ่มต้น {0} | วิชา: {1} | โหมด: {2}", workerId, courseCode, speed), Color.FromArgb(96, 165, 250));
+            AppendLog(string.Format("เริ่มต้น {0} | วิชา: {1} | โหมด: {2}", workerId, courseCode, speed), UiTheme.Info);
 
             ListViewItem item = new ListViewItem(workerId);
             item.SubItems.Add(courseCode);
@@ -566,7 +869,7 @@ namespace TSUBotDesktop
                     p.ErrorDataReceived += (s, ev) =>
                     {
                         if (!string.IsNullOrEmpty(ev.Data))
-                            AppendLog(string.Format("[{0} ERROR] {1}", workerId, ev.Data), Color.FromArgb(248, 113, 113));
+                            AppendLog(string.Format("[{0} ERROR] {1}", workerId, ev.Data), UiTheme.Danger);
                     };
 
                     p.BeginOutputReadLine();
@@ -578,7 +881,7 @@ namespace TSUBotDesktop
                 }
                 catch (Exception ex)
                 {
-                    AppendLog(string.Format("[{0}] Error: {1}", workerId, ex.Message), Color.FromArgb(248, 113, 113));
+                    AppendLog(string.Format("[{0}] Error: {1}", workerId, ex.Message), UiTheme.Danger);
                 }
             });
             t.IsBackground = true;
@@ -626,7 +929,6 @@ namespace TSUBotDesktop
             }
             else
             {
-                // Toggle all running workers
                 bool anyRunning = false;
                 foreach (var kvp in runningWorkers)
                 {
@@ -664,20 +966,20 @@ namespace TSUBotDesktop
                 {
                     p.StandardInput.WriteLine("pause");
                     workerPausedStates[workerId] = true;
-                    AppendLog(string.Format("⏸️ [หยุดชั่วคราว] {0} หยุดการทำงานชั่วคราวแล้ว", workerId), Color.FromArgb(245, 158, 11));
-                    UpdateWorkerStatus(workerId, "⏸️ หยุดชั่วคราว (Paused)");
+                    AppendLog(string.Format("[หยุดชั่วคราว] {0} หยุดการทำงานชั่วคราวแล้ว", workerId), UiTheme.Warning);
+                    UpdateWorkerStatus(workerId, "หยุดชั่วคราว (Paused)");
                 }
                 else
                 {
                     p.StandardInput.WriteLine("resume");
                     workerPausedStates[workerId] = false;
-                    AppendLog(string.Format("▶️ [ทำงานต่อ] {0} กลับมาทำงานต่อแล้ว", workerId), Color.FromArgb(52, 211, 153));
-                    UpdateWorkerStatus(workerId, "▶️ กำลังทำงานต่อ (Resumed)");
+                    AppendLog(string.Format("[ทำงานต่อ] {0} กลับมาทำงานต่อแล้ว", workerId), UiTheme.Success);
+                    UpdateWorkerStatus(workerId, "กำลังทำงานต่อ (Resumed)");
                 }
             }
             catch (Exception ex)
             {
-                AppendLog(string.Format("❌ ข้อผิดพลาดในการส่งคำสั่ง Pause/Resume: {0}", ex.Message), Color.FromArgb(248, 113, 113));
+                AppendLog(string.Format("ข้อผิดพลาดในการส่งคำสั่ง Pause/Resume: {0}", ex.Message), UiTheme.Danger);
             }
         }
 
@@ -685,22 +987,26 @@ namespace TSUBotDesktop
         {
             if (isPaused)
             {
-                btnPause.Text = "▶️ ทำงานต่อ";
-                btnPause.BackColor = Color.FromArgb(16, 185, 129); // Emerald Green
+                btnPause.Text = "ทำงานต่อ";
+                btnPause.BackColor = UiTheme.Success;
+                btnPause.Tag = UiTheme.Success;
                 if (btnPauseWorker != null)
                 {
-                    btnPauseWorker.Text = "▶️ ทำงานต่อ";
-                    btnPauseWorker.BackColor = Color.FromArgb(16, 185, 129);
+                    btnPauseWorker.Text = "ทำงานต่อ";
+                    btnPauseWorker.BackColor = UiTheme.Success;
+                    btnPauseWorker.Tag = UiTheme.Success;
                 }
             }
             else
             {
-                btnPause.Text = "⏸️ หยุดชั่วคราว";
-                btnPause.BackColor = Color.FromArgb(217, 119, 6); // Amber
+                btnPause.Text = "หยุดชั่วคราว";
+                btnPause.BackColor = UiTheme.Warning;
+                btnPause.Tag = UiTheme.Warning;
                 if (btnPauseWorker != null)
                 {
-                    btnPauseWorker.Text = "⏸️ พัก / ▶️ ต่อ";
-                    btnPauseWorker.BackColor = Color.FromArgb(217, 119, 6);
+                    btnPauseWorker.Text = "พัก / ต่อ";
+                    btnPauseWorker.BackColor = UiTheme.Warning;
+                    btnPauseWorker.Tag = UiTheme.Warning;
                 }
             }
         }
@@ -761,14 +1067,14 @@ namespace TSUBotDesktop
                 t.IsBackground = true;
                 t.Start();
 
-                AppendLog(string.Format("⏹️ [ยกเลิก] {0} ได้รับคำสั่งยกเลิกการทำงานและกำลังปิดหน้าต่าง", workerId), Color.FromArgb(239, 68, 68));
-                UpdateWorkerStatus(workerId, "⏹️ ยกเลิกการทำงานแล้ว (Stopped)");
+                AppendLog(string.Format("[ยกเลิก] {0} ได้รับคำสั่งยกเลิกการทำงานและกำลังปิดหน้าต่าง", workerId), UiTheme.Danger);
+                UpdateWorkerStatus(workerId, "ยกเลิกการทำงานแล้ว (Stopped)");
                 runningWorkers.Remove(workerId);
                 if (workerPausedStates.ContainsKey(workerId)) workerPausedStates.Remove(workerId);
             }
             catch (Exception ex)
             {
-                AppendLog(string.Format("ข้อผิดพลาดในการยกเลิก {0}: {1}", workerId, ex.Message), Color.FromArgb(248, 113, 113));
+                AppendLog(string.Format("ข้อผิดพลาดในการยกเลิก {0}: {1}", workerId, ex.Message), UiTheme.Danger);
             }
         }
 
@@ -776,41 +1082,63 @@ namespace TSUBotDesktop
         {
             Form dlg = new Form
             {
-                Text = "⚙️ ตั้งค่ารายวิชาและลิงก์ URL (Course Settings)",
-                Size = new Size(820, 560),
+                Text = "ตั้งค่ารายวิชาและลิงก์ URL",
+                Size = new Size(860, 600),
                 StartPosition = FormStartPosition.CenterParent,
-                BackColor = Color.FromArgb(15, 23, 42),
-                ForeColor = Color.White,
+                BackColor = UiTheme.BgWash,
+                ForeColor = UiTheme.Text,
                 FormBorderStyle = FormBorderStyle.FixedDialog,
                 MaximizeBox = false,
                 MinimizeBox = false,
-                Font = new Font("Segoe UI", 9.5f)
+                Font = UiTheme.UiFont(9.5f, FontStyle.Regular)
             };
+
+            Panel card = new Panel
+            {
+                Location = new Point(16, 16),
+                Size = new Size(812, 528),
+                BackColor = UiTheme.Surface
+            };
+            card.Paint += PaintSurfaceCard;
+            dlg.Controls.Add(card);
 
             Label lblH = new Label
             {
-                Text = "⚙️ ตั้งค่ารายวิชา (กำหนดชื่อวิชา และแนบลิงก์ URL ให้ตรงกับวิชานั้น)",
-                Font = new Font("Segoe UI", 12f, FontStyle.Bold),
-                ForeColor = Color.FromArgb(96, 165, 250),
-                Location = new Point(20, 15),
-                AutoSize = true
+                Text = "ตั้งค่ารายวิชา",
+                Font = UiTheme.UiFont(16f, FontStyle.Bold),
+                ForeColor = UiTheme.Brand,
+                Location = new Point(20, 16),
+                AutoSize = true,
+                BackColor = Color.Transparent
             };
-            dlg.Controls.Add(lblH);
+            card.Controls.Add(lblH);
+
+            Label lblSub = new Label
+            {
+                Text = "กำหนดชื่อวิชา และแนบลิงก์ URL ให้ตรงกับวิชานั้น",
+                Font = UiTheme.UiFont(9.5f, FontStyle.Regular),
+                ForeColor = UiTheme.TextMuted,
+                Location = new Point(22, 48),
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+            card.Controls.Add(lblSub);
 
             ListView lv = new ListView
             {
-                Location = new Point(20, 55),
-                Size = new Size(765, 220),
+                Location = new Point(20, 78),
+                Size = new Size(772, 210),
                 View = View.Details,
                 FullRowSelect = true,
-                BackColor = Color.FromArgb(30, 41, 59),
-                ForeColor = Color.White,
-                BorderStyle = BorderStyle.FixedSingle
+                BackColor = UiTheme.SurfaceSoft,
+                ForeColor = UiTheme.Text,
+                BorderStyle = BorderStyle.FixedSingle,
+                Font = UiTheme.UiFont(9.5f, FontStyle.Regular)
             };
             lv.Columns.Add("รหัสวิชา (Code)", 130);
             lv.Columns.Add("ชื่อวิชา (Course Name)", 260);
             lv.Columns.Add("ลิงก์ URL ประจำวิชา (Default URL)", 360);
-            dlg.Controls.Add(lv);
+            card.Controls.Add(lv);
 
             Action populateList = () =>
             {
@@ -826,17 +1154,17 @@ namespace TSUBotDesktop
             };
             populateList();
 
-            Label l1 = new Label { Text = "รหัสวิชา (Course Code):", Location = new Point(20, 290), AutoSize = true, ForeColor = Color.FromArgb(203, 213, 225) };
-            TextBox tCode = new TextBox { Location = new Point(20, 315), Width = 180, BackColor = Color.FromArgb(30, 41, 59), ForeColor = Color.White };
-            dlg.Controls.Add(l1); dlg.Controls.Add(tCode);
+            Label l1 = new Label { Text = "รหัสวิชา (Course Code)", Location = new Point(20, 304), AutoSize = true, ForeColor = UiTheme.TextMuted, BackColor = Color.Transparent };
+            TextBox tCode = CreateTextBox(new Point(20, 326), 180);
+            card.Controls.Add(l1); card.Controls.Add(tCode);
 
-            Label l2 = new Label { Text = "ชื่อวิชา (Course Name):", Location = new Point(220, 290), AutoSize = true, ForeColor = Color.FromArgb(203, 213, 225) };
-            TextBox tName = new TextBox { Location = new Point(220, 315), Width = 565, BackColor = Color.FromArgb(30, 41, 59), ForeColor = Color.White };
-            dlg.Controls.Add(l2); dlg.Controls.Add(tName);
+            Label l2 = new Label { Text = "ชื่อวิชา (Course Name)", Location = new Point(220, 304), AutoSize = true, ForeColor = UiTheme.TextMuted, BackColor = Color.Transparent };
+            TextBox tName = CreateTextBox(new Point(220, 326), 572);
+            card.Controls.Add(l2); card.Controls.Add(tName);
 
-            Label l3 = new Label { Text = "ลิงก์ URL ประจำวิชา (เช่น https://apps.course.tsu.ac.th/learning/course/.../home):", Location = new Point(20, 355), AutoSize = true, ForeColor = Color.FromArgb(203, 213, 225) };
-            TextBox tUrl = new TextBox { Location = new Point(20, 380), Width = 765, BackColor = Color.FromArgb(30, 41, 59), ForeColor = Color.White };
-            dlg.Controls.Add(l3); dlg.Controls.Add(tUrl);
+            Label l3 = new Label { Text = "ลิงก์ URL ประจำวิชา (เช่น https://apps.course.tsu.ac.th/learning/course/.../home)", Location = new Point(20, 366), AutoSize = true, ForeColor = UiTheme.TextMuted, BackColor = Color.Transparent };
+            TextBox tUrl = CreateTextBox(new Point(20, 388), 772);
+            card.Controls.Add(l3); card.Controls.Add(tUrl);
 
             lv.SelectedIndexChanged += (s, ev) =>
             {
@@ -873,8 +1201,8 @@ namespace TSUBotDesktop
                 File.WriteAllText(customDb, sb.ToString(), Encoding.UTF8);
             };
 
-            Button btnSave = CreateButton("💾 บันทึกการแก้ไข", Color.FromArgb(16, 185, 129), 150, 36);
-            btnSave.Location = new Point(20, 435);
+            Button btnSave = CreateButton("บันทึกการแก้ไข", UiTheme.Success, 150, 36, true);
+            btnSave.Location = new Point(20, 440);
             btnSave.Click += (s, ev) =>
             {
                 string code = tCode.Text.Trim();
@@ -910,13 +1238,13 @@ namespace TSUBotDesktop
                 saveAllToDisk();
                 populateList();
                 LoadCourses();
-                AppendLog(string.Format("⚙️ บันทึกการตั้งค่าวิชา {0} (URL: {1}) เรียบร้อยแล้ว", code, url), Color.FromArgb(52, 211, 153));
+                AppendLog(string.Format("บันทึกการตั้งค่าวิชา {0} (URL: {1}) เรียบร้อยแล้ว", code, url), UiTheme.Success);
                 MessageBox.Show("บันทึกการตั้งค่ารายวิชาเรียบร้อยแล้ว!", "สำเร็จ", MessageBoxButtons.OK, MessageBoxIcon.Information);
             };
-            dlg.Controls.Add(btnSave);
+            card.Controls.Add(btnSave);
 
-            Button btnAddNew = CreateButton("➕ เพิ่มเป็นวิชาใหม่", Color.FromArgb(37, 99, 235), 150, 36);
-            btnAddNew.Location = new Point(185, 435);
+            Button btnAddNew = CreateButton("เพิ่มเป็นวิชาใหม่", UiTheme.Brand, 150, 36, false);
+            btnAddNew.Location = new Point(180, 440);
             btnAddNew.Click += (s, ev) =>
             {
                 string code = tCode.Text.Trim();
@@ -942,13 +1270,13 @@ namespace TSUBotDesktop
                 saveAllToDisk();
                 populateList();
                 LoadCourses();
-                AppendLog(string.Format("➕ เพิ่มวิชาใหม่ {0} - {1} เรียบร้อย", code, name), Color.FromArgb(52, 211, 153));
+                AppendLog(string.Format("เพิ่มวิชาใหม่ {0} - {1} เรียบร้อย", code, name), UiTheme.Success);
                 MessageBox.Show("เพิ่มวิชาใหม่เรียบร้อยแล้ว!", "สำเร็จ", MessageBoxButtons.OK, MessageBoxIcon.Information);
             };
-            dlg.Controls.Add(btnAddNew);
+            card.Controls.Add(btnAddNew);
 
-            Button btnDel = CreateButton("🗑️ ลบวิชาที่เลือก", Color.FromArgb(239, 68, 68), 130, 36);
-            btnDel.Location = new Point(350, 435);
+            Button btnDel = CreateButton("ลบวิชาที่เลือก", UiTheme.Danger, 130, 36, false);
+            btnDel.Location = new Point(340, 440);
             btnDel.Click += (s, ev) =>
             {
                 if (lv.SelectedItems.Count == 0)
@@ -966,15 +1294,15 @@ namespace TSUBotDesktop
                     populateList();
                     LoadCourses();
                     tCode.Clear(); tName.Clear(); tUrl.Clear();
-                    AppendLog(string.Format("🗑️ ลบวิชา {0} เรียบร้อย", ci.Code), Color.FromArgb(239, 68, 68));
+                    AppendLog(string.Format("ลบวิชา {0} เรียบร้อย", ci.Code), UiTheme.Danger);
                 }
             };
-            dlg.Controls.Add(btnDel);
+            card.Controls.Add(btnDel);
 
-            Button btnClose = CreateButton("ปิดหน้าต่าง", Color.FromArgb(71, 85, 105), 100, 36);
-            btnClose.Location = new Point(685, 435);
+            Button btnClose = CreateButton("ปิดหน้าต่าง", UiTheme.TextMuted, 110, 36, false);
+            btnClose.Location = new Point(682, 440);
             btnClose.Click += (s, ev) => dlg.Close();
-            dlg.Controls.Add(btnClose);
+            card.Controls.Add(btnClose);
 
             dlg.ShowDialog();
         }
@@ -1012,8 +1340,8 @@ namespace TSUBotDesktop
 
                         if (latestVer != APP_VERSION)
                         {
-                            string msg = string.Format("🎉 พบอัปเดตใหม่: v{0} (ปัจจุบัน v{1})\n\nรายละเอียด:\n{2}\n\nต้องการอัปเดตโปรแกรมตอนนี้เลยหรือไม่?\n(ระบบจะดาวน์โหลดและเริ่มโปรแกรมใหม่ให้อัตโนมัติ โดยไม่ต้องโหลดไฟล์ใหม่)", latestVer, APP_VERSION, changelog);
-                            if (MessageBox.Show(msg, "📢 มีอัปเดตเวอร์ชันใหม่", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
+                            string msg = string.Format("พบอัปเดตใหม่: v{0} (ปัจจุบัน v{1})\n\nรายละเอียด:\n{2}\n\nต้องการอัปเดตโปรแกรมตอนนี้เลยหรือไม่?\n(ระบบจะดาวน์โหลดและเริ่มโปรแกรมใหม่ให้อัตโนมัติ โดยไม่ต้องโหลดไฟล์ใหม่)", latestVer, APP_VERSION, changelog);
+                            if (MessageBox.Show(msg, "มีอัปเดตเวอร์ชันใหม่", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
                             {
                                 PerformInPlaceUpdate(latestVer);
                             }
@@ -1056,7 +1384,7 @@ namespace TSUBotDesktop
 
         private void PerformDataSync()
         {
-            AppendLog("🔄 กำลังซิงค์ฐานเฉลยข้อสอบล่าสุดจาก GitHub...", Color.FromArgb(96, 165, 250));
+            AppendLog("กำลังซิงค์ฐานเฉลยข้อสอบล่าสุดจาก GitHub...", UiTheme.Info);
             try
             {
                 ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072 | (SecurityProtocolType)12288 | SecurityProtocolType.Tls12;
@@ -1082,18 +1410,18 @@ namespace TSUBotDesktop
                     wc.DownloadFile(baseRaw + "db_manager.js", Path.Combine(appDir, "db_manager.js"));
                 }
                 LoadCourses();
-                AppendLog("✅ ซิงค์ฐานเฉลยและไฟล์ระบบล่าสุดเรียบร้อยแล้ว!", Color.FromArgb(52, 211, 153));
+                AppendLog("ซิงค์ฐานเฉลยและไฟล์ระบบล่าสุดเรียบร้อยแล้ว!", UiTheme.Success);
                 MessageBox.Show("ซิงค์ฐานเฉลยและระบบล่าสุดเรียบร้อยแล้ว!", "สำเร็จ", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                AppendLog("❌ ซิงค์ข้อมูลล้มเหลว: " + ex.Message, Color.FromArgb(248, 113, 113));
+                AppendLog("ซิงค์ข้อมูลล้มเหลว: " + ex.Message, UiTheme.Danger);
             }
         }
 
         private void PerformInPlaceUpdate(string targetVersion)
         {
-            AppendLog(string.Format("🚀 กำลังเริ่มดาวน์โหลดอัปเดตเวอร์ชัน v{0}...", targetVersion), Color.FromArgb(96, 165, 250));
+            AppendLog(string.Format("กำลังเริ่มดาวน์โหลดอัปเดตเวอร์ชัน v{0}...", targetVersion), UiTheme.Info);
             try
             {
                 ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072 | (SecurityProtocolType)12288 | SecurityProtocolType.Tls12;
@@ -1120,9 +1448,8 @@ namespace TSUBotDesktop
                     string updateExePath = Path.Combine(appDir, "TSU-BOT-Pro.update");
                     wc.DownloadFile(baseRaw + "TSU-BOT-Pro.exe?t=" + ticks, updateExePath);
 
-                    AppendLog("4/4 เตรียมรีสตาร์ทเพื่อติดตั้ง...", Color.FromArgb(52, 211, 153));
+                    AppendLog("4/4 เตรียมรีสตาร์ทเพื่อติดตั้ง...", UiTheme.Success);
 
-                    // Write self-updating bat with retry loop and process kill
                     string batPath = Path.Combine(appDir, "updater_runner.bat");
                     string currentExe = Process.GetCurrentProcess().MainModule.FileName;
                     int currentPid = Process.GetCurrentProcess().Id;
@@ -1149,7 +1476,6 @@ namespace TSUBotDesktop
                     };
                     Process.Start(psi);
 
-                    // Close current instance
                     if (this.InvokeRequired)
                     {
                         this.Invoke(new Action(() => Application.Exit()));
@@ -1162,7 +1488,7 @@ namespace TSUBotDesktop
             }
             catch (Exception ex)
             {
-                AppendLog("❌ อัปเดตล้มเหลว: " + ex.Message, Color.FromArgb(248, 113, 113));
+                AppendLog("อัปเดตล้มเหลว: " + ex.Message, UiTheme.Danger);
                 MessageBox.Show("เกิดข้อผิดพลาดในการอัปเดต: " + ex.Message, "ผิดพลาด", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
