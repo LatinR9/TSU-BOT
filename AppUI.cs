@@ -43,6 +43,14 @@ namespace TSUBotDesktop
 
         public MainForm()
         {
+            try
+            {
+                ServicePointManager.Expect100Continue = true;
+                ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072 | (SecurityProtocolType)12288 | SecurityProtocolType.Tls12;
+                ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+            }
+            catch { }
+
             appDir = AppDomain.CurrentDomain.BaseDirectory;
             ResolveNodePath();
             InitializeComponent();
@@ -549,6 +557,9 @@ namespace TSUBotDesktop
             {
                 try
                 {
+                    ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072 | (SecurityProtocolType)12288 | SecurityProtocolType.Tls12;
+                    ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+
                     using (WebClient wc = new WebClient())
                     {
                         wc.Headers.Add("User-Agent", "TSU-BOT-Desktop");
@@ -596,6 +607,9 @@ namespace TSUBotDesktop
             AppendLog("🔄 กำลังซิงค์ฐานเฉลยข้อสอบล่าสุดจาก GitHub...", Color.FromArgb(96, 165, 250));
             try
             {
+                ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072 | (SecurityProtocolType)12288 | SecurityProtocolType.Tls12;
+                ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+
                 using (WebClient wc = new WebClient())
                 {
                     wc.Headers.Add("User-Agent", "TSU-BOT-Desktop");
@@ -622,6 +636,9 @@ namespace TSUBotDesktop
             AppendLog(string.Format("🚀 กำลังเริ่มดาวน์โหลดอัปเดตเวอร์ชัน v{0}...", targetVersion), Color.FromArgb(96, 165, 250));
             try
             {
+                ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072 | (SecurityProtocolType)12288 | SecurityProtocolType.Tls12;
+                ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+
                 using (WebClient wc = new WebClient())
                 {
                     wc.Headers.Add("User-Agent", "TSU-BOT-Desktop");
