@@ -46,7 +46,7 @@ Requires .NET Framework 4.x (`csc.exe` ships with the Framework runtime / Develo
 build_desktop.bat
 ```
 
-This compiles `AppUI.cs` to `TSU-BOT-Pro.exe` and copies it to `dist\TSU-BOT-Pro.exe`.
+This compiles `AppUI.cs` to `TSU-BOT-Pro.exe`, copies it to `dist\TSU-BOT-Pro.exe`, and writes the exe **SHA-256** into `version.json` (`sha256` field) for the in-app updater.
 
 Manual equivalent:
 
@@ -55,6 +55,8 @@ Manual equivalent:
 ```
 
 Linux CI / Cloud Agent environments cannot produce a trustworthy Windows WinForms PE here (no Windows `csc` / Wine toolchain in this image). Ship polished `AppUI.cs` and rebuild the `.exe` on a Windows machine with the script above.
+
+In-app updates read `version.json` from GitHub (`version`, `changelog`, `sha256`), verify the downloaded exe hash before swap, keep `TSU-BOT-Pro.exe.bak`, and refuse mismatch/missing hashes. Optional local `github_token.txt` is supported for private repos — never commit it.
 
 ### Related
 - `Launcher.cs` — tray launcher that starts the Node web dashboard (`localhost:3000`), separate from the WinForms desktop suite.
