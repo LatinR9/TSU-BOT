@@ -552,32 +552,126 @@ namespace TSUBotDesktop
                     using (WebClient wc = new WebClient())
                     {
                         wc.Headers.Add("User-Agent", "TSU-BOT-Desktop");
-                        string json = wc.DownloadString(string.Format("https://api.github.com/repos/{0}/releases/latest", GITHUB_REPO));
-                        Match m = Regex.Match(json, "\"tag_name\"\\s*:\\s*\"v?([0-9\\.]+)\"");
-                        if (m.Success)
+                        wc.Encoding = Encoding.UTF8;
+                        string rawUrl = string.Format("https://raw.githubusercontent.com/{0}/main/version.json", GITHUB_REPO);
+                        string json = wc.DownloadString(rawUrl);
+
+                        Match mV = Regex.Match(json, "\"version\"\\s*:\\s*\"([^\"]+)\"");
+                        Match mC = Regex.Match(json, "\"changelog\"\\s*:\\s*\"([^\"]+)\"");
+
+                        string latestVer = mV.Success ? mV.Groups[1].Value : APP_VERSION;
+                        string changelog = mC.Success ? mC.Groups[1].Value : "การปรับปรุงประสิทธิภาพทั่วไป";
+
+                        if (latestVer != APP_VERSION)
                         {
-                            string latest = m.Groups[1].Value;
-                            if (latest != APP_VERSION)
+                            string msg = string.Format("🎉 พบอัปเดตใหม่: v{0} (ปัจจุบัน v{1})\n\nรายละเอียด:\n{2}\n\nต้องการอัปเดตโปรแกรมตอนนี้เลยหรือไม่?\n(ระบบจะดาวน์โหลดและเริ่มโปรแกรมใหม่ให้อัตโนมัติ โดยไม่ต้องโหลดไฟล์ใหม่)", latestVer, APP_VERSION, changelog);
+                            if (MessageBox.Show(msg, "📢 มีอัปเดตเวอร์ชันใหม่", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
                             {
-                                if (MessageBox.Show(string.Format("มีเวอร์ชันใหม่ v{0} (เวอร์ชันปัจจุบัน v{1})\nต้องการเปิดหน้าดาวน์โหลดบน GitHub หรือไม่?", latest, APP_VERSION), "📢 มีอัปเดตใหม่", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
-                                {
-                                    Process.Start(string.Format("https://github.com/{0}/releases", GITHUB_REPO));
-                                }
-                                return;
+                                PerformInPlaceUpdate(latestVer);
                             }
+                            return;
                         }
                     }
+
                     if (verbose)
-                        MessageBox.Show("คุณกำลังใช้งานเวอร์ชันล่าสุด (v" + APP_VERSION + ")", "อัปเดต", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    {
+                        if (MessageBox.Show(string.Format("คุณกำลังใช้งานเวอร์ชันล่าสุด (v{0}) อยู่แล้ว\n\nต้องการซิงค์และอัปเดตฐานเฉลยข้อสอบล่าสุดจาก GitHub ทันทีหรือไม่?", APP_VERSION), "เวอร์ชันล่าสุด", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
+                        {
+                            PerformDataSync();
+                        }
+                    }
                 }
-                catch
+                catch (Exception ex)
                 {
                     if (verbose)
-                        MessageBox.Show("ไม่สามารถเชื่อมต่อเพื่อเช็คอัปเดตได้", "เตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        MessageBox.Show("ไม่สามารถเชื่อมต่อเพื่อเช็คอัปเดตได้: " + ex.Message, "เตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             });
             t.IsBackground = true;
             t.Start();
+        }
+
+        private void PerformDataSync()
+        {
+            AppendLog("🔄 กำลังซิงค์ฐานเฉลยข้อสอบล่าสุดจาก GitHub...", Color.FromArgb(96, 165, 250));
+            try
+            {
+                using (WebClient wc = new WebClient())
+                {
+                    wc.Headers.Add("User-Agent", "TSU-BOT-Desktop");
+                    wc.Encoding = Encoding.UTF8;
+
+                    string baseRaw = string.Format("https://raw.githubusercontent.com/{0}/main/", GITHUB_REPO);
+                    wc.DownloadFile(baseRaw + "tsu_answers.json", Path.Combine(appDir, "tsu_answers.json"));
+                    wc.DownloadFile(baseRaw + "cli_worker.js", Path.Combine(appDir, "cli_worker.js"));
+                    wc.DownloadFile(baseRaw + "worker.js", Path.Combine(appDir, "worker.js"));
+                    wc.DownloadFile(baseRaw + "db_manager.js", Path.Combine(appDir, "db_manager.js"));
+                }
+                LoadCourses();
+                AppendLog("✅ ซิงค์ฐานเฉลยและไฟล์ระบบล่าสุดเรียบร้อยแล้ว!", Color.FromArgb(52, 211, 153));
+                MessageBox.Show("ซิงค์ฐานเฉลยและระบบล่าสุดเรียบร้อยแล้ว!", "สำเร็จ", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                AppendLog("❌ ซิงค์ข้อมูลล้มเหลว: " + ex.Message, Color.FromArgb(248, 113, 113));
+            }
+        }
+
+        private void PerformInPlaceUpdate(string targetVersion)
+        {
+            AppendLog(string.Format("🚀 กำลังเริ่มดาวน์โหลดอัปเดตเวอร์ชัน v{0}...", targetVersion), Color.FromArgb(96, 165, 250));
+            try
+            {
+                using (WebClient wc = new WebClient())
+                {
+                    wc.Headers.Add("User-Agent", "TSU-BOT-Desktop");
+                    string baseRaw = string.Format("https://raw.githubusercontent.com/{0}/main/", GITHUB_REPO);
+
+                    AppendLog("1/4 ดาวน์โหลดฐานเฉลยล่าสุด...");
+                    wc.DownloadFile(baseRaw + "tsu_answers.json", Path.Combine(appDir, "tsu_answers.json"));
+
+                    AppendLog("2/4 ดาวน์โหลดสคริปต์ระบบล่าสุด...");
+                    wc.DownloadFile(baseRaw + "cli_worker.js", Path.Combine(appDir, "cli_worker.js"));
+                    wc.DownloadFile(baseRaw + "worker.js", Path.Combine(appDir, "worker.js"));
+                    wc.DownloadFile(baseRaw + "db_manager.js", Path.Combine(appDir, "db_manager.js"));
+
+                    AppendLog("3/4 ดาวน์โหลดโปรแกรม .exe เวอร์ชั่นใหม่...");
+                    string updateExePath = Path.Combine(appDir, "TSU-BOT-Pro.update");
+                    wc.DownloadFile(baseRaw + "TSU-BOT-Pro.exe", updateExePath);
+
+                    AppendLog("4/4 เตรียมรีสตาร์ทเพื่อติดตั้ง...", Color.FromArgb(52, 211, 153));
+
+                    // Write self-updating bat
+                    string batPath = Path.Combine(appDir, "updater_runner.bat");
+                    string currentExe = Process.GetCurrentProcess().MainModule.FileName;
+                    string batScript = string.Format("@echo off\r\ntimeout /t 2 /nobreak > nul\r\ncopy /y \"{0}\" \"{1}\"\r\ndel \"{0}\"\r\nstart \"\" \"{1}\"\r\ndel \"%~f0\"\r\n", updateExePath, currentExe);
+                    File.WriteAllText(batPath, batScript, Encoding.Default);
+
+                    ProcessStartInfo psi = new ProcessStartInfo
+                    {
+                        FileName = batPath,
+                        WorkingDirectory = appDir,
+                        CreateNoWindow = true,
+                        UseShellExecute = false
+                    };
+                    Process.Start(psi);
+
+                    // Close current instance
+                    if (this.InvokeRequired)
+                    {
+                        this.Invoke(new Action(() => Application.Exit()));
+                    }
+                    else
+                    {
+                        Application.Exit();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                AppendLog("❌ อัปเดตล้มเหลว: " + ex.Message, Color.FromArgb(248, 113, 113));
+                MessageBox.Show("เกิดข้อผิดพลาดในการอัปเดต: " + ex.Message, "ผิดพลาด", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }
