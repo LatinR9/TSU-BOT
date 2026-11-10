@@ -71,6 +71,11 @@ class AutomationWorker {
       await this.page.goto(startUrl, { timeout: 60000 }).catch(e => this.log(`Nav warning: ${e.message}`, 'warn'));
 
       await this.sleep(2000);
+      this.setStatus('running', 'Entering Course');
+
+      // If landed on Course Outline (/home), automatically enter the first lesson
+      await this.enterCourseFromOutline();
+
       this.setStatus('running', 'Executing Loop');
 
       while (!this.shouldStop) {
@@ -79,6 +84,11 @@ class AutomationWorker {
           await this.sleep(1000);
         }
         if (this.shouldStop) break;
+
+        // Ensure we are inside courseware, not stuck on syllabus outline
+        if (this.page.url().includes('/home')) {
+          await this.enterCourseFromOutline();
+        }
 
         await this.processCurrentUnit();
         if (this.shouldStop) break;
@@ -97,6 +107,56 @@ class AutomationWorker {
     } catch (err) {
       this.log(`❌ Error in worker: ${err.message}`, 'error');
       this.setStatus('error', err.message);
+    }
+  }
+
+  async enterCourseFromOutline() {
+    const curUrl = this.page.url();
+    if (curUrl.includes('/home') || curUrl.includes('/courseware') || !curUrl.includes('/block-v1:')) {
+      this.log(`🔍 Checking course outline to enter first lesson...`);
+      await this.sleep(2000);
+
+      // Selectors for Start/Resume button in modern Open edX MFE
+      const resumeSelectors = [
+        'a:has-text("Resume Course")',
+        'a:has-text("Start Course")',
+        'a:has-text("เริ่มเรียน")',
+        'a:has-text("เรียนต่อ")',
+        '.action-resume-course',
+        'a.resume-course-btn',
+        'a.outline-button',
+        'a.course-target-link',
+        'a[href*="/block-v1:"]',
+        'a[href*="/jump_to/"]'
+      ];
+
+      for (const sel of resumeSelectors) {
+        try {
+          const btn = await this.page.$(sel);
+          if (btn) {
+            const isVisible = await btn.isVisible().catch(() => false);
+            if (isVisible) {
+              const text = await btn.innerText().catch(() => '');
+              this.log(`🎯 Clicking course entry: "${text || sel}"...`);
+              await btn.click().catch(() => {});
+              await this.page.waitForLoadState('domcontentloaded', { timeout: 15000 }).catch(() => {});
+              await this.sleep(3000);
+              return;
+            }
+          }
+        } catch (e) {}
+      }
+
+      // If no resume button, try clicking the first lesson link in the course outline
+      try {
+        const outlineLink = await this.page.$('ol.outline-sections a, .course-outline a[href*="/block-v1:"], a[href*="/jump_to/"], .outline-item a, a.unit-link');
+        if (outlineLink) {
+          this.log(`🎯 Clicking first available lesson link in outline...`);
+          await outlineLink.click().catch(() => {});
+          await this.page.waitForLoadState('domcontentloaded', { timeout: 15000 }).catch(() => {});
+          await this.sleep(3000);
+        }
+      } catch (e) {}
     }
   }
 
@@ -264,9 +324,20 @@ class AutomationWorker {
 
   async advanceNextUnit() {
     const nextSelectors = [
+      'button[aria-label="Next"]',
+      'button[aria-label="ถัดไป"]',
       'button.sequence-nav-button.button-next',
+      'nav[aria-label="Unit"] button:has-text("Next")',
+      'nav[aria-label="Unit"] button:has-text("ถัดไป")',
       'button:has-text("Next")',
+      'button:has-text("ถัดไป")',
+      'button:has-text("Next Unit")',
+      'button:has-text("Next Section")',
+      'button:has-text("บทถัดไป")',
+      'a:has-text("Next")',
       'a:has-text("ถัดไป")',
+      'a.next-btn',
+      'a.btn-next',
       '.next-btn'
     ];
 
@@ -277,14 +348,36 @@ class AutomationWorker {
           const isVisible = await btn.isVisible().catch(() => false);
           const isEnabled = await btn.isEnabled().catch(() => false);
           if (isVisible && isEnabled) {
-            this.log(`⏭️ Moving to next unit...`);
+            this.log(`⏭️ Moving to next unit (${sel})...`);
             await btn.click().catch(() => {});
             await this.page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
+            await this.sleep(2000);
             return true;
           }
         }
       } catch (e) {}
     }
+
+    // Secondary approach: Click the next unit bubble in the top sequence nav
+    try {
+      const activeNavTab = await this.page.$('nav[aria-label="Unit"] ol li button[aria-current="true"], .tab-item.active, button.seq_video.active');
+      if (activeNavTab) {
+        const nextNavTab = await this.page.evaluateHandle(el => {
+          const li = el.closest('li');
+          const nextLi = li ? li.nextElementSibling : null;
+          return nextLi ? nextLi.querySelector('button, a') : null;
+        }, activeNavTab);
+
+        if (nextNavTab && nextNavTab.asElement()) {
+          this.log(`⏭️ Moving to next sequence tab at top...`);
+          await nextNavTab.asElement().click().catch(() => {});
+          await this.page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
+          await this.sleep(2000);
+          return true;
+        }
+      }
+    } catch (e) {}
+
     return false;
   }
 
