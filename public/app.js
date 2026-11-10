@@ -90,7 +90,7 @@ async function loadWorkers() {
     container.innerHTML = '';
 
     if (data.workers.length === 0) {
-      container.innerHTML = '<div style="color: #64748b; padding: 20px;">ยังไม่มีหน้าต่างบอทที่กำลังรันอยู่ กดปุ่ม "เริ่มต้นบอทใหม่" ด้านบนเพื่อรัน</div>';
+      container.innerHTML = '<div class="empty-state">ยังไม่มีหน้าต่างบอทที่กำลังรันอยู่ กดปุ่ม "เริ่มต้นบอทใหม่" ด้านบนเพื่อรัน</div>';
       return;
     }
 
@@ -122,9 +122,9 @@ function renderWorkerCard(w) {
     </div>
     <div class="log-box" id="log-${w.id}"></div>
     <div class="worker-actions">
-      <button class="btn btn-warning" onclick="pauseWorker('${w.id}')">⏸️ พัก</button>
-      <button class="btn btn-primary" onclick="resumeWorker('${w.id}')">▶️ ต่อ</button>
-      <button class="btn btn-danger" onclick="stopWorker('${w.id}')">⏹️ ปิด</button>
+      <button class="btn btn-warning" onclick="pauseWorker('${w.id}')" type="button">พัก</button>
+      <button class="btn btn-primary" onclick="resumeWorker('${w.id}')" type="button">ต่อ</button>
+      <button class="btn btn-danger" onclick="stopWorker('${w.id}')" type="button">ปิด</button>
     </div>
   `;
 }
@@ -216,11 +216,11 @@ async function checkAppUpdate(silent = false) {
 
     if (info.hasUpdate) {
       document.getElementById('updateModalBody').innerHTML = `
-        <p>🎉 <strong>มีเวอร์ชันใหม่ให้อัปเดต!</strong></p>
-        <p>เวอร์ชันปัจจุบัน: <strong>v${info.currentVersion}</strong> ➜ เวอร์ชันล่าสุด: <strong style="color: #34d399;">v${info.latestVersion}</strong></p>
-        <p style="margin-top: 10px; font-size: 13px; color: #94a3b8;">${info.releaseNotes || 'การปรับปรุงประสิทธิภาพและเพิ่มฐานเฉลย'}</p>
-        <a href="${info.downloadUrl}" target="_blank" class="btn btn-success" style="margin-top: 15px; text-decoration: none; justify-content: center;">
-          ⬇️ ดาวน์โหลดเวอร์ชันล่าสุด (.exe)
+        <p class="update-lead"><strong>มีเวอร์ชันใหม่ให้อัปเดต!</strong></p>
+        <p class="update-meta">เวอร์ชันปัจจุบัน: <strong>v${info.currentVersion}</strong> → เวอร์ชันล่าสุด: <strong class="update-latest">v${info.latestVersion}</strong></p>
+        <p class="update-notes">${info.releaseNotes || 'การปรับปรุงประสิทธิภาพและเพิ่มฐานเฉลย'}</p>
+        <a href="${info.downloadUrl}" target="_blank" class="btn btn-success">
+          ดาวน์โหลดเวอร์ชันล่าสุด (.exe)
         </a>
       `;
       document.getElementById('updateModal').classList.add('active');
