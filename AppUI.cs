@@ -30,7 +30,7 @@ namespace TSUBotDesktop
         private int workerCounter = 1;
         private string appDir;
         private string nodePath;
-        private const string APP_VERSION = "1.0.0";
+        private const string APP_VERSION = "1.0.1";
         private const string GITHUB_REPO = "LatinR9/TSU-BOT";
 
         [STAThread]
@@ -690,10 +690,22 @@ namespace TSUBotDesktop
 
                     AppendLog("4/4 เตรียมรีสตาร์ทเพื่อติดตั้ง...", Color.FromArgb(52, 211, 153));
 
-                    // Write self-updating bat
+                    // Write self-updating bat with retry loop and process kill
                     string batPath = Path.Combine(appDir, "updater_runner.bat");
                     string currentExe = Process.GetCurrentProcess().MainModule.FileName;
-                    string batScript = string.Format("@echo off\r\ntimeout /t 2 /nobreak > nul\r\ncopy /y \"{0}\" \"{1}\"\r\ndel \"{0}\"\r\nstart \"\" \"{1}\"\r\ndel \"%~f0\"\r\n", updateExePath, currentExe);
+                    int currentPid = Process.GetCurrentProcess().Id;
+                    string batScript = string.Format(
+                        "@echo off\r\n" +
+                        ":loop\r\n" +
+                        "taskkill /F /PID {0} >nul 2>nul\r\n" +
+                        "move /y \"{1}\" \"{2}\" >nul 2>nul\r\n" +
+                        "if errorlevel 1 (\r\n" +
+                        "    timeout /t 1 /nobreak >nul\r\n" +
+                        "    goto loop\r\n" +
+                        ")\r\n" +
+                        "start \"\" \"{2}\"\r\n" +
+                        "del \"%~f0\"\r\n",
+                        currentPid, updateExePath, currentExe);
                     File.WriteAllText(batPath, batScript, Encoding.Default);
 
                     ProcessStartInfo psi = new ProcessStartInfo
