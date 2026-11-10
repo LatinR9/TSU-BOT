@@ -6,6 +6,7 @@
   "bin": "server.js",
   "scripts": {
     "start": "node server.js",
+    "test": "node --test \"test/*.test.js\" && node test/hit_rate.js --min 0.99",
     "build:exe": "npx -y @yao-pkg/pkg . --targets node18-win-x64 --output dist/TSU-BOT.exe"
   },
   "pkg": {
