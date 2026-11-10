@@ -240,226 +240,96 @@ class AutomationWorker {
 
   async isCurrentUnitCompleted() {
     try {
-      // Check multiple quick polls (total ~2 seconds) to account for React / MFE render latency
-      for (let attempt = 0; attempt < 4; attempt++) {
-        const completed = await this.page.evaluate(() => {
-          // --- A. Check Sequence Navigation Bar (Unit tabs between Previous and Next) ---
-          const seqNavSelectors = [
-            'nav[aria-label*="unit" i]',
-            'nav[aria-label*="sequence" i]',
-            'nav[aria-label*="navigation" i]',
-            '.sequence-navigation',
-            '.unit-navigation',
-            '.sequence-nav',
-            'ol.sequence-nav-list'
-          ];
-
-          let activeNav = null;
-
-          const activeSelectors = [
-            'button[aria-current="true"]',
-            'button[aria-current="step"]',
-            'button[aria-current="page"]',
-            'button[aria-current="location"]',
-            '[aria-current="true"]',
-            '[aria-current="step"]',
-            '[aria-current="page"]',
-            'button[aria-selected="true"]',
-            '[aria-selected="true"]',
-            'button.active',
-            'li.active button',
-            'a.active',
-            '.tab-item.active',
-            'button.seq_video.active',
-            'button.seq_problem.active',
-            'button.seq_other.active'
-          ];
-
-          for (const navSel of seqNavSelectors) {
-            const navEl = document.querySelector(navSel);
-            if (navEl) {
-              for (const actSel of activeSelectors) {
-                const found = navEl.querySelector(actSel);
-                if (found) {
-                  activeNav = found;
-                  break;
-                }
-              }
-              if (activeNav) break;
-            }
-          }
-
-          // Fallback: look globally for active unit button/tab outside main site header
-          if (!activeNav) {
-            for (const actSel of activeSelectors) {
-              const found = document.querySelector(actSel);
-              if (found && !found.closest('header') && !found.closest('.nav-tabs')) {
-                activeNav = found;
-                break;
-              }
-            }
-          }
-
-          // Fallback 2: Check buttons sitting between Previous and Next buttons
-          if (!activeNav) {
-            const prevBtn = document.querySelector('button[aria-label*="Previous" i], button:has-text("Previous"), button:has-text("ก่อนหน้า")');
-            const nextBtn = document.querySelector('button[aria-label*="Next" i], button:has-text("Next"), button:has-text("ถัดไป")');
-            if (prevBtn && nextBtn && prevBtn.parentElement) {
-              const siblings = Array.from(prevBtn.parentElement.querySelectorAll('button, a')).filter(
-                b => b !== prevBtn && b !== nextBtn && !b.innerText.includes('Previous') && !b.innerText.includes('Next') && !b.innerText.includes('ก่อนหน้า') && !b.innerText.includes('ถัดไป')
-              );
-              if (siblings.length === 1) {
-                activeNav = siblings[0];
-              } else if (siblings.length > 1) {
-                activeNav = siblings.find(b => b.classList.contains('active') || b.getAttribute('aria-current') || b.getAttribute('aria-selected') === 'true') || siblings[0];
-              }
-            }
-          }
-
-          if (activeNav) {
-            const parentLi = activeNav.closest('li') || activeNav;
-
-            // 1. Icon check inside active button or parent li
-            const checkIcons = [
-              '.fa-check',
-              '.fa-check-circle',
-              '[data-icon="check-circle"]',
-              '[data-icon="check"]',
-              '[data-icon*="check"]',
-              '.check-circle',
-              '[data-testid*="check" i]',
-              '[data-testid*="complete" i]',
-              'svg.text-success',
-              'svg[class*="success"]',
-              'svg[class*="check"]',
-              '.text-success',
-              '.success',
-              '.complete',
-              '.completed',
-              '.is-complete'
-            ];
-
-            for (const sel of checkIcons) {
-              if (activeNav.querySelector(sel) || parentLi.querySelector(sel)) {
-                return true;
-              }
-            }
-
-            // 2. Computed green color check on child SVGs/icons
-            const iconElements = [...activeNav.querySelectorAll('svg, i, span'), ...parentLi.querySelectorAll('svg, i, span')];
-            for (const el of iconElements) {
-              try {
-                const style = window.getComputedStyle(el);
-                const color = (style.color || '').toLowerCase();
-                const fill = (style.fill || '').toLowerCase();
-                const stroke = (style.stroke || '').toLowerCase();
-                const isGreen = (c) => c.includes('rgb(40, 167, 69)') || c.includes('rgb(0, 129, 68)') || c.includes('rgb(25, 135, 84)') || c.includes('#28a745') || c.includes('#008144') || c.includes('#22c55e') || c.includes('rgb(34, 197, 94)');
-                if (isGreen(color) || isGreen(fill) || isGreen(stroke)) {
-                  return true;
-                }
-              } catch (e) {}
-            }
-
-            // 3. Text content check for checkmark symbols ✓ ✔
-            const combinedText = (activeNav.innerText || '') + ' ' + (parentLi.innerText || '');
-            if (combinedText.includes('✓') || combinedText.includes('✔')) {
-              return true;
-            }
-
-            // 4. aria-label / title check
-            const ariaLabel = ((activeNav.getAttribute('aria-label') || '') + ' ' + (parentLi.getAttribute('aria-label') || '') + ' ' + (activeNav.getAttribute('title') || '')).toLowerCase();
-            if (!ariaLabel.includes('incomplete') && !ariaLabel.includes('not completed') && !ariaLabel.includes('uncompleted')) {
-              if (ariaLabel.includes('completed') || ariaLabel.includes('complete') || ariaLabel.includes('ผ่าน') || ariaLabel.includes('เสร็จสิ้น') || ariaLabel.includes('สมบูรณ์')) {
-                return true;
-              }
-            }
-
-            // 5. CSS class strings check
-            const classStr = ((activeNav.className || '') + ' ' + (parentLi.className || '')).toLowerCase();
-            if (!classStr.includes('incomplete')) {
-              if (classStr.includes('is-complete') || classStr.includes('completed') || (classStr.includes('complete') && !classStr.includes('incomplete')) || classStr.includes('success')) {
-                return true;
-              }
-            }
-          }
-
-          // --- B. Check Unit Problem Contents on Main Page (Scores & Full Marks) ---
-          const problems = document.querySelectorAll('.problem, .xblock-student_view[data-block-type="problem"], div[data-block-type="problem"], form.problem-form, .wrapper-problem-response, .que');
-          if (problems.length > 0) {
-            let allProblemsDone = true;
-            for (const prob of problems) {
-              const pText = prob.innerText || '';
-
-              // Check full points e.g. "1/1 point", "1 of 1 point", "1.0/1.0 point", "คะแนน 1/1"
-              const scoreMatch = pText.match(/(\d+(?:\.\d+)?)\s*(?:\/|of|เต็ม|จาก)\s*(\d+(?:\.\d+)?)\s*point/i);
-              const hasFullPoints = scoreMatch && parseFloat(scoreMatch[1]) >= parseFloat(scoreMatch[2]) && parseFloat(scoreMatch[2]) > 0;
-              const has1of1 = /1\s*\/\s*1\s*point/i.test(pText) || /คะแนน\s*1\s*\/\s*1/i.test(pText);
-
-              // Check checkmark or correct icon inside problem
-              const hasCorrect = !!prob.querySelector('.correct, .status.correct, .message.correct, [data-icon="check-circle"], .fa-check, svg.text-success, svg[class*="success"]');
-
-              // Check if submitted and submit button is disabled
-              const submitBtn = prob.querySelector('button.submit, button[data-value="Submit"]');
-              const isSubmitDisabled = submitBtn && (submitBtn.disabled || submitBtn.getAttribute('aria-disabled') === 'true');
-              const isSubmitted = pText.includes('Your Answer has been receive') || pText.includes('Your answer has been received') || pText.includes('คำตอบของคุณถูกบันทึกแล้ว');
-              const attemptsUsedMatch = pText.match(/used\s*(\d+)\s*of\s*(\d+)\s*attempts/i);
-              const attemptsExhausted = attemptsUsedMatch && attemptsUsedMatch[1] === attemptsUsedMatch[2];
-
-              if (hasFullPoints || has1of1 || hasCorrect || (isSubmitted && isSubmitDisabled) || attemptsExhausted) {
-                // Done
-              } else {
-                allProblemsDone = false;
-                break;
-              }
-            }
-
-            if (allProblemsDone) {
-              return true;
-            }
-          }
-
-          return false;
-        }).catch(() => false);
-
-        if (completed) return true;
-
-        // Check inside child iframes as well
-        const allFrames = this.page.frames();
-        for (const frame of allFrames) {
-          if (frame === this.page.mainFrame()) continue;
-          const frameCompleted = await frame.evaluate(() => {
-            const problems = document.querySelectorAll('.problem, .xblock-student_view[data-block-type="problem"], div[data-block-type="problem"], form.problem-form, .wrapper-problem-response, .que');
-            if (problems.length > 0) {
-              let allProblemsDone = true;
-              for (const prob of problems) {
-                const pText = prob.innerText || '';
-                const scoreMatch = pText.match(/(\d+(?:\.\d+)?)\s*(?:\/|of|เต็ม|จาก)\s*(\d+(?:\.\d+)?)\s*point/i);
-                const hasFullPoints = scoreMatch && parseFloat(scoreMatch[1]) >= parseFloat(scoreMatch[2]) && parseFloat(scoreMatch[2]) > 0;
-                const has1of1 = /1\s*\/\s*1\s*point/i.test(pText) || /คะแนน\s*1\s*\/\s*1/i.test(pText);
-                const hasCorrect = !!prob.querySelector('.correct, .status.correct, .message.correct, [data-icon="check-circle"], .fa-check, svg.text-success, svg[class*="success"]');
-                const submitBtn = prob.querySelector('button.submit, button[data-value="Submit"]');
-                const isSubmitDisabled = submitBtn && (submitBtn.disabled || submitBtn.getAttribute('aria-disabled') === 'true');
-                const isSubmitted = pText.includes('Your Answer has been receive') || pText.includes('Your answer has been received');
-                const attemptsUsedMatch = pText.match(/used\s*(\d+)\s*of\s*(\d+)\s*attempts/i);
-                const attemptsExhausted = attemptsUsedMatch && attemptsUsedMatch[1] === attemptsUsedMatch[2];
-
-                if (hasFullPoints || has1of1 || hasCorrect || (isSubmitted && isSubmitDisabled) || attemptsExhausted) {
-                  // Done
-                } else {
-                  allProblemsDone = false;
-                  break;
-                }
-              }
-              if (allProblemsDone) return true;
-            }
-            return false;
-          }).catch(() => false);
-
-          if (frameCompleted) return true;
+      // 1. Direct Instant Check: Page body text (catches "1/1 point (graded)" in <10ms)
+      const instantCheck = await this.page.evaluate(() => {
+        const bodyTxt = document.body ? document.body.innerText : '';
+        
+        // Check full score: "1/1 point", "1 of 1 point", "1.0/1.0 point", "คะแนน 1/1"
+        if (/1\s*\/\s*1\s*point/i.test(bodyTxt) || /1\s*of\s*1\s*point/i.test(bodyTxt) || /1\.0\s*\/\s*1\.0\s*point/i.test(bodyTxt) || /คะแนน\s*1\s*\/\s*1/i.test(bodyTxt)) {
+          return { done: true, reason: 'ตรวจพบข้อความ 1/1 point (graded) ได้คะแนนเต็มแล้ว' };
         }
 
-        if (attempt < 3) {
-          await this.sleep(500);
+        // Check exhausted attempts with answer submitted
+        if ((bodyTxt.includes('Your Answer has been receive') || bodyTxt.includes('Your answer has been received')) &&
+            /used\s*(\d+)\s*of\s*\1\s*attempts/i.test(bodyTxt)) {
+          return { done: true, reason: 'ใช้โควตาส่งคำตอบครบแล้วและระบบบันทึกผลแล้ว' };
+        }
+
+        // Check green checkmark icon in navigation bar between Previous and Next
+        const prevBtn = document.querySelector('button[aria-label*="Previous" i], button:has-text("Previous"), button:has-text("ก่อนหน้า")');
+        const nextBtn = document.querySelector('button[aria-label*="Next" i], button:has-text("Next"), button:has-text("ถัดไป")');
+        if (prevBtn && nextBtn && prevBtn.parentElement) {
+          const barContainer = prevBtn.parentElement;
+          const greenIcons = barContainer.querySelectorAll('[data-icon="check"], [data-icon="check-circle"], .fa-check, svg.text-success, svg[class*="success"], .text-success');
+          if (greenIcons.length > 0) {
+            return { done: true, reason: 'ตรวจพบเครื่องหมายติ๊กถูกสีเขียว (Green Checkmark) บนแถบนำทาง' };
+          }
+        }
+
+        // Check active unit tab in any sequence / unit navigation container
+        const activeNav = document.querySelector(`
+          nav button[aria-current],
+          nav [aria-current="step"],
+          nav [aria-current="page"],
+          nav [aria-current="true"],
+          nav button.active,
+          nav li.active button,
+          .sequence-navigation button[aria-current],
+          .sequence-navigation button.active,
+          .unit-navigation button[aria-current],
+          .unit-navigation button.active,
+          button[aria-current="step"],
+          button[aria-current="page"],
+          button[aria-current="true"],
+          [aria-selected="true"]
+        `);
+
+        if (activeNav) {
+          const parentLi = activeNav.closest('li') || activeNav;
+          const checkIcon = activeNav.querySelector('[data-icon*="check"], .fa-check, svg.text-success, svg[class*="success"], .text-success, .complete, .completed')
+                         || parentLi.querySelector('[data-icon*="check"], .fa-check, svg.text-success, svg[class*="success"], .text-success, .complete, .completed');
+          if (checkIcon) {
+            return { done: true, reason: 'ตรวจพบไอคอนติ๊กถูกบนปุ่มบทเรียนปัจจุบัน' };
+          }
+
+          const txt = (activeNav.innerText || '') + ' ' + (parentLi.innerText || '');
+          if (txt.includes('✓') || txt.includes('✔')) {
+            return { done: true, reason: 'พบสัญลักษณ์ติ๊กถูก (✓) บนปุ่มบทเรียน' };
+          }
+
+          // Check aria-label / title
+          const aria = ((activeNav.getAttribute('aria-label') || '') + ' ' + (parentLi.getAttribute('aria-label') || '')).toLowerCase();
+          if (aria.includes('completed') || aria.includes('complete') || aria.includes('ผ่านแล้ว')) {
+            if (!aria.includes('incomplete') && !aria.includes('not completed')) {
+              return { done: true, reason: `aria-label ระบุว่าเสร็จสิ้น (${aria})` };
+            }
+          }
+        }
+
+        return { done: false };
+      }).catch(() => ({ done: false }));
+
+      if (instantCheck && instantCheck.done) {
+        this.log(`⏭️ [ข้ามทันที] ${instantCheck.reason} ข้ามไปบทเรียนถัดไปตามที่กำหนด!`);
+        return true;
+      }
+
+      // Check across child frames as well
+      const allFrames = this.page.frames();
+      for (const frame of allFrames) {
+        if (frame === this.page.mainFrame()) continue;
+        const frameCheck = await frame.evaluate(() => {
+          const txt = document.body ? document.body.innerText : '';
+          if (/1\s*\/\s*1\s*point/i.test(txt) || /คะแนน\s*1\s*\/\s*1/i.test(txt) || /1\.0\s*\/\s*1\.0\s*point/i.test(txt)) {
+            return true;
+          }
+          const c = document.querySelector('.correct, .status.correct, [data-icon="check-circle"], svg.text-success');
+          return !!c;
+        }).catch(() => false);
+
+        if (frameCheck) {
+          this.log(`⏭️ [ข้ามทันที] พบข้อสอบใน Frame ได้คะแนนเต็ม 1/1 point แล้ว -> ข้ามทันที!`);
+          return true;
         }
       }
 
@@ -533,18 +403,14 @@ class AutomationWorker {
 
   async handleVideo(frame) {
     this.setStatus('running', 'Watching Video');
-    this.log(`🎬 ตรวจพบคลิปวิดีโอ กำลังตรวจสอบสถานะการเล่น...`);
+    this.log(`🎬 ตรวจพบคลิปวิดีโอ เริ่มต้นขั้นตอนการเล่นและข้ามไป 10 วินาทีสุดท้าย...`);
 
-    // Check if video is already finished
-    const isVideoDone = await frame.evaluate(() => {
+    const allFrames = [this.page.mainFrame(), ...this.page.frames()];
+
+    // 1. Check if video has already been watched/completed
+    const isVideoDone = await this.page.evaluate(() => {
       const v = document.querySelector('video');
-      const vContainer = document.querySelector('.video, .video-player, div[data-component-type="video"], .xblock-student_view[data-block-type="video"]');
-      if (vContainer && (vContainer.classList.contains('is-complete') || vContainer.classList.contains('completed') || vContainer.getAttribute('data-status') === 'complete')) {
-        return true;
-      }
-      if (v && v.duration > 0 && v.currentTime >= v.duration - 2) {
-        return true;
-      }
+      if (v && v.duration > 0 && v.currentTime >= v.duration - 3) return true;
       return false;
     }).catch(() => false);
 
@@ -553,155 +419,96 @@ class AutomationWorker {
       return;
     }
 
-    const allFrames = [this.page.mainFrame(), ...this.page.frames()];
-    const playSelectors = [
-      '.btn-play',
-      '.video-play-button',
-      '.play-btn',
-      'button[aria-label*="Play" i]',
-      'button[aria-label*="เล่น" i]',
-      'button[title*="Play" i]',
-      '.video-control.play-pause',
-      '.control.play',
-      '.ytp-large-play-button',
-      '.ytp-play-button',
-      '.play',
-      'video'
+    // 2. Locate video player element on the page
+    const videoSelectors = [
+      'video',
+      '.video-player',
+      '.video-wrapper',
+      'div[data-component-type="video"]',
+      'div[data-block-type="video"]',
+      '.video',
+      'iframe[src*="youtube"]',
+      'iframe[src*="youtu.be"]',
+      'iframe#unit-iframe',
+      '.tc-wrapper'
     ];
 
-    // Helper to attempt starting playback across all frames
-    const triggerPlay = async () => {
-      for (const f of allFrames) {
-        try {
-          // 1. Programmatic HTML5 video play (muted to satisfy autoplay policy)
-          await f.evaluate(() => {
-            const vList = document.querySelectorAll('video');
-            vList.forEach(v => {
-              v.muted = true;
-              v.volume = 0;
-              const p = v.play();
-              if (p && p.catch) p.catch(() => {});
-            });
-            const b = document.querySelector('.btn-play, .video-play-button, button[aria-label*="Play" i], .play-btn, .play');
-            if (b) b.click();
-          }).catch(() => {});
+    let playerBox = null;
+    for (const sel of videoSelectors) {
+      try {
+        const el = await this.page.$(sel);
+        if (el) {
+          const b = await el.boundingBox();
+          if (b && b.width > 60 && b.height > 60) {
+            playerBox = b;
+            break;
+          }
+        }
+      } catch (e) {}
+    }
 
-          // 2. Playwright real click on play button if visible
-          for (const sel of playSelectors) {
-            const btn = await f.$(sel);
-            if (btn) {
-              const isVis = await btn.isVisible().catch(() => false);
-              if (isVis) {
-                await btn.click({ force: true }).catch(() => {});
+    // If still null, check inside child frames
+    if (!playerBox) {
+      for (const f of allFrames) {
+        for (const sel of videoSelectors) {
+          try {
+            const el = await f.$(sel);
+            if (el) {
+              const b = await el.boundingBox();
+              if (b && b.width > 60 && b.height > 60) {
+                playerBox = b;
                 break;
               }
             }
-          }
-        } catch (e) {}
-      }
-    };
-
-    // Initial play trigger
-    await triggerPlay();
-
-    // 2. Wait and verify playback starts (currentTime > 0.2s)
-    let videoTargetFrame = null;
-    let currentSec = 0;
-    let totalDur = 0;
-
-    for (let attempt = 0; attempt < 12; attempt++) {
-      if (this.shouldStop) return;
-
-      for (const f of allFrames) {
-        try {
-          const info = await f.evaluate(() => {
-            const v = document.querySelector('video');
-            if (v) {
-              return { current: v.currentTime, duration: v.duration || 0 };
-            }
-            return null;
-          }).catch(() => null);
-
-          if (info) {
-            videoTargetFrame = f;
-            currentSec = info.current;
-            if (info.duration > 0) totalDur = info.duration;
-            if (currentSec > 0.2) break;
-          }
-        } catch (e) {}
-      }
-
-      if (currentSec > 0.2) {
-        this.log(`▶️ คลิปวิดีโอเริ่มเล่นแล้ว (เวลาเดิน ${currentSec.toFixed(1)}s)...`);
-        break;
-      }
-
-      // Re-trigger play every second until playback starts
-      await triggerPlay();
-      await this.sleep(1000);
-    }
-
-    // 3. Obtain total duration
-    if (totalDur <= 0 && videoTargetFrame) {
-      for (let i = 0; i < 5; i++) {
-        totalDur = await videoTargetFrame.evaluate(() => {
-          const v = document.querySelector('video');
-          return v ? (v.duration || 0) : 0;
-        }).catch(() => 0);
-        if (totalDur > 0) break;
-        await this.sleep(500);
-      }
-    }
-
-    // Check Open edX metadata for duration if v.duration is not ready
-    if (totalDur <= 0) {
-      for (const f of allFrames) {
-        const metaDur = await f.evaluate(() => {
-          const el = document.querySelector('.video[data-metadata]');
-          if (el) {
-            try {
-              const meta = JSON.parse(el.getAttribute('data-metadata'));
-              return meta.duration || 0;
-            } catch (e) {}
-          }
-          return 0;
-        }).catch(() => 0);
-        if (metaDur > 0) {
-          totalDur = metaDur;
-          break;
+          } catch (e) {}
         }
+        if (playerBox) break;
       }
     }
 
-    // 4. Seek to last ~10 seconds per README_TH.md
-    const margin = this.delays.videoSeekMargin || 10;
-    let seeked = false;
+    // 3. STEP 1: MAKE VIDEO START PLAYING
+    this.log(`▶️ [ขั้นตอนที่ 1] สั่งให้วิดีโอเริ่มเล่น (User Gesture & Click Play)...`);
 
-    if (totalDur > margin + 5 && videoTargetFrame) {
-      const seekTarget = Math.max(0, totalDur - margin);
-      await videoTargetFrame.evaluate((t) => {
-        const v = document.querySelector('video');
-        if (v) {
-          v.currentTime = t;
-          v.dispatchEvent(new Event('timeupdate'));
-          v.dispatchEvent(new Event('seeked'));
-        }
-      }, seekTarget).catch(() => {});
-      this.log(`⏩ เลื่อนคลิปไปช่วง 10 วินาทีสุดท้าย (${Math.round(seekTarget)}s / ${Math.round(totalDur)}s) เพื่อรับติ๊กเขียว...`);
-      seeked = true;
+    // A. Physical real mouse click in the exact CENTER of the video player
+    if (playerBox) {
+      const cx = playerBox.x + playerBox.width / 2;
+      const cy = playerBox.y + playerBox.height / 2;
+      await this.page.mouse.click(cx, cy).catch(() => {});
+      await this.sleep(500);
+
+      // Also click bottom-left play button area
+      await this.page.mouse.click(playerBox.x + 35, playerBox.y + playerBox.height - 25).catch(() => {});
+      await this.sleep(300);
     }
 
-    // Fallback: visual click on the seek / progress bar if direct seek was not possible
-    if (!seeked) {
-      for (const f of allFrames) {
+    // B. Click visible play buttons across all frames
+    const playBtnSelectors = [
+      'button[aria-label*="Play" i]',
+      'button[aria-label*="เล่น" i]',
+      'div[role="button"][aria-label*="Play" i]',
+      'div[role="button"][aria-label*="เล่น" i]',
+      '.btn-play',
+      '.video-play-button',
+      '.play-btn',
+      '.play',
+      '.vjs-play-control',
+      '.vjs-big-play-button',
+      '.ytp-large-play-button',
+      '.ytp-play-button',
+      '.video-control.play-pause',
+      'button.control.play',
+      '.play-button',
+      'video'
+    ];
+
+    for (const f of allFrames) {
+      for (const sel of playBtnSelectors) {
         try {
-          const seekBar = await f.$('.slider, .video-slider, .progress-bar, .ytp-progress-bar, .progress-slider, .slider-handle');
-          if (seekBar) {
-            const box = await seekBar.boundingBox();
-            if (box && box.width > 30) {
-              await this.page.mouse.click(box.x + box.width * 0.92, box.y + box.height / 2);
-              this.log(`⏩ คลิกเลื่อนแถบเวลา (Progress Bar) ไปยังช่วง 10 วินาทีสุดท้าย...`);
-              seeked = true;
+          const btn = await f.$(sel);
+          if (btn) {
+            const isVis = await btn.isVisible().catch(() => false);
+            if (isVis) {
+              await btn.click({ force: true }).catch(() => {});
               break;
             }
           }
@@ -709,9 +516,175 @@ class AutomationWorker {
       }
     }
 
-    // 5. Let it play for a few seconds in the last 10s so the server records completion
-    await this.sleep(4000);
-    this.log(`✅ วิดีโอเล่นครบเกณฑ์เรียบร้อย เตรียมไปหน่วยถัดไป.`);
+    // C. Programmatic muted play on any HTML5 video
+    for (const f of allFrames) {
+      await f.evaluate(() => {
+        document.querySelectorAll('video').forEach(v => {
+          try {
+            v.muted = true;
+            v.volume = 0;
+            const p = v.play();
+            if (p && p.catch) p.catch(() => {});
+          } catch (e) {}
+        });
+      }).catch(() => {});
+    }
+
+    // D. Press Space key
+    await this.page.keyboard.press('Space').catch(() => {});
+    await this.sleep(1500);
+
+    // Verify playback started
+    let totalDur = 0;
+    let currentSec = 0;
+
+    for (let i = 0; i < 5; i++) {
+      if (this.shouldStop) return;
+
+      for (const f of allFrames) {
+        try {
+          const info = await f.evaluate(() => {
+            const v = document.querySelector('video');
+            if (v) return { cur: v.currentTime, dur: v.duration || 0, paused: v.paused };
+            return null;
+          }).catch(() => null);
+
+          if (info) {
+            currentSec = info.cur;
+            if (info.dur > 0) totalDur = info.dur;
+            if (currentSec > 0.1 || !info.paused) break;
+          }
+        } catch (e) {}
+      }
+
+      if (currentSec > 0.1) {
+        this.log(`▶️ คลิปวิดีโอเริ่มเล่นแล้ว (เวลาเดิน ${currentSec.toFixed(1)}s)...`);
+        break;
+      }
+
+      // If still not moving, re-click center and press 'k' (YouTube play shortcut)
+      if (playerBox) {
+        await this.page.mouse.click(playerBox.x + playerBox.width / 2, playerBox.y + playerBox.height / 2).catch(() => {});
+        await this.page.keyboard.press('k').catch(() => {});
+      }
+      await this.sleep(1000);
+    }
+
+    // 4. STEP 2: SEEK TO LAST 10 SECONDS
+    this.log(`⏩ [ขั้นตอนที่ 2] ข้ามไปยังช่วง 10 วินาทีสุดท้ายของคลิป...`);
+
+    // Obtain duration if not yet known
+    if (totalDur <= 0) {
+      for (const f of allFrames) {
+        const metaDur = await f.evaluate(() => {
+          const el = document.querySelector('.video[data-metadata]');
+          if (el) {
+            try { return JSON.parse(el.getAttribute('data-metadata')).duration || 0; } catch (e) {}
+          }
+          return 0;
+        }).catch(() => 0);
+        if (metaDur > 0) { totalDur = metaDur; break; }
+      }
+    }
+
+    // Check duration text (e.g. "05:30")
+    if (totalDur <= 0) {
+      for (const f of allFrames) {
+        const durText = await f.evaluate(() => {
+          const el = document.querySelector('.duration, .vjs-duration-display, .ytp-time-duration, span[class*="duration"]');
+          return el ? el.innerText.trim() : '';
+        }).catch(() => '');
+
+        if (durText && durText.includes(':')) {
+          const parts = durText.split(':').map(Number);
+          if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+            totalDur = parts[0] * 60 + parts[1];
+            break;
+          }
+        }
+      }
+    }
+
+    let seeked = false;
+
+    // A. Direct HTML5 video seek
+    if (totalDur > 15) {
+      const seekTarget = Math.max(0, totalDur - 10);
+      for (const f of allFrames) {
+        const ok = await f.evaluate((t) => {
+          const v = document.querySelector('video');
+          if (v) {
+            v.currentTime = t;
+            v.dispatchEvent(new Event('timeupdate'));
+            v.dispatchEvent(new Event('seeked'));
+            return true;
+          }
+          return false;
+        }, seekTarget).catch(() => false);
+
+        if (ok) {
+          this.log(`⏩ เลื่อนคลิปไปที่ ${Math.round(seekTarget)}s / ${Math.round(totalDur)}s เรียบร้อย`);
+          seeked = true;
+          break;
+        }
+      }
+    }
+
+    // B. Click progress bar / slider at 94%
+    const progressSelectors = [
+      '.slider',
+      '.video-slider',
+      '.progress-bar',
+      '.ytp-progress-bar',
+      '.ytp-progress-bar-container',
+      '.vjs-progress-control',
+      '.vjs-progress-holder',
+      '.vjs-play-progress',
+      '[role="slider"]'
+    ];
+
+    for (const f of allFrames) {
+      for (const pSel of progressSelectors) {
+        try {
+          const bar = await f.$(pSel);
+          if (bar) {
+            const b = await bar.boundingBox();
+            if (b && b.width > 40) {
+              await this.page.mouse.click(b.x + b.width * 0.94, b.y + b.height / 2);
+              this.log(`⏩ คลิกแถบเวลาไปยังช่วงท้ายคลิปเรียบร้อย`);
+              seeked = true;
+              break;
+            }
+          }
+        } catch (e) {}
+      }
+      if (seeked) break;
+    }
+
+    // C. Physical click on bottom of video player (where progress bar sits)
+    if (!seeked && playerBox) {
+      await this.page.mouse.click(playerBox.x + playerBox.width * 0.94, playerBox.y + playerBox.height - 18).catch(() => {});
+      seeked = true;
+    }
+
+    // D. Press media shortcut key '9' (jumps to 90%)
+    await this.page.keyboard.press('9').catch(() => {});
+
+    // 5. STEP 3: PLAY FOR 5 SECONDS IN THE LAST 10 SECONDS
+    this.log(`⏳ [ขั้นตอนที่ 3] กำลังเล่นช่วง 10 วินาทีสุดท้ายเพื่อบันทึกผลการเรียนลงระบบ TSU...`);
+    await this.sleep(5000);
+
+    // Final safety: ensure video reached end
+    for (const f of allFrames) {
+      await f.evaluate(() => {
+        const v = document.querySelector('video');
+        if (v && v.duration > 0 && v.currentTime < v.duration - 2) {
+          v.currentTime = Math.max(0, v.duration - 2);
+        }
+      }).catch(() => {});
+    }
+
+    this.log(`✅ วิดีโอเล่นครบเกณฑ์เรียบร้อยตามเงื่อนไข เตรียมกด Next ทันที.`);
   }
 
   async handleQuiz(frame) {
