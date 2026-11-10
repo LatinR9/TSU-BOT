@@ -4,95 +4,110 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TSU-BOT Pro — Multi-Browser Suite</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=Kanit:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div class="atmosphere" aria-hidden="true"></div>
+
   <div class="container">
-    <header>
+    <header class="reveal">
       <div class="brand">
-        <h1>⚡ TSU-BOT Pro</h1>
+        <p class="brand-mark">TSU-BOT</p>
+        <div class="brand-meta">
+          <h1>Pro Multi-Browser Suite</h1>
+          <p class="brand-tagline">ควบคุมบอทเรียน TSU หลายหน้าต่างในที่เดียว</p>
+        </div>
         <span class="badge" id="appVersion">v1.0.0</span>
       </div>
-      <div>
-        <button class="btn btn-secondary" onclick="checkAppUpdate()">🔄 ตรวจสอบเวอร์ชัน</button>
-      </div>
+      <button class="btn btn-ghost" onclick="checkAppUpdate()" type="button">ตรวจสอบเวอร์ชัน</button>
     </header>
 
-    <!-- Toolbar -->
-    <div class="toolbar">
-      <button class="btn btn-primary" onclick="openLoginBrowser()">🔐 เปิดหน้าต่างล็อกอินเว็บ TSU</button>
-      
-      <div class="control-group">
-        <label for="globalSpeed">ความเร็ว:</label>
-        <select id="globalSpeed">
-          <option value="turbo">⚡ สายฟ้า (Fast - ตัด 10s)</option>
-          <option value="normal" selected>⚖️ สมดุล (Normal - มาตรฐาน)</option>
-          <option value="safe">🛡️ ปลอดภัย (Human-like - หน่วงเวลา)</option>
-        </select>
+    <section class="panel setup-panel reveal" aria-label="การตั้งค่าเริ่มต้น">
+      <div class="panel-copy">
+        <h2>เตรียมเซสชัน</h2>
+        <p>ล็อกอิน TSU แล้วเลือกความเร็วก่อนเริ่มบอท</p>
       </div>
-
-      <button class="btn btn-secondary" onclick="openAddCourseModal()">➕ เพิ่มวิชาใหม่</button>
-    </div>
-
-    <!-- Multi-Worker Launch Section -->
-    <div class="toolbar" style="background: #172554; border-color: #1e40af;">
-      <div class="control-group" style="flex: 1;">
-        <label for="selectCourse">เลือกวิชาที่จะทำ:</label>
-        <select id="selectCourse" style="width: 100%;">
-          <option value="">กำลังโหลดรายวิชา...</option>
-        </select>
+      <div class="panel-actions">
+        <button class="btn btn-primary" onclick="openLoginBrowser()" type="button">เปิดหน้าต่างล็อกอินเว็บ TSU</button>
+        <div class="control-group">
+          <label for="globalSpeed">ความเร็ว</label>
+          <select id="globalSpeed">
+            <option value="turbo">สายฟ้า (Fast - ตัด 10s)</option>
+            <option value="normal" selected>สมดุล (Normal - มาตรฐาน)</option>
+            <option value="safe">ปลอดภัย (Human-like - หน่วงเวลา)</option>
+          </select>
+        </div>
+        <button class="btn btn-ghost" onclick="openAddCourseModal()" type="button">เพิ่มวิชาใหม่</button>
       </div>
+    </section>
 
-      <div class="control-group" style="flex: 1.5;">
-        <label for="customUrl">URL รายวิชา (เว้นว่างไว้เพื่อเริ่มจากหน้า Dashboard):</label>
-        <input type="text" id="customUrl" placeholder="https://apps.course.tsu.ac.th/learning/course/..." style="width: 100%;">
+    <section class="panel launch-panel reveal" aria-label="เริ่มต้นบอท">
+      <div class="panel-copy">
+        <h2>เริ่มต้นบอทใหม่</h2>
+        <p>เลือกวิชา หรือใส่ URL แล้วเปิดเบราว์เซอร์ใหม่</p>
       </div>
+      <div class="launch-grid">
+        <div class="control-group stacked">
+          <label for="selectCourse">เลือกวิชาที่จะทำ</label>
+          <select id="selectCourse">
+            <option value="">กำลังโหลดรายวิชา...</option>
+          </select>
+        </div>
+        <div class="control-group stacked grow">
+          <label for="customUrl">URL รายวิชา (เว้นว่างเพื่อเริ่มจาก Dashboard)</label>
+          <input type="text" id="customUrl" placeholder="https://apps.course.tsu.ac.th/learning/course/...">
+        </div>
+        <button class="btn btn-success launch-btn" onclick="createNewWorker()" type="button">
+          เริ่มต้นบอทใหม่
+        </button>
+      </div>
+    </section>
 
-      <button class="btn btn-success" onclick="createNewWorker()" style="align-self: flex-end; height: 38px;">
-        ▶️ เริ่มต้นบอทใหม่ (New Browser)
-      </button>
-    </div>
-
-    <!-- Active Multi-Workers Grid -->
-    <div class="workers-section">
-      <h2>🖥️ หน้าต่างบอทที่กำลังทำงาน (Multi-Browser Workers)</h2>
+    <section class="workers-section reveal" aria-label="หน้าต่างบอท">
+      <div class="section-heading">
+        <h2>หน้าต่างบอทที่กำลังทำงาน</h2>
+        <p>Multi-Browser Workers — พัก ต่อ หรือปิดได้ทีละหน้าต่าง</p>
+      </div>
       <div class="workers-grid" id="workersContainer">
         <!-- Rendered dynamically -->
       </div>
-    </div>
+    </section>
   </div>
 
   <!-- Add Course Modal -->
   <div class="modal-overlay" id="addCourseModal">
-    <div class="modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="addCourseTitle">
       <div class="modal-header">
-        <h3>➕ เพิ่มวิชาใหม่เข้าระบบ</h3>
-        <button class="btn btn-secondary" onclick="closeAddCourseModal()">✕</button>
+        <h3 id="addCourseTitle">เพิ่มวิชาใหม่เข้าระบบ</h3>
+        <button class="btn btn-icon" onclick="closeAddCourseModal()" type="button" aria-label="ปิด">✕</button>
       </div>
       <div class="modal-body">
         <div class="form-group">
-          <label>รหัสวิชา (Course Code เช่น TSUGE000111):</label>
+          <label for="newCourseCode">รหัสวิชา (เช่น TSUGE000111)</label>
           <input type="text" id="newCourseCode" placeholder="TSUGE000111">
         </div>
         <div class="form-group">
-          <label>ชื่อวิชา (Course Name):</label>
+          <label for="newCourseName">ชื่อวิชา</label>
           <input type="text" id="newCourseName" placeholder="อัตลักษณ์ทักษิณและความเป็นพลเมือง">
         </div>
         <div class="form-group">
-          <label>ลิงก์วิชา (Course URL):</label>
+          <label for="newCourseUrl">ลิงก์วิชา</label>
           <input type="text" id="newCourseUrl" placeholder="https://apps.course.tsu.ac.th/learning/course/...">
         </div>
-        <button class="btn btn-primary" onclick="saveNewCourse()">💾 บันทึกวิชา</button>
+        <button class="btn btn-primary" onclick="saveNewCourse()" type="button">บันทึกวิชา</button>
       </div>
     </div>
   </div>
 
   <!-- Update Modal -->
   <div class="modal-overlay" id="updateModal">
-    <div class="modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="updateTitle">
       <div class="modal-header">
-        <h3>📢 อัปเดตโปรแกรม</h3>
-        <button class="btn btn-secondary" onclick="closeUpdateModal()">✕</button>
+        <h3 id="updateTitle">อัปเดตโปรแกรม</h3>
+        <button class="btn btn-icon" onclick="closeUpdateModal()" type="button" aria-label="ปิด">✕</button>
       </div>
       <div class="modal-body" id="updateModalBody">
         <!-- Injected via app.js -->
