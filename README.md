@@ -58,6 +58,20 @@ Linux CI / Cloud Agent environments cannot produce a trustworthy Windows WinForm
 
 In-app updates read `version.json` from GitHub (`version`, `changelog`, `sha256`), verify the downloaded exe hash before swap, keep `TSU-BOT-Pro.exe.bak`, and refuse mismatch/missing hashes. Optional local `github_token.txt` is supported for private repos — never commit it.
 
+## Quiz answer matching tests (Node)
+
+`worker.js` / `db_manager.js` match each question on the page to `tsu_answers.json` (exact → blank/truncation-aware → difflib-style fuzzy, Thai/HTML text normalized) and click the choice whose text equals the bank answer. Questions with no confirmed match are logged as `[no match]` and left unanswered.
+
+```bash
+npm ci
+npm test                                  # unit tests + Chromium end-to-end on test/fixtures/*.html
+                                          # + readiness: full worker.start() runs on an Open edX-like
+                                          #   course server (test/fixtures/course/) for every --modes combo
+node test/hit_rate.js --legacy origin/main # simulate every bank question, compare with old logic
+```
+
+Set `CHROME_PATH` to use an installed Chrome instead of Playwright's bundled Chromium.
+
 ### Related
 - `Launcher.cs` — tray launcher that starts the Node web dashboard (`localhost:3000`), separate from the WinForms desktop suite.
 - `build_exe.bat` — packages the Node server with `pkg` (web control panel), not the WinForms UI.

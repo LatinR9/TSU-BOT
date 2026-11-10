@@ -148,7 +148,7 @@ namespace TSUBotDesktop
         private string latestRemoteChangelog = "";
         private string latestRemoteSha256 = "";
         private bool updateInProgress = false;
-        private const string APP_VERSION = "1.0.6";
+        private const string APP_VERSION = "1.0.7";
         private const string GITHUB_REPO = "LatinR9/TSU-BOT";
         private const string EXE_NAME = "TSU-BOT-Pro.exe";
         private const string SETTINGS_FILE = "desktop_settings.json";
