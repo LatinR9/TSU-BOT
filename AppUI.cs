@@ -308,11 +308,41 @@ namespace TSUBotDesktop
                 comboCourse.SelectedIndex = 0;
         }
 
+        private void EnsureDependencies()
+        {
+            string pwDir = Path.Combine(appDir, "node_modules", "playwright");
+            if (!Directory.Exists(pwDir))
+            {
+                AppendLog("⚠️ ยังไม่พบโมดูล playwright กำลังติดตั้งระบบให้อัตโนมัติ (ครั้งแรกครั้งเดียว)...", Color.FromArgb(245, 158, 11));
+                try
+                {
+                    ProcessStartInfo psi = new ProcessStartInfo
+                    {
+                        FileName = "cmd.exe",
+                        Arguments = "/c npm install && npx playwright install chromium",
+                        WorkingDirectory = appDir,
+                        CreateNoWindow = true,
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true
+                    };
+                    Process p = Process.Start(psi);
+                    p.WaitForExit();
+                    AppendLog("✅ ติดตั้งระบบเรียบร้อยแล้ว!", Color.FromArgb(52, 211, 153));
+                }
+                catch (Exception ex)
+                {
+                    AppendLog("❌ ไม่สามารถติดตั้งแพ็กเกจได้: " + ex.Message, Color.FromArgb(248, 113, 113));
+                }
+            }
+        }
+
         private void BtnLogin_Click(object sender, EventArgs e)
         {
-            AppendLog("กำลังเปิดหน้าต่าง Chrome สำหรับล็อกอินเข้าสู่ระบบ TSU...", Color.FromArgb(52, 211, 153));
+            AppendLog("กำลังตรวจสอบระบบและเปิดหน้าต่าง Chrome สำหรับล็อกอินเข้าสู่ระบบ TSU...", Color.FromArgb(52, 211, 153));
             Thread t = new Thread(() =>
             {
+                EnsureDependencies();
                 string script = Path.Combine(appDir, "cli_worker.js");
                 ProcessStartInfo psi = new ProcessStartInfo
                 {
@@ -320,11 +350,27 @@ namespace TSUBotDesktop
                     Arguments = string.Format("\"{0}\" --action login", script),
                     WorkingDirectory = appDir,
                     CreateNoWindow = true,
-                    UseShellExecute = false
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    StandardOutputEncoding = Encoding.UTF8,
+                    StandardErrorEncoding = Encoding.UTF8
                 };
                 try
                 {
                     Process p = Process.Start(psi);
+                    p.OutputDataReceived += (s, ev) =>
+                    {
+                        if (!string.IsNullOrEmpty(ev.Data))
+                            AppendLog(ev.Data);
+                    };
+                    p.ErrorDataReceived += (s, ev) =>
+                    {
+                        if (!string.IsNullOrEmpty(ev.Data))
+                            AppendLog("[ERROR] " + ev.Data, Color.FromArgb(248, 113, 113));
+                    };
+                    p.BeginOutputReadLine();
+                    p.BeginErrorReadLine();
                     p.WaitForExit();
                     AppendLog("ปิดหน้าต่างล็อกอินแล้ว บัญชีถูกบันทึกในระบบเรียบร้อย", Color.FromArgb(52, 211, 153));
                 }
@@ -356,6 +402,7 @@ namespace TSUBotDesktop
 
             Thread t = new Thread(() =>
             {
+                EnsureDependencies();
                 string script = Path.Combine(appDir, "cli_worker.js");
                 string args = string.Format("\"{0}\" --action run --id \"{1}\" --course \"{2}\" --speed \"{3}\"", script, workerId, courseCode, speed);
                 if (!string.IsNullOrEmpty(customUrl))
