@@ -184,6 +184,68 @@ function parseProgressPage() {
   return out;
 }
 
+// Runs on the Course tab (course home outline). Every subsection link with its check icon:
+// done true = filled check (fas / text-success / ", Completed"), false = hollow grey check-circle
+// (far / text-gray / ", Incomplete"), null = icon state unreadable.
+function parseCourseOutline() {
+  const clean = s => String(s || '').replace(/[\u200b-\u200d\ufeff]/g, '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
+  const strip = s => clean(s).replace(/,\s*(?:in)?complete(?:d)?(?:\s+(?:section|assignment))?\s*$/i, '').trim();
+  const roots = Array.from(document.querySelectorAll('#courseHome-outline, .course-outline, ol.outline-sections, [class*="course-outline"]'))
+    .filter((r, i, all) => !all.some(o => o !== r && o.contains(r)));
+  const scope = roots.length ? roots : [document.querySelector('main, #main-content') || document.body];
+  let links = scope.flatMap(r => Array.from(r.querySelectorAll('a[href*="type@sequential"], a[href*="jump_to"]')));
+  if (!links.length) links = scope.flatMap(r => Array.from(r.querySelectorAll('a[href*="block-v1:"]')));
+
+  const iconState = icon => {
+    const prefix = icon.getAttribute('data-prefix') || '';
+    const name = icon.getAttribute('data-icon') || '';
+    const label = clean([icon.getAttribute('title'), icon.getAttribute('aria-label'), icon.querySelector('title') && icon.querySelector('title').textContent].join(' ')).toLowerCase();
+    const cls = String((icon.getAttribute('class') || '') + ' ' + ((icon.parentElement && icon.parentElement.getAttribute('class')) || '')).toLowerCase();
+    if (/incomplete|not completed/.test(label)) return { done: false, how: 'icon title' };
+    if (/complete/.test(label)) return { done: true, how: 'icon title' };
+    if (/check/.test(name) && prefix === 'far') return { done: false, how: 'far check-circle' };
+    if (/check/.test(name) && prefix === 'fas') return { done: true, how: 'fas check-circle' };
+    if (/outline|-o\b/.test(name + ' ' + cls)) return { done: false, how: 'outline icon' };
+    if (/text-gray|text-muted|text-light|incomplete/.test(cls)) return { done: false, how: 'grey icon class' };
+    if (/text-success|complete/.test(cls)) return { done: true, how: 'success icon class' };
+    // Last resort: grey (r ≈ g ≈ b, light) = hollow, coloured = filled.
+    const m = getComputedStyle(icon).color.match(/(\d+),\s*(\d+),\s*(\d+)/);
+    if (m) {
+      const [r, g, b] = m.slice(1).map(Number);
+      return Math.max(r, g, b) - Math.min(r, g, b) < 24 && r > 120 ? { done: false, how: 'grey icon colour' } : { done: true, how: 'coloured icon' };
+    }
+    return null;
+  };
+
+  const seen = new Set();
+  const items = [];
+  for (const a of links) {
+    const href = a.href;
+    if (!href || seen.has(href)) continue;
+    seen.add(href);
+    const row = a.closest('li') || a.parentElement;
+    const sr = clean(Array.from(row.querySelectorAll('.sr-only, .sr, .visually-hidden')).map(e => e.textContent).join(' ')).toLowerCase();
+    let st = null;
+    if (/incomplete|not completed|ยังไม่/.test(sr)) st = { done: false, how: 'sr-only text' };
+    else if (/complete|เสร็จ/.test(sr)) st = { done: true, how: 'sr-only text' };
+    if (!st) {
+      const icon = row.querySelector('svg, .fa, [class*="fa-"], [class*="pgn__icon"]');
+      st = icon ? iconState(icon) : null;
+    }
+    const secLi = row.parentElement && row.parentElement.closest('li, section');
+    const secTitleEl = secLi && secLi.querySelector('.collapsible-title, .section-title, h2, h3, [role="button"], button');
+    items.push({
+      name: strip(a.innerText || a.textContent),
+      section: secTitleEl ? strip((secTitleEl.innerText || secTitleEl.textContent).split('\n').map(clean).filter(Boolean)[0]) : '',
+      href,
+      hrefAttr: a.getAttribute('href'),
+      done: st ? st.done : null,
+      how: st ? st.how : 'no icon'
+    });
+  }
+  return { items, rendered: links.length > 0 || !!document.querySelector('#courseHome-outline, .course-outline') };
+}
+
 // Runs in the courseware page: where the active unit sits inside the current sequence nav.
 function sequencePosition() {
   const active = document.querySelector('.sequence-navigation [aria-current="page"], .sequence-navigation button.active, .sequence-navigation-tabs button.active, nav[aria-label*="unit" i] [aria-current="page"]');
@@ -254,6 +316,9 @@ class AutomationWorker {
     this.workedProgressItems = new Set();
     this.leftovers = new Map();
     this.lastHandledType = null;
+    this.lastUnitOutcome = null;
+    this.outlineMaxPasses = options.outlineMaxPasses || 3;
+    this.onOutline = options.onOutline || (() => {});
 
     this.status = 'idle';
     this.currentStep = 'Ready';
@@ -437,6 +502,7 @@ class AutomationWorker {
 
   async processCurrentUnit() {
     this.lastHandledType = null;
+    this.lastUnitOutcome = null;
     if (!this.page || this.page.isClosed()) return;
 
     // Wait a brief moment for dynamic React / Open edX MFE DOM to settle
@@ -449,6 +515,7 @@ class AutomationWorker {
     // 1. Comprehensive check: Is the current unit already completed (Green Checkmark / Full Marks)?
     const isCompleted = await this.isCurrentUnitCompleted();
     if (isCompleted) {
+      this.lastUnitOutcome = 'complete';
       this.log(`⏭️ [ข้ามทันที] หน่วยนี้ขึ้นติ๊กถูกสีเขียว/ได้คะแนนเต็มแล้ว (Completed) ข้ามไปหน่วยถัดไปทันทีตามเกณฑ์ TSU...`);
       return;
     }
@@ -492,29 +559,33 @@ class AutomationWorker {
 
     if (videoFrame) {
       if (!this.modes.has('video')) {
+        this.lastUnitOutcome = 'skip:video';
         this.log(`⏭️ [ข้ามตามที่เลือก] หน่วยนี้เป็นวิดีโอ แต่ไม่ได้เลือกให้ทำวิดีโอ — ไปหน่วยถัดไป`);
         return;
       }
-      this.lastHandledType = 'video';
+      this.lastHandledType = this.lastUnitOutcome = 'video';
       await this.handleVideo(videoFrame);
       return;
     }
 
     if (quizFrame) {
       if (!this.modes.has('quiz')) {
+        this.lastUnitOutcome = 'skip:quiz';
         this.log(`⏭️ [ข้ามตามที่เลือก] หน่วยนี้เป็นแบบฝึก แต่ไม่ได้เลือกให้ทำแบบฝึก — ไปหน่วยถัดไป`);
         return;
       }
+      this.lastUnitOutcome = 'quiz';
       await this.handleQuiz(quizFrame);
       return;
     }
 
     // Otherwise handle as document / slide reading unit
     if (!this.modes.has('doc')) {
+      this.lastUnitOutcome = 'skip:doc';
       this.log(`⏭️ [ข้ามตามที่เลือก] หน่วยนี้เป็นเอกสาร แต่ไม่ได้เลือกให้ทำเอกสาร — ไปหน่วยถัดไป`);
       return;
     }
-    this.lastHandledType = 'doc';
+    this.lastHandledType = this.lastUnitOutcome = 'doc';
     await this.handleDocument(this.page.mainFrame());
   }
 
@@ -1337,14 +1408,24 @@ class AutomationWorker {
     }
     await this.page.waitForLoadState('domcontentloaded', { timeout: 15000 }).catch(() => {});
     await this.sleep(1500);
+    await this.workSequence();
+  }
 
+  // Works the units of the subsection that is open, stopping after its last unit.
+  // Returns the outcome of each unit (processCurrentUnit's lastUnitOutcome) and the unit URLs.
+  async workSequence() {
+    const outcomes = [];
+    const urls = new Set();
     for (let n = 0; n < 40 && !this.shouldStop; n++) {
       await this.processCurrentUnit();
-      if (this.shouldStop) return;
+      outcomes.push(this.lastUnitOutcome);
+      urls.add(this.page.url().split('#')[0]);
+      if (this.shouldStop) break;
       const pos = await this.page.evaluate(sequencePosition).catch(() => ({ known: false }));
-      if (!pos.known || pos.isLast) return;
-      if (!(await this.advanceNextUnit())) return;
+      if (!pos.known || pos.isLast) break;
+      if (!(await this.advanceNextUnit())) break;
     }
+    return { outcomes, urls };
   }
 
   // Quiz subsections not finished yet: 0/N, or partial scores that may still have unsubmitted problems.
@@ -1380,36 +1461,29 @@ class AutomationWorker {
   }
 
   // After the last unit: re-read Progress; if not 100% or quizzes are still 0 points, do one extra
-  // pass (unfinished quizzes, units left incomplete, or the whole course if the run did not start at
-  // its first unit), then read Progress again and log the final result. Never loops further.
+  // pass: unfinished quizzes from Progress, then (still below 100%) the Course tab sweep over every
+  // outline item without a filled check. Then read Progress again and log the final result.
   async finalProgressCheck() {
     this.log(`📊 เรียนจบรอบแล้ว ตรวจหน้า Progress อีกครั้ง...`);
     let data = await this.openProgressPage();
-    if (!data) return;
-    let s = this.summarizeProgress(data, ' - หลังเรียนจบรอบ');
-    const needs = (data.completion !== null && data.completion < 100) || s.zero.length > 0;
+    let s = data ? this.summarizeProgress(data, ' - หลังเรียนจบรอบ') : null;
+    const below100 = d => !d || d.completion === null || d.completion < 100;
+    const needs = below100(data) || s.zero.length > 0;
     if (needs && !this.shouldStop) {
       this.log(`🔁 ยังไม่ครบ 100% หรือยังมีแบบฝึก 0 คะแนน — ทำรอบเก็บตกอีก 1 รอบ (ตามโหมดที่เลือก)`);
-      await this.workOpenQuizzes(data);
-      const incompleteUnits = [...this.leftIncomplete];
-      this.leftIncomplete.clear();
-      for (const url of incompleteUnits) {
-        if (this.shouldStop) break;
-        this.log(`🔁 กลับไปทำหน่วยที่ยังไม่ขึ้นติ๊กถูก: ${url}`);
-        await this.page.goto(url, { timeout: 60000 }).catch(() => {});
-        await this.sleep(1500);
-        await this.processCurrentUnit();
-      }
-      const contentSelected = this.modes.has('video') || this.modes.has('doc');
-      if (data.completion !== null && data.completion < 100 && contentSelected && this.mainPassAtCourseStart === false && !this.shouldStop) {
-        this.log(`🔁 รอบแรกเริ่มกลางรายวิชา (Resume) — เดินทุกหน่วยตั้งแต่หน่วยแรกอีก 1 รอบ (หน่วยที่ทำแล้วจะข้ามทันที)`);
-        await this.walkFromFirstUnit();
-      }
+      if (data) await this.workOpenQuizzes(data);
+      let sweep = null;
+      if (below100(data) && !this.shouldStop) sweep = await this.courseOutlineSweep(data);
+      if (sweep && !sweep.readable && !this.shouldStop) await this.legacyCatchUp(data);
       if (this.shouldStop) return;
       data = await this.openProgressPage();
       if (!data) return;
       s = this.summarizeProgress(data, ' - หลังรอบเก็บตก');
+      if (sweep && sweep.readable && !sweep.open.length && below100(data)) {
+        this.log(`ℹ️ Course tab ติ๊กครบทุกรายการแล้ว แต่ Progress ยังแสดง ${data.completion === null ? '?' : data.completion + '%'} (อาจมีเนื้อหาที่ยังไม่เปิดให้เรียน หรือ Progress ยังไม่อัปเดต)`, 'warn');
+      }
     }
+    if (!data) return;
     const done = data.completion !== null && data.completion >= 100;
     const skippedModes = ['quiz', 'video', 'doc'].filter(m => !this.modes.has(m));
     if (!done && skippedModes.length) {
@@ -1423,6 +1497,196 @@ class AutomationWorker {
       this.log(`✅ ไม่มีข้อที่ค้างไม่ได้ส่งในแบบฝึกที่เปิดไป`);
     }
     this.log(`🏁 สรุป: ความคืบหน้า ${data.completion === null ? '?' : data.completion + '%'} | แบบฝึก 0 คะแนนเหลือ ${s.zero.length} รายการ${s.zero.length ? ` (${s.zero.map(r => r.name).join(', ')})` : ''} | ${done ? 'ครบ 100% แล้ว 🎉' : 'ยังไม่ครบ 100%'}`);
+  }
+
+  // Used only when the Course tab outline cannot be read: revisit units left without a check, and
+  // walk the whole course once if the run started mid-course.
+  async legacyCatchUp(data) {
+    const incompleteUnits = [...this.leftIncomplete];
+    this.leftIncomplete.clear();
+    for (const url of incompleteUnits) {
+      if (this.shouldStop) return;
+      this.log(`🔁 กลับไปทำหน่วยที่ยังไม่ขึ้นติ๊กถูก: ${url}`);
+      await this.page.goto(url, { timeout: 60000 }).catch(() => {});
+      await this.sleep(1500);
+      await this.processCurrentUnit();
+    }
+    const contentSelected = this.modes.has('video') || this.modes.has('doc');
+    if (data && data.completion !== null && data.completion < 100 && contentSelected && this.mainPassAtCourseStart === false && !this.shouldStop) {
+      this.log(`🔁 รอบแรกเริ่มกลางรายวิชา (Resume) — เดินทุกหน่วยตั้งแต่หน่วยแรกอีก 1 รอบ (หน่วยที่ทำแล้วจะข้ามทันที)`);
+      await this.walkFromFirstUnit();
+    }
+  }
+
+  // Opens the Course tab (course home), expands every section ("Expand all" + any collapsed card),
+  // scrolls to the bottom so every subsection renders, and returns parseCourseOutline() or null.
+  async openCourseOutline() {
+    const courseId = this.courseId || this.courseIdFromUrl(this.page.url()) || this.courseIdFromUrl(this.targetUrl);
+    if (!courseId) return null;
+    this.courseId = courseId;
+    const isHome = u => /\/course\/[^/]+\/home(?:[/?#]|$)/.test(String(u));
+    if (!isHome(this.page.url())) {
+      let clicked = false;
+      for (const sel of ['nav a[href$="/home"]', '.course-tabs-navigation a:has-text("Course")', 'nav a:has-text("Course")',
+        'nav a:has-text("หน้าหลัก")', 'nav a:has-text("รายวิชา")', 'a[role="tab"]:has-text("Course")']) {
+        const tab = await this.page.$(sel).catch(() => null);
+        if (tab && await tab.isVisible().catch(() => false)) {
+          await tab.click().catch(() => {});
+          clicked = await this.page.waitForURL(isHome, { timeout: 8000 }).then(() => true).catch(() => false);
+          if (clicked) break;
+        }
+      }
+      if (!clicked) {
+        let origin = 'https://apps.course.tsu.ac.th';
+        try { origin = new URL(/^https?:/.test(this.page.url()) ? this.page.url() : this.targetUrl).origin; } catch (e) {}
+        await this.page.goto(`${origin}/learning/course/${courseId}/home`, { timeout: 60000 }).catch(e => this.log(`Nav warning: ${e.message}`, 'warn'));
+      }
+    }
+    let data = null;
+    for (let i = 0; i < 15 && !this.shouldStop; i++) {
+      await this.sleep(1000);
+      data = await this.page.evaluate(parseCourseOutline).catch(() => null);
+      if (data && data.items.length) break;
+    }
+    if (!data || !data.items.length) return null;
+
+    for (const sel of ['button:has-text("Expand all")', 'button:has-text("ขยายทั้งหมด")', 'button:has-text("แสดงทั้งหมด")']) {
+      const b = await this.page.$(sel).catch(() => null);
+      if (b && await b.isVisible().catch(() => false)) {
+        await b.click().catch(() => {});
+        await this.sleep(1000);
+        break;
+      }
+    }
+    // Sections still collapsed (or nested ones that appeared after expanding).
+    for (let round = 0; round < 3 && !this.shouldStop; round++) {
+      const n = await this.page.evaluate(() => {
+        const roots = document.querySelectorAll('#courseHome-outline, .course-outline, ol.outline-sections, [class*="course-outline"]');
+        const closed = Array.from(roots).flatMap(r => Array.from(r.querySelectorAll('[aria-expanded="false"]')));
+        const outer = closed.filter(el => !closed.some(o => o !== el && o.contains(el)));
+        outer.forEach(el => el.click());
+        return outer.length;
+      }).catch(() => 0);
+      if (!n) break;
+      await this.sleep(800);
+    }
+    await this.page.evaluate(async () => {
+      const el = document.scrollingElement || document.documentElement;
+      for (let y = 0; y < el.scrollHeight; y += Math.max(300, innerHeight * 0.8)) {
+        window.scrollTo(0, y);
+        await new Promise(r => setTimeout(r, 120));
+      }
+      window.scrollTo(0, el.scrollHeight);
+    }).catch(() => {});
+    await this.sleep(800);
+    return await this.page.evaluate(parseCourseOutline).catch(() => data);
+  }
+
+  // Mode an outline item belongs to, when its type is clear before opening it: graded subsections on
+  // the Progress page and TSU's "Quiz :" / "Pre Test" / "Sheet :" naming. '' = unknown (open it).
+  outlineItemKind(item, progressData) {
+    const seqId = h => (String(h || '').match(/type@sequential\+block@([^/?#&]+)/) || [])[1] || '';
+    const rows = (progressData && progressData.rows) || [];
+    if (rows.some(r => (seqId(r.href) && seqId(r.href) === seqId(item.href)) || r.name === item.name)) return 'quiz';
+    if (/^(?:quiz|exercise|pre[\s-]?test|post[\s-]?test|แบบทดสอบ|แบบฝึก)/i.test(item.name)) return 'quiz';
+    if (/^(?:sheet|document|เอกสาร|ชีท)/i.test(item.name)) return 'doc';
+    return '';
+  }
+
+  // Course tab sweep: open every outline item that does not show the filled check, work it with the
+  // normal unit logic (quiz: only unsubmitted problems; video; sheet/doc), go back to the Course tab
+  // and re-check, up to outlineMaxPasses passes. Items that cannot be finished are logged with why.
+  // Returns { readable, open } (open = items still unchecked at the end).
+  async courseOutlineSweep(progressData) {
+    const NAMES = { quiz: 'แบบฝึก', video: 'วิดีโอ', doc: 'เอกสาร' };
+    const label = i => `${i.section ? i.section + ' › ' : ''}${i.name}`;
+    const keyOf = i => i.href.split('#')[0];
+    const givenUp = new Map();
+    const tries = new Map();
+    const notes = new Map();
+    const maxPasses = this.outlineMaxPasses;
+    let outline = null;
+    let open = [];
+    this.setStatus('running', 'Checking Course outline');
+    this.log(`📚 เปิดแท็บ Course เพื่อตรวจทุกรายการในโครงสร้างรายวิชา (ติ๊กทึบ = เสร็จ, วงกลมเทาโปร่ง = ยังไม่เสร็จ)...`);
+
+    for (let pass = 1; !this.shouldStop; pass++) {
+      outline = await this.openCourseOutline();
+      if (!outline) {
+        this.log(`⚠️ อ่านโครงสร้างรายวิชาในแท็บ Course ไม่ได้ (ไม่พบรายการบทเรียน) — ใช้วิธีเดิมแทน`, 'warn');
+        return { readable: false, open: [] };
+      }
+      open = outline.items.filter(i => i.done !== true);
+      const unknown = open.filter(i => i.done === null);
+      this.log(`📚 [Course tab ตรวจครั้งที่ ${pass}] ทั้งหมด ${outline.items.length} รายการ | ติ๊กแล้ว ${outline.items.length - open.length} | ยังไม่ติ๊ก ${open.length}${unknown.length ? ` (อ่านไอคอนไม่ได้ ${unknown.length})` : ''}`);
+      this.onOutline({ pass, total: outline.items.length, open: open.map(i => ({ section: i.section, name: i.name, href: i.href, state: i.done === null ? 'unknown' : 'incomplete' })) });
+      if (!open.length) {
+        this.log(`✅ ทุกรายการในแท็บ Course ขึ้นติ๊กครบแล้ว`);
+        return { readable: true, open };
+      }
+      const todo = open.filter(i => !givenUp.has(keyOf(i)));
+      if (!todo.length || pass > maxPasses) break;
+      todo.forEach(i => this.log(`   ○ ${label(i)}${i.done === null ? ' (อ่านไอคอนไม่ได้ — เปิดตรวจ)' : ''}`));
+
+      for (const item of todo) {
+        if (this.shouldStop) break;
+        const key = keyOf(item);
+        const kind = this.outlineItemKind(item, progressData);
+        if (kind && !this.modes.has(kind)) {
+          givenUp.set(key, `ไม่ได้เลือกให้ทำ${NAMES[kind]}`);
+          this.log(`⏭️ [ข้ามตามที่เลือก] ${label(item)} — เป็น${NAMES[kind]} แต่ไม่ได้เลือกให้ทำ${NAMES[kind]}`);
+          continue;
+        }
+        tries.set(key, (tries.get(key) || 0) + 1);
+        this.log(`🎯 [Course tab] เปิดทำ: ${label(item)} (ครั้งที่ ${tries.get(key)})`);
+        const res = await this.workOutlineItem(item);
+        if (this.shouldStop) break;
+        const worked = res.outcomes.filter(o => o && !o.startsWith('skip:') && o !== 'complete');
+        const skipped = [...new Set(res.outcomes.filter(o => o && o.startsWith('skip:')).map(o => NAMES[o.slice(5)]))];
+        const stuckQs = [...this.leftovers.values()].filter(l => res.urls.has(String(l.url).split('#')[0]));
+        if (stuckQs.length) {
+          givenUp.set(key, `แบบฝึกมี ${stuckQs.length} ข้อที่ไม่มีเฉลยที่ใช้ได้ (ไม่สุ่มตอบ/ไม่ส่ง)`);
+        } else if (!worked.length && skipped.length) {
+          givenUp.set(key, `ไม่ได้เลือกให้ทำ${skipped.join('/')}`);
+        } else if (!worked.length && res.outcomes.length) {
+          givenUp.set(key, `ทุกหน่วยในนี้ขึ้นติ๊กแล้ว แต่ Course tab ยังไม่ติ๊ก (อาจมีหน่วยที่ยังไม่เปิดให้เรียน/ซ่อนอยู่)`);
+        } else if (!res.outcomes.length) {
+          notes.set(key, 'เปิดแล้วไม่พบหน่วยเรียน');
+        } else {
+          notes.set(key, `ทำแล้ว (${[...new Set(worked)].map(o => NAMES[o]).join('/')}) แต่ยังไม่ขึ้นติ๊ก`);
+        }
+      }
+    }
+
+    if (open.length) {
+      this.log(`⚠️ Course tab ยังมี ${open.length} รายการที่ไม่ขึ้นติ๊ก:`, 'warn');
+      open.forEach(i => {
+        const key = keyOf(i);
+        const why = givenUp.get(key) || (tries.get(key)
+          ? `${notes.get(key) || 'ยังไม่ขึ้นติ๊ก'} — เปิดทำแล้ว ${tries.get(key)} ครั้ง (ครบจำนวนรอบสูงสุด ${maxPasses} รอบ)`
+          : 'ยังไม่ได้เปิดทำ');
+        this.log(`   • ${label(i)} — ${why}${i.done === null ? ` [อ่านสถานะไอคอนไม่ได้: ${i.how}]` : ''}`, 'warn');
+      });
+    }
+    return { readable: true, open };
+  }
+
+  // Opens one outline subsection (its link on the Course tab; direct URL as fallback) and works it.
+  async workOutlineItem(item) {
+    let link = item.hrefAttr ? await this.page.$(`a[href="${item.hrefAttr.replace(/["\\]/g, '\\$&')}"]`).catch(() => null) : null;
+    if (link && await link.isVisible().catch(() => false)) {
+      await link.scrollIntoViewIfNeeded().catch(() => {});
+      await link.click().catch(() => {});
+      await this.page.waitForURL(u => !/\/home(?:[/?#]|$)/.test(String(u)), { timeout: 15000 }).catch(() => {});
+    } else {
+      await this.page.goto(item.href, { timeout: 60000 }).catch(e => this.log(`Nav warning: ${e.message}`, 'warn'));
+    }
+    await this.page.waitForLoadState('domcontentloaded', { timeout: 15000 }).catch(() => {});
+    await this.sleep(1500);
+    const res = await this.workSequence();
+    // Let completion events (video 95%, viewed HTML) reach the server before re-reading the outline.
+    await this.sleep(1500);
+    return res;
   }
 
   async walkFromFirstUnit() {
@@ -1481,3 +1745,4 @@ class AutomationWorker {
 }
 
 module.exports = AutomationWorker;
+module.exports.parseCourseOutline = parseCourseOutline;

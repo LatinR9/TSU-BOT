@@ -1,7 +1,7 @@
 // Local stand-in for apps.course.tsu.ac.th (Open edX learning MFE + LMS xblock iframe).
 // Not the live TSU site: markup and completion rules are modeled on Open edX defaults
 // (sequence nav check icons, iframe#unit-iframe, capa problems, video complete at 95%,
-// HTML/document blocks complete after being viewed).
+// HTML/document blocks complete after being viewed, Course tab outline with check-circle icons).
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -18,7 +18,7 @@ function startCourseServer(spec) {
     let sq = sequences.find(x => x.id === seqId);
     if (!sq) {
       const def = (spec.sequences || []).find(x => x.id === seqId) || {};
-      sq = { id: seqId, title: def.title || u.title, chapter: def.chapter || u.section, key: blockKey('sequential', seqId), units: [] };
+      sq = { id: seqId, title: def.title || u.title, chapter: def.chapter || u.section, graded: def.graded !== false, key: blockKey('sequential', seqId), units: [] };
       sequences.push(sq);
     }
     const unit = { ...u, idx: i, seqId, key: blockKey('vertical', u.id) };
@@ -30,6 +30,7 @@ function startCourseServer(spec) {
     complete: Object.fromEntries(units.map(u => [u.id, !!u.complete])),
     graded: Object.fromEntries(units.flatMap(u => (u.problems || []).map(p => [p.id, gradeOf(p)]))),
     attempts: Object.fromEntries(units.flatMap(u => (u.problems || []).map(p => [p.id, p.attemptsUsed != null ? p.attemptsUsed : (gradeOf(p) ? 1 : 0)]))),
+    completeReports: {},
     events: []
   };
   const ev = (type, unit, data = {}) => state.events.push({ t: Date.now(), type, unit, ...data });
@@ -282,7 +283,7 @@ ${tabs('Course')}
 
   function progressData() {
     const done = units.filter(u => state.complete[u.id]).length;
-    const graded = sequences.filter(sq => sq.units.some(u => u.problems)).map(sq => {
+    const graded = sequences.filter(sq => sq.graded && sq.units.some(u => u.problems)).map(sq => {
       const probs = sq.units.flatMap(u => u.problems || []);
       return {
         chapter: sq.chapter, title: sq.title, url: seqUrl(sq),
@@ -340,15 +341,78 @@ ${tabs('Progress')}
 </script></body></html>`;
   }
 
+  // Course tab outline (frontend-app-learning CourseOutline): one card per section, subsection links
+  // with a filled (fas, text-success) or hollow (far, text-gray-400) check-circle and an sr-only
+  // ", Completed" / ", Incomplete". A subsection is complete when all of its units are.
+  function outlineData() {
+    const sections = [];
+    sequences.forEach(sq => {
+      let s = sections.find(x => x.title === sq.chapter);
+      if (!s) sections.push(s = { title: sq.chapter, sequences: [] });
+      s.sequences.push({ title: sq.title, url: seqUrl(sq), complete: sq.units.every(u => state.complete[u.id]) });
+    });
+    sections.forEach(s => { s.complete = s.sequences.every(x => x.complete); });
+    return { sections };
+  }
+
+  function homePage() {
+    return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Course | ${esc(spec.courseName)} | TSU COURSE</title>
+<style>.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)} .text-success{color:#15376d} .text-gray-400{color:#adadad}
+.collapsible-card-lg{border:1px solid #eee;margin:8px 0;padding:12px} #courseHome-outline li{min-height:48px}</style></head>
+<body style="margin:0;font-family:sans-serif">
+<header style="height:60px;background:#0b6">TSU COURSE</header>
+${tabs('Course')}
+<main id="main-content"><h1>${esc(spec.courseName)}</h1>
+  <div class="alert">Pick up where you left off <a class="btn btn-primary" href="${unitUrl(units[0])}">Resume course</a></div>
+  <div id="outline-root"><div class="spinner" role="status">Loading...</div></div>
+</main>
+<script>
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const icon = (done, what) => done
+    ? '<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="check-circle" class="svg-inline--fa fa-check-circle fa-fw float-left mt-1 text-success" width="16" height="16"><title>Completed ' + what + '</title><circle cx="8" cy="8" r="8" fill="currentColor"></circle></svg>'
+    : '<svg aria-hidden="true" focusable="false" data-prefix="far" data-icon="check-circle" class="svg-inline--fa fa-check-circle fa-fw float-left mt-1 text-gray-400" width="16" height="16"><title>Incomplete ' + what + '</title><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor"></circle></svg>';
+  let data, open = new Set([0]), expandAll = false;
+  function render() {
+    document.getElementById('outline-root').innerHTML = \`
+      <div class="row"><button class="btn btn-outline-primary btn-block" id="expand-all">\${expandAll ? 'Collapse all' : 'Expand all'}</button></div>
+      <ol id="courseHome-outline" class="list-unstyled">\${data.sections.map((s, i) => \`
+        <li><div class="pgn_collapsible collapsible-card-lg\${open.has(i) ? ' is-open' : ''}">
+          <div class="collapsible-trigger" role="button" tabindex="0" aria-expanded="\${open.has(i)}" data-sec="\${i}">
+            <div class="collapsible-title"><div class="d-flex row w-100 m-0"><div class="col-auto p-0">\${icon(s.complete, 'section')}</div>
+              <div class="col-10 ml-3 p-0 font-weight-bold"><span class="align-middle">\${esc(s.title)}</span>
+              <span class="sr-only">, \${s.complete ? 'Completed section' : 'Incomplete section'}</span></div></div></div>
+            <span class="collapsible-icon">\${open.has(i) ? '&minus;' : '+'}</span>
+          </div>
+          \${open.has(i) ? \`<div class="collapsible-body"><ol class="list-unstyled">\${s.sequences.map(q => \`
+            <li><div class="row w-100 m-0"><div class="col-auto p-0">\${icon(q.complete, 'assignment')}</div>
+              <div class="col-10 p-0 ml-3 text-break"><span class="align-middle"><a href="\${q.url}">\${esc(q.title)}</a></span>
+              <span class="sr-only">, \${q.complete ? 'Completed' : 'Incomplete'}</span></div></div></li>\`).join('')}</ol></div>\` : ''}
+        </div></li>\`).join('')}
+      </ol>\`;
+    document.getElementById('expand-all').onclick = () => {
+      expandAll = !expandAll;
+      open = expandAll ? new Set(data.sections.map((_, i) => i)) : new Set();
+      render();
+    };
+    document.querySelectorAll('.collapsible-trigger').forEach(t => t.onclick = () => {
+      const i = +t.dataset.sec; open.has(i) ? open.delete(i) : open.add(i); render();
+    });
+    document.querySelectorAll('#courseHome-outline a').forEach(a => a.addEventListener('click', () =>
+      navigator.sendBeacon('/event', JSON.stringify({ type: 'outline-link', title: a.textContent }))));
+  }
+  setTimeout(async () => { data = await (await fetch('/outline-data')).json(); render(); }, 600);
+</script></body></html>`;
+  }
+
   const server = http.createServer((req, res) => {
     const url = decodeURIComponent(req.url.split('?')[0]);
     const send = (code, body, type = 'text/html; charset=utf-8') => { res.writeHead(code, { 'Content-Type': type }); res.end(body); };
     let m;
     if (url === `/learning/course/${cid}/home`) {
-      return send(200, `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(spec.courseName)} | Home</title></head><body>
-        ${tabs('Course')}<h1>${esc(spec.courseName)}</h1><a class="btn btn-primary" href="${unitUrl(units[0])}">Resume course</a>
-        <ol class="outline-sections">${units.map(x => `<li><a href="${unitUrl(x)}">${esc(x.title)}</a></li>`).join('')}</ol></body></html>`);
+      ev('outline-view');
+      return send(200, homePage());
     }
+    if (url === '/outline-data') return send(200, JSON.stringify(outlineData()), 'application/json');
     if (url === `/learning/course/${cid}/progress`) {
       ev('progress-view');
       return send(200, progressPage());
@@ -377,6 +441,14 @@ ${tabs('Progress')}
     }
     if (url === '/state') return send(200, JSON.stringify({ complete: state.complete }), 'application/json');
     if ((m = url.match(/^\/complete\/(.+)$/)) && req.method === 'POST') {
+      // u.completeAfter: completion is only recorded on that many-th report (e.g. a flaky first
+      // view); u.neverComplete: never recorded (content the bot cannot finish).
+      const u = units.find(x => x.id === m[1]);
+      state.completeReports[m[1]] = (state.completeReports[m[1]] || 0) + 1;
+      if (u && (u.neverComplete || state.completeReports[m[1]] < (u.completeAfter || 1))) {
+        ev('complete-ignored', m[1]);
+        return send(200, '{}', 'application/json');
+      }
       state.complete[m[1]] = true; ev('complete', m[1]);
       return send(200, '{}', 'application/json');
     }
@@ -415,7 +487,8 @@ ${tabs('Progress')}
 
   return new Promise(resolve => server.listen(0, '127.0.0.1', () => {
     const base = `http://127.0.0.1:${server.address().port}`;
-    resolve({ base, homeUrl: `${base}/learning/course/${cid}/home`, progressUrl: `${base}/learning/course/${cid}/progress`, units, sequences, state, progressData, close: () => new Promise(r => server.close(r)) });
+    resolve({ base, homeUrl: `${base}/learning/course/${cid}/home`, progressUrl: `${base}/learning/course/${cid}/progress`,
+      unitUrl: u => base + unitUrl(units.find(x => x.id === u)), units, sequences, state, progressData, outlineData, close: () => new Promise(r => server.close(r)) });
   }));
 }
 

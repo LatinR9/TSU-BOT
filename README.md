@@ -68,6 +68,8 @@ npm test                                  # unit tests + Chromium end-to-end on 
                                           # + readiness: full worker.start() runs on an Open edX-like
                                           #   course server (test/fixtures/course/) for every --modes combo
                                           # + progress: Progress tab first / end-of-run re-check flow
+                                          # + outline: below 100% → Course tab sweep of every item
+                                          #   without the filled check (bounded passes)
 node cli_worker.js --action progress --url <course url>   # only read and log the Progress tab
 node test/hit_rate.js --legacy origin/main # simulate every bank question, compare with old logic
 ```
