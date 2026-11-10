@@ -2,6 +2,7 @@
 const { chromium } = require('playwright');
 const path = require('path');
 const fs = require('fs');
+const readline = require('readline');
 const dbManager = require('./db_manager');
 const AutomationWorker = require('./worker');
 
@@ -20,6 +21,28 @@ const courseCode = getArg('course', '');
 const speed = getArg('speed', 'normal');
 const url = getArg('url', '');
 const workerId = getArg('id', 'Worker-1');
+
+let activeWorker = null;
+
+// Listen on standard input for commands: pause | resume | stop | cancel
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+  terminal: false
+});
+
+rl.on('line', (line) => {
+  const cmd = line.trim().toLowerCase();
+  if (!activeWorker) return;
+
+  if (cmd === 'pause') {
+    activeWorker.pause();
+  } else if (cmd === 'resume') {
+    activeWorker.resume();
+  } else if (cmd === 'stop' || cmd === 'cancel') {
+    activeWorker.stop();
+  }
+});
 
 async function main() {
   if (action === 'login') {
@@ -42,7 +65,7 @@ async function main() {
   }
 
   if (action === 'run') {
-    const worker = new AutomationWorker(
+    activeWorker = new AutomationWorker(
       workerId,
       { courseCode, targetUrl: url, speedMode: speed },
       (id, text, level) => {
@@ -53,7 +76,7 @@ async function main() {
       }
     );
 
-    await worker.start();
+    await activeWorker.start();
   }
 }
 

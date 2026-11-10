@@ -22,15 +22,19 @@ namespace TSUBotDesktop
         private Label lblVersion;
         private Button btnLogin;
         private Button btnStart;
+        private Button btnPause;
+        private Button btnCancel;
+        private Button btnPauseWorker;
         private Button btnStop;
         private Button btnAddCourse;
         private Button btnCheckUpdate;
 
         private Dictionary<string, Process> runningWorkers = new Dictionary<string, Process>();
+        private Dictionary<string, bool> workerPausedStates = new Dictionary<string, bool>();
         private int workerCounter = 1;
         private string appDir;
         private string nodePath;
-        private const string APP_VERSION = "1.0.1";
+        private const string APP_VERSION = "1.0.2";
         private const string GITHUB_REPO = "LatinR9/TSU-BOT";
 
         [STAThread]
@@ -171,18 +175,30 @@ namespace TSUBotDesktop
 
             txtUrl = new TextBox
             {
-                Location = new Point(130, 112),
-                Width = 440,
+                Location = new Point(135, 112),
+                Width = 310,
                 BackColor = Color.FromArgb(15, 23, 42),
                 ForeColor = Color.White
             };
             pnlControls.Controls.Add(txtUrl);
 
             // Start Bot Button
-            btnStart = CreateButton("▶️ เปิด Chrome เริ่มบอท (+ New Browser)", Color.FromArgb(37, 99, 235), 270, 38);
-            btnStart.Location = new Point(590, 108);
+            btnStart = CreateButton("▶️ เริ่มบอท (+ New)", Color.FromArgb(37, 99, 235), 170, 36);
+            btnStart.Location = new Point(460, 108);
             btnStart.Click += BtnStart_Click;
             pnlControls.Controls.Add(btnStart);
+
+            // Pause Bot Button
+            btnPause = CreateButton("⏸️ หยุดชั่วคราว", Color.FromArgb(217, 119, 6), 140, 36);
+            btnPause.Location = new Point(640, 108);
+            btnPause.Click += BtnPause_Click;
+            pnlControls.Controls.Add(btnPause);
+
+            // Cancel Bot Button
+            btnCancel = CreateButton("⏹️ ยกเลิกการทำงาน", Color.FromArgb(220, 38, 38), 145, 36);
+            btnCancel.Location = new Point(790, 108);
+            btnCancel.Click += BtnCancel_Click;
+            pnlControls.Controls.Add(btnCancel);
 
             this.Controls.Add(pnlControls);
 
@@ -198,9 +214,15 @@ namespace TSUBotDesktop
             // Top: Workers List
             Panel pnlWorkersHeader = new Panel { Dock = DockStyle.Top, Height = 32, BackColor = Color.FromArgb(15, 23, 42) };
             Label lblWorkersTitle = new Label { Text = "🖥️ หน้าต่าง Chrome บอทที่กำลังทำงาน (Multi-Browser Workers):", AutoSize = true, Location = new Point(10, 8), Font = new Font("Segoe UI", 9.5f, FontStyle.Bold) };
-            btnStop = CreateButton("⏹️ ปิดบอทที่เลือก", Color.FromArgb(239, 68, 68), 130, 26);
-            btnStop.Location = new Point(780, 4);
-            btnStop.Click += BtnStop_Click;
+            
+            btnPauseWorker = CreateButton("⏸️ พัก / ▶️ ต่อ", Color.FromArgb(217, 119, 6), 125, 26);
+            btnPauseWorker.Location = new Point(640, 3);
+            btnPauseWorker.Click += BtnPause_Click;
+            pnlWorkersHeader.Controls.Add(btnPauseWorker);
+
+            btnStop = CreateButton("⏹️ ยกเลิกบอทที่เลือก", Color.FromArgb(220, 38, 38), 145, 26);
+            btnStop.Location = new Point(780, 3);
+            btnStop.Click += BtnCancel_Click;
             pnlWorkersHeader.Controls.Add(lblWorkersTitle);
             pnlWorkersHeader.Controls.Add(btnStop);
             split.Panel1.Controls.Add(pnlWorkersHeader);
@@ -359,6 +381,7 @@ namespace TSUBotDesktop
                     WorkingDirectory = appDir,
                     CreateNoWindow = true,
                     UseShellExecute = false,
+                    RedirectStandardInput = true,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     StandardOutputEncoding = Encoding.UTF8,
@@ -425,6 +448,7 @@ namespace TSUBotDesktop
                     WorkingDirectory = appDir,
                     CreateNoWindow = true,
                     UseShellExecute = false,
+                    RedirectStandardInput = true,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     StandardOutputEncoding = Encoding.UTF8,
@@ -487,28 +511,173 @@ namespace TSUBotDesktop
             }
         }
 
-        private void BtnStop_Click(object sender, EventArgs e)
+        private void BtnPause_Click(object sender, EventArgs e)
         {
-            if (lvWorkers.SelectedItems.Count == 0)
+            if (runningWorkers.Count == 0)
             {
-                MessageBox.Show("กรุณาเลือก Worker ในตารางที่ต้องการปิด", "ข้อความ", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("ขณะนี้ยังไม่มีบอทกำลังทำงานอยู่", "แจ้งเตือน", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
-            string workerId = lvWorkers.SelectedItems[0].Tag.ToString();
-            if (runningWorkers.ContainsKey(workerId))
+            string targetWorkerId = null;
+            if (lvWorkers.SelectedItems.Count > 0 && lvWorkers.SelectedItems[0].Tag != null)
             {
-                try
+                targetWorkerId = lvWorkers.SelectedItems[0].Tag.ToString();
+            }
+            else if (runningWorkers.Count == 1)
+            {
+                foreach (var k in runningWorkers.Keys) { targetWorkerId = k; break; }
+            }
+
+            if (targetWorkerId != null && runningWorkers.ContainsKey(targetWorkerId))
+            {
+                ToggleWorkerPause(targetWorkerId);
+            }
+            else
+            {
+                // Toggle all running workers
+                bool anyRunning = false;
+                foreach (var kvp in runningWorkers)
                 {
-                    runningWorkers[workerId].Kill();
-                    AppendLog(string.Format("⏹️ ปิด {0} สำเร็จ", workerId), Color.FromArgb(248, 113, 113));
-                    UpdateWorkerStatus(workerId, "ถูกสั่งปิด");
-                    runningWorkers.Remove(workerId);
+                    if (!workerPausedStates.ContainsKey(kvp.Key) || !workerPausedStates[kvp.Key])
+                    {
+                        anyRunning = true;
+                        break;
+                    }
                 }
-                catch (Exception ex)
+
+                List<string> keys = new List<string>(runningWorkers.Keys);
+                foreach (var workerId in keys)
                 {
-                    MessageBox.Show("ไม่สามารถปิดได้: " + ex.Message);
+                    SetWorkerPause(workerId, anyRunning);
                 }
+
+                UpdatePauseButtons(anyRunning);
+            }
+        }
+
+        private void ToggleWorkerPause(string workerId)
+        {
+            bool isPaused = workerPausedStates.ContainsKey(workerId) && workerPausedStates[workerId];
+            SetWorkerPause(workerId, !isPaused);
+            UpdatePauseButtons(!isPaused);
+        }
+
+        private void SetWorkerPause(string workerId, bool pause)
+        {
+            if (!runningWorkers.ContainsKey(workerId)) return;
+            Process p = runningWorkers[workerId];
+            try
+            {
+                if (pause)
+                {
+                    p.StandardInput.WriteLine("pause");
+                    workerPausedStates[workerId] = true;
+                    AppendLog(string.Format("⏸️ [หยุดชั่วคราว] {0} หยุดการทำงานชั่วคราวแล้ว", workerId), Color.FromArgb(245, 158, 11));
+                    UpdateWorkerStatus(workerId, "⏸️ หยุดชั่วคราว (Paused)");
+                }
+                else
+                {
+                    p.StandardInput.WriteLine("resume");
+                    workerPausedStates[workerId] = false;
+                    AppendLog(string.Format("▶️ [ทำงานต่อ] {0} กลับมาทำงานต่อแล้ว", workerId), Color.FromArgb(52, 211, 153));
+                    UpdateWorkerStatus(workerId, "▶️ กำลังทำงานต่อ (Resumed)");
+                }
+            }
+            catch (Exception ex)
+            {
+                AppendLog(string.Format("❌ ข้อผิดพลาดในการส่งคำสั่ง Pause/Resume: {0}", ex.Message), Color.FromArgb(248, 113, 113));
+            }
+        }
+
+        private void UpdatePauseButtons(bool isPaused)
+        {
+            if (isPaused)
+            {
+                btnPause.Text = "▶️ ทำงานต่อ";
+                btnPause.BackColor = Color.FromArgb(16, 185, 129); // Emerald Green
+                if (btnPauseWorker != null)
+                {
+                    btnPauseWorker.Text = "▶️ ทำงานต่อ";
+                    btnPauseWorker.BackColor = Color.FromArgb(16, 185, 129);
+                }
+            }
+            else
+            {
+                btnPause.Text = "⏸️ หยุดชั่วคราว";
+                btnPause.BackColor = Color.FromArgb(217, 119, 6); // Amber
+                if (btnPauseWorker != null)
+                {
+                    btnPauseWorker.Text = "⏸️ พัก / ▶️ ต่อ";
+                    btnPauseWorker.BackColor = Color.FromArgb(217, 119, 6);
+                }
+            }
+        }
+
+        private void BtnCancel_Click(object sender, EventArgs e)
+        {
+            if (runningWorkers.Count == 0)
+            {
+                MessageBox.Show("ขณะนี้ไม่มีบอทกำลังทำงานอยู่", "แจ้งเตือน", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            string targetWorkerId = null;
+            if (lvWorkers.SelectedItems.Count > 0 && lvWorkers.SelectedItems[0].Tag != null)
+            {
+                targetWorkerId = lvWorkers.SelectedItems[0].Tag.ToString();
+            }
+            else if (runningWorkers.Count == 1)
+            {
+                foreach (var k in runningWorkers.Keys) { targetWorkerId = k; break; }
+            }
+
+            if (targetWorkerId != null)
+            {
+                CancelWorker(targetWorkerId);
+            }
+            else
+            {
+                DialogResult res = MessageBox.Show(string.Format("มีบอททำงานอยู่ {0} หน้าต่าง คุณต้องการยกเลิกการทำงานทั้งหมดใช่หรือไม่?", runningWorkers.Count), "ยืนยันยกเลิกทั้งหมด", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (res == DialogResult.Yes)
+                {
+                    List<string> keys = new List<string>(runningWorkers.Keys);
+                    foreach (var workerId in keys)
+                    {
+                        CancelWorker(workerId);
+                    }
+                }
+            }
+        }
+
+        private void CancelWorker(string workerId)
+        {
+            if (!runningWorkers.ContainsKey(workerId)) return;
+            Process p = runningWorkers[workerId];
+            try
+            {
+                try { p.StandardInput.WriteLine("stop"); } catch { }
+
+                Thread t = new Thread(() =>
+                {
+                    Thread.Sleep(1500);
+                    try
+                    {
+                        if (!p.HasExited) p.Kill();
+                    }
+                    catch { }
+                });
+                t.IsBackground = true;
+                t.Start();
+
+                AppendLog(string.Format("⏹️ [ยกเลิก] {0} ได้รับคำสั่งยกเลิกการทำงานและกำลังปิดหน้าต่าง", workerId), Color.FromArgb(239, 68, 68));
+                UpdateWorkerStatus(workerId, "⏹️ ยกเลิกการทำงานแล้ว (Stopped)");
+                runningWorkers.Remove(workerId);
+                if (workerPausedStates.ContainsKey(workerId)) workerPausedStates.Remove(workerId);
+            }
+            catch (Exception ex)
+            {
+                AppendLog(string.Format("ข้อผิดพลาดในการยกเลิก {0}: {1}", workerId, ex.Message), Color.FromArgb(248, 113, 113));
             }
         }
 

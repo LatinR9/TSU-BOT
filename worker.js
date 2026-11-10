@@ -49,7 +49,16 @@ class AutomationWorker {
   async sleep(ms) {
     const jitter = this.delays.randomJitter > 0 ? Math.floor(Math.random() * this.delays.randomJitter) : 0;
     const total = ms + jitter;
-    return new Promise(res => setTimeout(res, total));
+    const interval = 200;
+    let elapsed = 0;
+    while (elapsed < total && !this.shouldStop) {
+      while (this.isPaused && !this.shouldStop) {
+        await new Promise(r => setTimeout(r, 300));
+      }
+      const slice = Math.min(interval, total - elapsed);
+      await new Promise(r => setTimeout(r, slice));
+      elapsed += slice;
+    }
   }
 
   async start() {
@@ -760,23 +769,24 @@ class AutomationWorker {
 
   pause() {
     this.isPaused = true;
-    this.setStatus('paused');
-    this.log(`⏸️ Worker paused.`);
+    this.setStatus('paused', 'Paused by user');
+    this.log(`⏸️ [คำสั่งผู้ใช้] บอทหยุดทำงานชั่วคราวแล้ว (Paused)`);
   }
 
   resume() {
     this.isPaused = false;
-    this.setStatus('running');
-    this.log(`▶️ Worker resumed.`);
+    this.setStatus('running', 'Resumed by user');
+    this.log(`▶️ [คำสั่งผู้ใช้] บอทกลับมาทำงานต่อแล้ว (Resumed)`);
   }
 
   async stop() {
     this.shouldStop = true;
     this.setStatus('stopped', 'Stopped by user');
-    this.log(`⏹️ Worker stopping...`);
+    this.log(`⏹️ [คำสั่งผู้ใช้] ยกเลิกการทำงาน กำลังปิดเบราว์เซอร์...`);
     if (this.browserContext) {
       await this.browserContext.close().catch(() => {});
     }
+    process.exit(0);
   }
 }
 
