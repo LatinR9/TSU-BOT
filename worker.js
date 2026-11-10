@@ -11,6 +11,9 @@ class AutomationWorker {
     this.courseCode = options.courseCode || '';
     this.targetUrl = options.targetUrl || '';
     this.speedMode = options.speedMode || 'normal'; // turbo, normal, safe
+    const modeList = String(options.modes || '').toLowerCase().split(',').map(m => m.trim())
+      .filter(m => m === 'quiz' || m === 'video' || m === 'doc');
+    this.modes = new Set(modeList.length ? modeList : ['quiz', 'video', 'doc']);
     this.onLog = onLog;
     this.onStatus = onStatus;
 
@@ -65,7 +68,7 @@ class AutomationWorker {
     this.shouldStop = false;
     this.isPaused = false;
     this.setStatus('running', 'Starting Browser');
-    this.log(`🚀 Starting Worker [${this.id}] for course ${this.courseCode || 'General'} (Mode: ${this.speedMode})`);
+    this.log(`🚀 Starting Worker [${this.id}] for course ${this.courseCode || 'General'} (Mode: ${this.speedMode}, Tasks: ${[...this.modes].join(',')})`);
 
     try {
       this.browserContext = await chromium.launchPersistentContext(USER_DATA_DIR, {
@@ -225,16 +228,28 @@ class AutomationWorker {
     }
 
     if (videoFrame) {
+      if (!this.modes.has('video')) {
+        this.log(`⏭️ [ข้ามตามที่เลือก] หน่วยนี้เป็นวิดีโอ แต่ไม่ได้เลือกให้ทำวิดีโอ — ไปหน่วยถัดไป`);
+        return;
+      }
       await this.handleVideo(videoFrame);
       return;
     }
 
     if (quizFrame) {
+      if (!this.modes.has('quiz')) {
+        this.log(`⏭️ [ข้ามตามที่เลือก] หน่วยนี้เป็นแบบฝึก แต่ไม่ได้เลือกให้ทำแบบฝึก — ไปหน่วยถัดไป`);
+        return;
+      }
       await this.handleQuiz(quizFrame);
       return;
     }
 
     // Otherwise handle as document / slide reading unit
+    if (!this.modes.has('doc')) {
+      this.log(`⏭️ [ข้ามตามที่เลือก] หน่วยนี้เป็นเอกสาร แต่ไม่ได้เลือกให้ทำเอกสาร — ไปหน่วยถัดไป`);
+      return;
+    }
     await this.handleDocument(this.page.mainFrame());
   }
 

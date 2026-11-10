@@ -113,6 +113,10 @@ namespace TSUBotDesktop
     {
         private ComboBox comboCourse;
         private ComboBox comboSpeed;
+        private CheckBox chkModeQuiz;
+        private CheckBox chkModeVideo;
+        private CheckBox chkModeDoc;
+        private bool suppressModeEvents = false;
         private TextBox txtUrl;
         private RichTextBox rtbLogs;
         private ListView lvWorkers;
@@ -147,6 +151,7 @@ namespace TSUBotDesktop
         private const string APP_VERSION = "1.0.5";
         private const string GITHUB_REPO = "LatinR9/TSU-BOT";
         private const string EXE_NAME = "TSU-BOT-Pro.exe";
+        private const string SETTINGS_FILE = "desktop_settings.json";
 
         [STAThread]
         public static void Main()
@@ -164,6 +169,7 @@ namespace TSUBotDesktop
             ResolveNodePath();
             InitializeComponent();
             LoadCourses();
+            LoadModeSettings();
             CheckUpdateAsync(false);
         }
 
@@ -364,6 +370,16 @@ namespace TSUBotDesktop
             comboSpeed.Items.AddRange(new object[] { "turbo (สายฟ้า)", "normal (สมดุล)", "safe (ปลอดภัย)" });
             comboSpeed.SelectedIndex = 1;
             pnlControls.Controls.Add(comboSpeed);
+
+            Label lblModes = CreateFieldLabel("ให้บอททำ (เลือกอย่างน้อย 1)", new Point(680, 92));
+            pnlControls.Controls.Add(lblModes);
+
+            chkModeQuiz = CreateModeCheckBox("แบบฝึก", new Point(680, 115));
+            chkModeVideo = CreateModeCheckBox("วิดีโอ", new Point(770, 115));
+            chkModeDoc = CreateModeCheckBox("เอกสาร", new Point(855, 115));
+            pnlControls.Controls.Add(chkModeQuiz);
+            pnlControls.Controls.Add(chkModeVideo);
+            pnlControls.Controls.Add(chkModeDoc);
 
             Label lblUrl = CreateFieldLabel("URL เจาะจง (ถ้ามี)", new Point(18, 148));
             pnlControls.Controls.Add(lblUrl);
@@ -618,6 +634,95 @@ namespace TSUBotDesktop
             };
         }
 
+        private CheckBox CreateModeCheckBox(string text, Point location)
+        {
+            CheckBox chk = new CheckBox
+            {
+                Text = text,
+                Location = location,
+                AutoSize = true,
+                Checked = true,
+                ForeColor = UiTheme.Text,
+                BackColor = Color.Transparent,
+                Cursor = Cursors.Hand,
+                Font = UiTheme.UiFont(9.5f, FontStyle.Bold)
+            };
+            chk.CheckedChanged += ModeCheckBox_CheckedChanged;
+            return chk;
+        }
+
+        private void ModeCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (suppressModeEvents) return;
+            CheckBox chk = sender as CheckBox;
+            if (!chkModeQuiz.Checked && !chkModeVideo.Checked && !chkModeDoc.Checked && chk != null)
+            {
+                suppressModeEvents = true;
+                chk.Checked = true;
+                suppressModeEvents = false;
+                AppendLog("ต้องเลือกสิ่งที่ให้บอททำอย่างน้อย 1 อย่าง (แบบฝึก / วิดีโอ / เอกสาร)", UiTheme.Warning);
+                return;
+            }
+            SaveModeSettings();
+        }
+
+        private string GetSelectedModes()
+        {
+            List<string> modes = new List<string>();
+            if (chkModeQuiz.Checked) modes.Add("quiz");
+            if (chkModeVideo.Checked) modes.Add("video");
+            if (chkModeDoc.Checked) modes.Add("doc");
+            return string.Join(",", modes.ToArray());
+        }
+
+        private static string DescribeModes(string modes)
+        {
+            List<string> names = new List<string>();
+            foreach (string m in modes.Split(','))
+            {
+                if (m == "quiz") names.Add("แบบฝึก");
+                else if (m == "video") names.Add("วิดีโอ");
+                else if (m == "doc") names.Add("เอกสาร");
+            }
+            return string.Join(" + ", names.ToArray());
+        }
+
+        private void LoadModeSettings()
+        {
+            string path = Path.Combine(appDir, SETTINGS_FILE);
+            if (!File.Exists(path)) return;
+            try
+            {
+                string json = File.ReadAllText(path, Encoding.UTF8);
+                Match m = Regex.Match(json, "\"modes\"\\s*:\\s*\"([^\"]*)\"");
+                if (!m.Success) return;
+                string[] saved = m.Groups[1].Value.ToLowerInvariant().Split(',');
+                bool quiz = Array.IndexOf(saved, "quiz") >= 0;
+                bool video = Array.IndexOf(saved, "video") >= 0;
+                bool doc = Array.IndexOf(saved, "doc") >= 0;
+                if (!quiz && !video && !doc) return;
+                suppressModeEvents = true;
+                chkModeQuiz.Checked = quiz;
+                chkModeVideo.Checked = video;
+                chkModeDoc.Checked = doc;
+                suppressModeEvents = false;
+            }
+            catch { suppressModeEvents = false; }
+        }
+
+        private void SaveModeSettings()
+        {
+            try
+            {
+                string json = "{\r\n  \"modes\": \"" + GetSelectedModes() + "\"\r\n}\r\n";
+                File.WriteAllText(Path.Combine(appDir, SETTINGS_FILE), json, new UTF8Encoding(false));
+            }
+            catch (Exception ex)
+            {
+                AppendLog("บันทึกการตั้งค่าโหมดไม่สำเร็จ: " + ex.Message, UiTheme.Warning);
+            }
+        }
+
         private TextBox CreateTextBox(Point location, int width)
         {
             return new TextBox
@@ -862,9 +967,16 @@ namespace TSUBotDesktop
                 customUrl = ci.Url;
             }
 
+            string modes = GetSelectedModes();
+            if (string.IsNullOrEmpty(modes))
+            {
+                AppendLog("กรุณาเลือกอย่างน้อย 1 อย่าง: แบบฝึก / วิดีโอ / เอกสาร", UiTheme.Warning);
+                return;
+            }
+
             string workerId = "Worker-" + (workerCounter++);
 
-            AppendLog(string.Format("เริ่มต้น {0} | วิชา: {1} | โหมด: {2}", workerId, courseCode, speed), UiTheme.Info);
+            AppendLog(string.Format("เริ่มต้น {0} | วิชา: {1} | โหมด: {2} | ทำ: {3}", workerId, courseCode, speed, DescribeModes(modes)), UiTheme.Info);
 
             ListViewItem item = new ListViewItem(workerId);
             item.SubItems.Add(courseCode);
@@ -877,7 +989,7 @@ namespace TSUBotDesktop
             {
                 EnsureDependencies();
                 string script = Path.Combine(appDir, "cli_worker.js");
-                string args = string.Format("\"{0}\" --action run --id \"{1}\" --course \"{2}\" --speed \"{3}\"", script, workerId, courseCode, speed);
+                string args = string.Format("\"{0}\" --action run --id \"{1}\" --course \"{2}\" --speed \"{3}\" --modes \"{4}\"", script, workerId, courseCode, speed, modes);
                 if (!string.IsNullOrEmpty(customUrl))
                 {
                     args += string.Format(" --url \"{0}\"", customUrl);
