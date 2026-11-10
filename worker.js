@@ -163,42 +163,53 @@ class AutomationWorker {
   async processCurrentUnit() {
     if (!this.page || this.page.isClosed()) return;
 
-    // Wait for dynamic edX content and iframes to render
-    await this.sleep(2500);
+    // Check if the current unit is already completed with a green checkmark
+    const isCompleted = await this.isCurrentUnitCompleted();
+    if (isCompleted) {
+      this.log(`⏭️ [ข้าม] หน่วยนี้ขึ้นติ๊กเขียวแล้ว (Completed) ข้ามไปหน่วยถัดไปทันทีตามเกณฑ์ TSU...`);
+      return;
+    }
 
-    const allFrames = [this.page.mainFrame(), ...this.page.frames()];
+    this.log(`🔍 กำลังตรวจสอบเนื้อหาของหน่วยเรียน...`);
 
-    // 1. Check if video element is present across any frame
     let videoFrame = null;
-    for (const f of allFrames) {
-      try {
-        const hasV = await f.evaluate(() => {
-          return !!document.querySelector('video, .video-player, div[data-component-type="video"], iframe[src*="youtube"], .video');
-        }).catch(() => false);
-        if (hasV) {
-          videoFrame = f;
-          break;
-        }
-      } catch (e) {}
+    let quizFrame = null;
+
+    // Poll for up to 6 seconds to allow React / edX MFE to render components
+    for (let attempt = 0; attempt < 6; attempt++) {
+      if (this.shouldStop) return;
+
+      const allFrames = [this.page.mainFrame(), ...this.page.frames()];
+
+      for (const f of allFrames) {
+        try {
+          const hasV = await f.evaluate(() => {
+            return !!document.querySelector('video, .video-player, div[data-component-type="video"], iframe[src*="youtube"], .video, .btn-play');
+          }).catch(() => false);
+
+          if (hasV) {
+            videoFrame = f;
+            break;
+          }
+
+          const hasQ = await f.evaluate(() => {
+            return !!document.querySelector('.problem, .xblock-student_view[data-block-type="problem"], div[data-block-type="problem"], form.problem-form, .capa_inputtype, .que, button.submit');
+          }).catch(() => false);
+
+          if (hasQ) {
+            quizFrame = f;
+            break;
+          }
+        } catch (e) {}
+      }
+
+      if (videoFrame || quizFrame) break;
+      await this.sleep(1000);
     }
 
     if (videoFrame) {
       await this.handleVideo(videoFrame);
       return;
-    }
-
-    // 2. Check if quiz/problem block is present across any frame
-    let quizFrame = null;
-    for (const f of allFrames) {
-      try {
-        const hasQ = await f.evaluate(() => {
-          return !!document.querySelector('.problem, .xblock-student_view[data-block-type="problem"], div[data-block-type="problem"], form.problem-form, .capa_inputtype, .que');
-        }).catch(() => false);
-        if (hasQ) {
-          quizFrame = f;
-          break;
-        }
-      } catch (e) {}
     }
 
     if (quizFrame) {
@@ -210,22 +221,37 @@ class AutomationWorker {
     await this.handleDocument(this.page.mainFrame());
   }
 
+  async isCurrentUnitCompleted() {
+    try {
+      return await this.page.evaluate(() => {
+        const activeNav = document.querySelector('nav[aria-label="Unit"] button[aria-current="true"], .tab-item.active, button.seq_video.active, button.active');
+        if (!activeNav) return false;
+        const hasCheckIcon = !!activeNav.querySelector('.fa-check, [data-icon="check-circle"], .check-circle, .complete');
+        const hasAriaComplete = (activeNav.getAttribute('aria-label') || '').toLowerCase().includes('complete');
+        const hasCompletedClass = activeNav.classList.contains('complete') || activeNav.classList.contains('success');
+        return hasCheckIcon || hasAriaComplete || hasCompletedClass;
+      });
+    } catch (e) {
+      return false;
+    }
+  }
+
   async handleVideo(frame) {
     this.setStatus('running', 'Watching Video');
-    this.log(`🎬 Video detected. Starting playback...`);
+    this.log(`🎬 ตรวจพบคลิปวิดีโอ กำลังเริ่มเล่น...`);
 
-    // Unmute & play
+    // 1. Unmute & click play
     await frame.evaluate(() => {
       const v = document.querySelector('video');
       if (v) {
         v.muted = true;
         v.play().catch(() => {});
       }
-      const playBtn = document.querySelector('.btn-play, .play-btn, button[aria-label="Play"], .video-control.play-pause');
+      const playBtn = document.querySelector('.btn-play, .play-btn, button[aria-label="Play"], .video-control.play-pause, .play');
       if (playBtn) playBtn.click();
     }).catch(() => {});
 
-    // Wait until play begins (currentTime > 0)
+    // 2. Wait 1-2s until playback starts (currentTime > 0) per README_TH.md
     let started = false;
     for (let i = 0; i < 15; i++) {
       if (this.shouldStop) return;
@@ -236,13 +262,14 @@ class AutomationWorker {
 
       if (cur > 0.5) {
         started = true;
+        this.log(`▶️ คลิปวิดีโอเริ่มเล่นแล้ว (เวลาเดิน ${cur.toFixed(1)}s)...`);
         break;
       }
       await this.sleep(1000);
     }
 
-    // Fast-forward to last N seconds per specification (10 seconds before end)
-    const margin = this.delays.videoSeekMargin;
+    // 3. Seek to last ~10 seconds per README_TH.md
+    const margin = this.delays.videoSeekMargin || 10;
     const durInfo = await frame.evaluate((m) => {
       const v = document.querySelector('video');
       if (!v) return null;
@@ -253,31 +280,32 @@ class AutomationWorker {
       return { duration: dur, current: v.currentTime };
     }, margin).catch(() => null);
 
-    this.log(`⏩ Video seeked to ${Math.round(durInfo?.current || 0)}s / ${Math.round(durInfo?.duration || 0)}s`);
+    this.log(`⏩ เลื่อนคลิปไปช่วง 10 วินาทีสุดท้าย (${Math.round(durInfo?.current || 0)}s / ${Math.round(durInfo?.duration || 0)}s) เพื่อรับติ๊กเขียว...`);
+    // 4. Let it play for a few seconds so Open edX server registers completion
     await this.sleep(4000);
   }
 
   async handleDocument(frame) {
     this.setStatus('running', 'Reading Document');
-    this.log(`📄 Document/Reading material detected. Simulating read...`);
+    this.log(`📄 ตรวจพบเอกสาร/สไลด์ กำลังเลื่อนอ่านและรอตามเกณฑ์ TSU (5 วินาที)...`);
 
     // Smooth scroll down
     await this.page.evaluate(() => {
       window.scrollTo({ top: document.body.scrollHeight / 2, behavior: 'smooth' });
     }).catch(() => {});
-    await this.sleep(this.delays.docDelay / 2);
+    await this.sleep(2500);
 
     await this.page.evaluate(() => {
       window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     }).catch(() => {});
-    await this.sleep(this.delays.docDelay / 2);
+    await this.sleep(2500);
 
-    this.log(`✅ Document reading requirement fulfilled.`);
+    this.log(`✅ อ่านเอกสารครบ 5 วินาทีเรียบร้อยตามเกณฑ์.`);
   }
 
   async handleQuiz(frame) {
     this.setStatus('running', 'Solving Quiz');
-    this.log(`📝 Quiz detected. Analyzing questions...`);
+    this.log(`📝 ตรวจพบแบบทดสอบ (Quiz) กำลังวิเคราะห์โจทย์...`);
 
     const pageUrl = this.page.url().toLowerCase();
     const isPretest = pageUrl.includes('pre-test') || pageUrl.includes('pretest') ||
@@ -289,8 +317,9 @@ class AutomationWorker {
       questions = await this.page.$$('.problem, .xblock-student_view[data-block-type="problem"], div[data-block-type="problem"], .capa_inputtype, .que');
     }
 
-    this.log(`📝 Found ${questions.length} questions in this quiz.`);
+    this.log(`📝 พบจำนวนข้อสอบทั้งหมด ${questions.length} ข้อ`);
 
+    let qIndex = 1;
     for (const qEl of questions) {
       if (this.shouldStop) return;
       try {
@@ -299,38 +328,45 @@ class AutomationWorker {
         const textInput = await qEl.$('input.input[type="text"], input[type="text"]');
 
         if (isPretest) {
-          // Pretest policy: Random answer
+          // README_TH.md policy: Pre-test must be random
           if (choiceLabels.length > 0) {
             const randIdx = Math.floor(Math.random() * choiceLabels.length);
             await choiceLabels[randIdx].click().catch(() => {});
-            this.log(`🎲 Pre-test: selected random option for "${qText.substring(0, 30)}..."`);
+            this.log(`🎲 [Pre-test] ข้อ ${qIndex}: สุ่มเลือกตัวเลือกอัตโนมัติ`);
           }
         } else {
-          // Post-test or Chapter Quiz: Lookup in database
+          // Post-test / Chapter quiz: lookup answer from database
           const ansData = dbManager.findAnswer(this.courseCode, qText);
           let answered = false;
 
-          if (ansData && ansData.status === 'confirmed' && ansData.correct_answer) {
+          // Special case for TSUGE07272: ข้อ มานี มี 5 ปี สองอัน อันแรกผิด อันที่สองถูก
+          if (this.courseCode === 'TSUGE07272' && qText.includes('มานี') && choiceLabels.length >= 2) {
+            await choiceLabels[1].click().catch(() => {});
+            answered = true;
+            this.log(`🎯 ข้อ ${qIndex}: [TSUGE07272 กฎพิเศษ] เลือก 5 ปี อันที่สอง`);
+          }
+
+          if (!answered && ansData && ansData.status === 'confirmed' && ansData.correct_answer) {
             const targetAns = ansData.correct_answer.trim();
 
-            // Case 1: Multiple choice
+            // Case 1: Choice radio / checkbox
             if (choiceLabels.length > 0) {
               for (const ch of choiceLabels) {
                 const labelText = await ch.innerText().catch(() => '');
                 if (labelText.includes(targetAns) || targetAns.includes(labelText)) {
                   await ch.click().catch(() => {});
                   answered = true;
-                  this.log(`🎯 Match found: "${targetAns}" (Score: ${Math.round(ansData.score * 100)}%)`);
+                  this.log(`🎯 ข้อ ${qIndex}: กาคำตอบ "${targetAns}" (ความตรงกัน: ${Math.round(ansData.score * 100)}%)`);
                   break;
                 }
               }
             }
 
-            // Case 2: Text input
+            // Case 2: Text input field (e.g. TSUGE00152 reported speech)
             if (!answered && textInput) {
               await textInput.fill(targetAns).catch(() => {});
               answered = true;
-              this.log(`🎯 Filled text answer: "${targetAns}"`);
+              this.log(`🎯 ข้อ ${qIndex}: พิมพ์คำตอบ "${targetAns}"`);
             }
           }
 
@@ -343,24 +379,29 @@ class AutomationWorker {
               if (!wrongList.some(w => t.includes(w))) {
                 await ch.click().catch(() => {});
                 picked = true;
+                this.log(`💡 ข้อ ${qIndex}: เลือกตัวเลือกที่ไม่อยู่ในรายการที่เคยผิด`);
                 break;
               }
             }
-            if (!picked) await choiceLabels[0].click().catch(() => {});
+            if (!picked) {
+              await choiceLabels[0].click().catch(() => {});
+              this.log(`💡 ข้อ ${qIndex}: สุ่มเลือกตัวเลือกแรก`);
+            }
           }
         }
       } catch (e) {
         // Continue to next question
       }
+      qIndex++;
     }
 
     // Submit attempt: search both frame and page
-    const submitBtn = (await frame.$('button.submit, button[data-value="Submit"], button:has-text("Submit"), button:has-text("ส่ง"), button:has-text("ตรวจคำตอบ")'))
-                   || (await this.page.$('button.submit, button[data-value="Submit"], button:has-text("Submit"), button:has-text("ส่ง"), button:has-text("ตรวจคำตอบ")'));
+    const submitBtn = (await frame.$('button.submit, button[data-value="Submit"], button:has-text("Submit"), button:has-text("ส่งคำตอบ"), button:has-text("ส่ง"), button:has-text("ตรวจคำตอบ")'))
+                   || (await this.page.$('button.submit, button[data-value="Submit"], button:has-text("Submit"), button:has-text("ส่งคำตอบ"), button:has-text("ส่ง"), button:has-text("ตรวจคำตอบ")'));
 
     if (submitBtn) {
+      this.log(`📤 กำลังกดส่งคำตอบ (Submit)...`);
       await submitBtn.click().catch(() => {});
-      this.log(`📤 Quiz answers submitted.`);
       await this.sleep(3000);
     }
   }
