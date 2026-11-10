@@ -189,7 +189,7 @@ class AutomationWorker {
       for (const f of allFrames) {
         try {
           const hasV = await f.evaluate(() => {
-            return !!document.querySelector('video, .video-player, div[data-component-type="video"], iframe[src*="youtube"], .video, .btn-play');
+            return !!document.querySelector('video, .video-player, div[data-component-type="video"], div[data-block-type="video"], .video-wrapper, .video, iframe[src*="youtube"], .btn-play, .video-play-button');
           }).catch(() => false);
 
           if (hasV) {
@@ -265,62 +265,165 @@ class AutomationWorker {
     this.setStatus('running', 'Watching Video');
     this.log(`🎬 ตรวจพบคลิปวิดีโอ กำลังเริ่มเล่น...`);
 
-    // 1. Unmute & click play
-    try {
-      const playSel = '.btn-play, .play-btn, button[aria-label="Play"], button[aria-label="เล่น"], .video-control.play-pause, .play, video';
-      const pBtn = await frame.$(playSel);
-      if (pBtn) await pBtn.click().catch(() => {});
-    } catch (e) {}
+    const allFrames = [this.page.mainFrame(), ...this.page.frames()];
+    const playSelectors = [
+      '.btn-play',
+      '.video-play-button',
+      '.play-btn',
+      'button[aria-label*="Play" i]',
+      'button[aria-label*="เล่น" i]',
+      'button[title*="Play" i]',
+      '.video-control.play-pause',
+      '.control.play',
+      '.ytp-large-play-button',
+      '.ytp-play-button',
+      '.play',
+      'video'
+    ];
 
-    await frame.evaluate(() => {
-      const v = document.querySelector('video');
-      if (v) {
-        v.muted = true;
-        v.play().catch(() => {});
+    // Helper to attempt starting playback across all frames
+    const triggerPlay = async () => {
+      for (const f of allFrames) {
+        try {
+          // 1. Programmatic HTML5 video play (muted to satisfy autoplay policy)
+          await f.evaluate(() => {
+            const vList = document.querySelectorAll('video');
+            vList.forEach(v => {
+              v.muted = true;
+              v.volume = 0;
+              const p = v.play();
+              if (p && p.catch) p.catch(() => {});
+            });
+            const b = document.querySelector('.btn-play, .video-play-button, button[aria-label*="Play" i], .play-btn, .play');
+            if (b) b.click();
+          }).catch(() => {});
+
+          // 2. Playwright real click on play button if visible
+          for (const sel of playSelectors) {
+            const btn = await f.$(sel);
+            if (btn) {
+              const isVis = await btn.isVisible().catch(() => false);
+              if (isVis) {
+                await btn.click({ force: true }).catch(() => {});
+                break;
+              }
+            }
+          }
+        } catch (e) {}
       }
-    }).catch(() => {});
+    };
 
-    // 2. Wait 1-2s until playback starts (currentTime > 0) per README_TH.md
-    let started = false;
-    for (let i = 0; i < 15; i++) {
+    // Initial play trigger
+    await triggerPlay();
+
+    // 2. Wait and verify playback starts (currentTime > 0.2s)
+    let videoTargetFrame = null;
+    let currentSec = 0;
+    let totalDur = 0;
+
+    for (let attempt = 0; attempt < 12; attempt++) {
       if (this.shouldStop) return;
-      const cur = await frame.evaluate(() => {
-        const v = document.querySelector('video');
-        return v ? v.currentTime : 0;
-      }).catch(() => 0);
 
-      if (cur > 0.3) {
-        started = true;
-        this.log(`▶️ คลิปวิดีโอเริ่มเล่นแล้ว (เวลาเดิน ${cur.toFixed(1)}s)...`);
+      for (const f of allFrames) {
+        try {
+          const info = await f.evaluate(() => {
+            const v = document.querySelector('video');
+            if (v) {
+              return { current: v.currentTime, duration: v.duration || 0 };
+            }
+            return null;
+          }).catch(() => null);
+
+          if (info) {
+            videoTargetFrame = f;
+            currentSec = info.current;
+            if (info.duration > 0) totalDur = info.duration;
+            if (currentSec > 0.2) break;
+          }
+        } catch (e) {}
+      }
+
+      if (currentSec > 0.2) {
+        this.log(`▶️ คลิปวิดีโอเริ่มเล่นแล้ว (เวลาเดิน ${currentSec.toFixed(1)}s)...`);
         break;
       }
+
+      // Re-trigger play every second until playback starts
+      await triggerPlay();
       await this.sleep(1000);
     }
 
-    // 3. Wait for duration to be loaded
-    let duration = 0;
-    for (let i = 0; i < 6; i++) {
-      duration = await frame.evaluate(() => {
-        const v = document.querySelector('video');
-        return v ? v.duration : 0;
-      }).catch(() => 0);
-      if (duration > 0) break;
-      await this.sleep(500);
+    // 3. Obtain total duration
+    if (totalDur <= 0 && videoTargetFrame) {
+      for (let i = 0; i < 5; i++) {
+        totalDur = await videoTargetFrame.evaluate(() => {
+          const v = document.querySelector('video');
+          return v ? (v.duration || 0) : 0;
+        }).catch(() => 0);
+        if (totalDur > 0) break;
+        await this.sleep(500);
+      }
+    }
+
+    // Check Open edX metadata for duration if v.duration is not ready
+    if (totalDur <= 0) {
+      for (const f of allFrames) {
+        const metaDur = await f.evaluate(() => {
+          const el = document.querySelector('.video[data-metadata]');
+          if (el) {
+            try {
+              const meta = JSON.parse(el.getAttribute('data-metadata'));
+              return meta.duration || 0;
+            } catch (e) {}
+          }
+          return 0;
+        }).catch(() => 0);
+        if (metaDur > 0) {
+          totalDur = metaDur;
+          break;
+        }
+      }
     }
 
     // 4. Seek to last ~10 seconds per README_TH.md
     const margin = this.delays.videoSeekMargin || 10;
-    if (duration > margin + 5) {
-      await frame.evaluate(({ d, m }) => {
+    let seeked = false;
+
+    if (totalDur > margin + 5 && videoTargetFrame) {
+      const seekTarget = Math.max(0, totalDur - margin);
+      await videoTargetFrame.evaluate((t) => {
         const v = document.querySelector('video');
-        if (v) v.currentTime = Math.max(0, d - m);
-      }, { d: duration, m: margin }).catch(() => {});
-      this.log(`⏩ เลื่อนคลิปไปช่วง 10 วินาทีสุดท้าย (${Math.round(duration - margin)}s / ${Math.round(duration)}s) เพื่อรับติ๊กเขียว...`);
+        if (v) {
+          v.currentTime = t;
+          v.dispatchEvent(new Event('timeupdate'));
+          v.dispatchEvent(new Event('seeked'));
+        }
+      }, seekTarget).catch(() => {});
+      this.log(`⏩ เลื่อนคลิปไปช่วง 10 วินาทีสุดท้าย (${Math.round(seekTarget)}s / ${Math.round(totalDur)}s) เพื่อรับติ๊กเขียว...`);
+      seeked = true;
     }
 
-    // 5. Let it play for a few seconds so Open edX server registers completion
+    // Fallback: visual click on the seek / progress bar if direct seek was not possible
+    if (!seeked) {
+      for (const f of allFrames) {
+        try {
+          const seekBar = await f.$('.slider, .video-slider, .progress-bar, .ytp-progress-bar, .progress-slider, .slider-handle');
+          if (seekBar) {
+            const box = await seekBar.boundingBox();
+            if (box && box.width > 30) {
+              await this.page.mouse.click(box.x + box.width * 0.92, box.y + box.height / 2);
+              this.log(`⏩ คลิกเลื่อนแถบเวลา (Progress Bar) ไปยังช่วง 10 วินาทีสุดท้าย...`);
+              seeked = true;
+              break;
+            }
+          }
+        } catch (e) {}
+      }
+    }
+
+    // 5. Let it play for a few seconds in the last 10s so the server records completion
     await this.sleep(4000);
-    this.log(`✅ ดูคลิปวิดีโอเรียบร้อยตามเกณฑ์ TSU.`);
+    this.log(`✅ วิดีโอเล่นครบเกณฑ์เรียบร้อย เตรียมไปหน่วยถัดไป.`);
   }
 
   async handleDocument(frame) {
