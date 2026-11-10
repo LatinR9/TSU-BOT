@@ -72,7 +72,8 @@ async function main() {
         courseCode, targetUrl: url, speedMode: speed, modes,
         progressOnly: action === 'progress',
         // Machine-readable Progress page summary; the desktop app only displays [LOG] lines.
-        onProgress: (summary) => console.log(`[PROGRESS] ${JSON.stringify(summary)}`)
+        onProgress: (summary) => console.log(`[PROGRESS] ${JSON.stringify(summary)}`),
+        onOutline: (summary) => console.log(`[OUTLINE] ${JSON.stringify(summary)}`)
       },
       (id, text, level) => {
         console.log(`[LOG] ${text}`);
