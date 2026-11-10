@@ -44,7 +44,8 @@ function buildCases() {
       const sectionAnswers = section.questions.map(q => q.correct_answer).filter(Boolean);
       section.questions.forEach((q, qIdx) => {
         const positional = /not captured/i.test(q.question);
-        const kind = q.status !== 'confirmed' || !q.correct_answer ? 'unconfirmed' : positional ? 'positional' : 'stem';
+        const kind = !q.correct_answer || (q.status !== 'confirmed' && q.status !== 'inferred') ? 'unconfirmed'
+          : q.status === 'inferred' ? 'inferred' : positional ? 'positional' : 'stem';
         let choices = [];
         if (q.answer_type !== 'text') {
           const set = [];
@@ -181,7 +182,7 @@ function printTable(name, table) {
   console.log(`\n## ${name}`);
   console.log('| bank items | page variant | total | correct | wrong | skipped |');
   console.log('|---|---|---|---|---|---|');
-  for (const kind of ['stem', 'positional', 'unconfirmed']) {
+  for (const kind of ['stem', 'positional', 'inferred', 'unconfirmed']) {
     for (const variant of ['clean', 'noisy', 'typo', 'nosection']) {
       const r = table[`${kind}|${variant}`];
       if (!r) continue;
@@ -193,7 +194,7 @@ function printTable(name, table) {
 
 const cases = buildCases();
 const counts = cases.reduce((m, c) => (m[c.kind] = (m[c.kind] || 0) + 1, m), {});
-console.log(`Bank: ${cases.length} questions (${counts.stem || 0} confirmed with question text, ${counts.positional || 0} confirmed "not captured"/listed-order, ${counts.unconfirmed || 0} unconfirmed)`);
+console.log(`Bank: ${cases.length} questions (${counts.stem || 0} confirmed with question text, ${counts.positional || 0} confirmed "not captured"/listed-order, ${counts.inferred || 0} inferred, ${counts.unconfirmed || 0} unconfirmed)`);
 
 const cur = evaluate('current', runCurrent, cases);
 printTable('current', cur.table);

@@ -6,85 +6,109 @@ const dbManager = require('./db_manager');
 const USER_DATA_DIR = path.join(__dirname, 'user_profile');
 
 // Runs inside the quiz frame (serialized by Playwright): must not reference anything outside itself.
+// One entry per problem block; `slots` are its answer inputs in page order (radio group, checkbox
+// group, <select>, text input). Block titles ("problem", "Dropdown", ...) are never question text.
 function collectQuizResponses() {
   const clean = s => String(s || '').replace(/[\u200b-\u200d\u2060\ufeff]/g, '').replace(/\s+/g, ' ').trim();
   const textOf = el => clean(el ? (el.innerText || el.textContent) : '');
-  const BOILERPLATE = /^(?:question\s*\d+|ข้อ(?:ที่)?\s*\d+|text input|multiple choice|dropdown|checkbox(?:es)?|explanation|review|show answer|submit|save|reset|ส่งคำตอบ|ส่ง|ตรวจคำตอบ|graded|ungraded|unanswered|correct|incorrect|\(?\d+(?:\.\d+)?\s*(?:\/\s*\d+(?:\.\d+)?\s*)?points?.*|.*\bpoints? possible\b.*|some problems have options.*|you have used .*|answer received.*|your answer has been receive.*)$/i;
+  const BOILERPLATE = /^(?:question\s*\d+|ข้อ(?:ที่)?\s*\d+|problem|text input|multiple choice|dropdown|checkbox(?:es)?|numerical input|explanation|review|show answer|submit|save|reset|bookmark this page|select an option|ส่งคำตอบ|ส่ง|ตรวจคำตอบ|graded|ungraded|unanswered|correct|incorrect|\(?\d{1,2}\)?|\(?\d+(?:\.\d+)?\s*(?:\/\s*\d+(?:\.\d+)?\s*)?points?.*|.*\bpoints? possible\b.*|some problems have options.*|you have used .*|answer received.*|your answer has been receive.*)$/i;
   const outermost = list => list.filter(el => !list.some(o => o !== el && o.contains(el)));
+  const labelFor = el => {
+    let label = el.id ? document.querySelector(`label[for="${CSS.escape(el.id)}"]`) : null;
+    if (!label) label = el.closest('label');
+    return label;
+  };
 
   let problems = outermost(Array.from(document.querySelectorAll('.problems-wrapper, .xblock-student_view[data-block-type="problem"], div[data-block-type="problem"], .problem, .que')));
   if (problems.length === 0) {
     problems = outermost(Array.from(document.querySelectorAll('fieldset, .choicegroup'))
-      .filter(g => g.querySelector('input[type="radio"], input[type="checkbox"]')));
+      .filter(g => g.querySelector('input[type="radio"], input[type="checkbox"], select, input[type="text"]')));
   }
 
   return problems.map((p, pi) => {
     p.setAttribute('data-tsubot-p', String(pi));
+    const header = textOf(p.querySelector('.problem-header'));
     let responses = outermost(Array.from(p.querySelectorAll('.wrapper-problem-response')));
     if (responses.length === 0) responses = [p];
 
-    return {
-      pi,
-      responses: responses.map((r, ri) => {
-        const key = `${pi}-${ri}`;
-        r.setAttribute('data-tsubot-r', key);
-
-        const choiceInputs = Array.from(r.querySelectorAll('input[type="radio"], input[type="checkbox"]'));
-        const choices = choiceInputs.map((inp, ci) => {
-          inp.setAttribute('data-tsubot-c', String(ci));
-          let label = inp.id ? document.querySelector(`label[for="${CSS.escape(inp.id)}"]`) : null;
-          if (!label) label = inp.closest('label');
-          let t = textOf(label);
-          if (!t) t = clean(inp.getAttribute('aria-label'));
-          if (!t && inp.parentElement) t = textOf(inp.parentElement);
-          return t;
-        });
-
-        let selectOptions = [];
-        const selects = Array.from(r.querySelectorAll('select'));
-        if (choiceInputs.length === 0 && selects.length === 1) {
-          selects[0].setAttribute('data-tsubot-s', '0');
-          selectOptions = Array.from(selects[0].options).map(o => ({ value: o.value, text: clean(o.textContent) }));
-        }
-
-        const textInputs = Array.from(r.querySelectorAll('input[type="text"], input:not([type]), textarea'))
-          .filter(el => !el.disabled);
-        textInputs.forEach((el, ti) => el.setAttribute('data-tsubot-t', String(ti)));
-
-        const texts = [];
-        const push = t => { t = clean(t); if (t.length > 1 && !BOILERPLATE.test(t) && !texts.includes(t)) texts.push(t); };
-
-        r.querySelectorAll('legend, .response-fieldset-legend, .question-title, .qtext').forEach(el => push(textOf(el)));
-        textInputs.forEach(el => {
-          const label = el.id ? document.querySelector(`label[for="${CSS.escape(el.id)}"]`) : null;
-          if (label) push(textOf(label));
-          if (el.getAttribute('aria-label')) push(el.getAttribute('aria-label'));
-        });
-
-        // Stem written as plain <p> before the response inside the problem.
-        for (let node = r; node && node !== p; node = node.parentElement) {
-          const found = [];
-          let blocked = false;
-          for (let sib = node.previousElementSibling; sib; sib = sib.previousElementSibling) {
-            if (sib.matches('.wrapper-problem-response') || sib.querySelector('.wrapper-problem-response')) { blocked = true; break; }
-            if (sib.matches('.problem-header, .problem-progress, script, style, .sr, .sr-only')) continue;
-            const t = textOf(sib);
-            if (t) found.unshift(t);
+    const slots = [];
+    const optionTexts = new Set();
+    const respOut = responses.map((r, ri) => {
+      const key = `${pi}-${ri}`;
+      r.setAttribute('data-tsubot-r', key);
+      const groups = new Map();
+      const slotIdx = [];
+      const labelTexts = [];
+      r.querySelectorAll('input, select, textarea').forEach(el => {
+        const type = (el.getAttribute('type') || '').toLowerCase();
+        if (el.tagName === 'SELECT') {
+          if (el.disabled) return;
+          const opts = Array.from(el.options).filter(o => o.value !== '' && !/^select an option|^เลือก/i.test(clean(o.textContent)));
+          const si = slots.length;
+          el.setAttribute('data-tsubot-slot', `${pi}-${si}`);
+          slots.push({ si, id: `${pi}-${si}`, kind: 'select', rkey: key, choices: opts.map(o => clean(o.textContent)), values: opts.map(o => o.value) });
+          opts.forEach(o => optionTexts.add(clean(o.textContent)));
+          slotIdx.push(si);
+          const l = labelFor(el);
+          if (l) labelTexts.push(textOf(l));
+        } else if (type === 'radio' || type === 'checkbox') {
+          const gk = `${type}:${el.name || key}`;
+          let slot = groups.get(gk);
+          if (!slot) {
+            slot = { si: slots.length, id: `${pi}-${slots.length}`, kind: type === 'radio' ? 'choice' : 'checkbox', rkey: key, choices: [] };
+            groups.set(gk, slot);
+            slots.push(slot);
+            slotIdx.push(slot.si);
           }
-          found.forEach(push);
-          if (found.length || blocked) break;
+          el.setAttribute('data-tsubot-slot', `${pi}-${slot.si}`);
+          el.setAttribute('data-tsubot-c', String(slot.choices.length));
+          let t = textOf(labelFor(el));
+          if (!t) t = clean(el.getAttribute('aria-label'));
+          if (!t && el.parentElement) t = textOf(el.parentElement);
+          slot.choices.push(t);
+          optionTexts.add(t);
+        } else if (el.tagName === 'TEXTAREA' || type === 'text' || type === '') {
+          if (el.disabled) return;
+          const si = slots.length;
+          el.setAttribute('data-tsubot-slot', `${pi}-${si}`);
+          slots.push({ si, id: `${pi}-${si}`, kind: 'text', rkey: key });
+          slotIdx.push(si);
+          const l = labelFor(el);
+          if (l) labelTexts.push(textOf(l));
+          if (el.getAttribute('aria-label')) labelTexts.push(clean(el.getAttribute('aria-label')));
         }
+      });
+      return { key, slotIdx, labelTexts, el: r };
+    });
 
-        const choiceSet = new Set(choices.concat(selectOptions.map(o => o.text)));
-        const lineSource = responses.length === 1 ? p : r;
-        const lines = String(lineSource.innerText || lineSource.textContent || '').split('\n').map(clean)
-          .filter(l => l && !choiceSet.has(l) && !BOILERPLATE.test(l));
-        lines.forEach(push);
-        if (lines.length > 1) push(lines.join(' '));
+    const usable = t => t.length > 1 && t !== header && !BOILERPLATE.test(t) && !optionTexts.has(t);
+    const linesOf = el => String(el.innerText || el.textContent || '').split('\n').map(clean).filter(usable);
+    const uniq = list => list.filter((t, i) => list.indexOf(t) === i);
+    const body = p.querySelector('.problem') || p;
 
-        return { key, texts, choices, selectOptions, textInputCount: textInputs.length };
-      })
-    };
+    const responsesOut = respOut.map(({ key, slotIdx, labelTexts, el: r }) => {
+      const texts = [];
+      r.querySelectorAll('legend, .response-fieldset-legend, .question-title, .qtext').forEach(el => texts.push(textOf(el)));
+      texts.push(...labelTexts);
+      // Stem written as plain <p> before the response inside the problem.
+      for (let node = r; node && node !== p; node = node.parentElement) {
+        const found = [];
+        let blocked = false;
+        for (let sib = node.previousElementSibling; sib; sib = sib.previousElementSibling) {
+          if (sib.matches('.wrapper-problem-response') || sib.querySelector('.wrapper-problem-response')) { blocked = true; break; }
+          if (sib.matches('.problem-header, .problem-progress, script, style, .sr, .sr-only')) continue;
+          const t = textOf(sib);
+          if (t) found.unshift(t);
+        }
+        texts.push(...found);
+        if (found.length || blocked) break;
+      }
+      texts.push(...linesOf(r));
+      return { key, slotIdx, lines: uniq(texts.filter(usable)) };
+    });
+
+    const lines = uniq(linesOf(body));
+    return { pi, header, lines, slots, responses: responsesOut };
   });
 }
 
@@ -228,6 +252,7 @@ class AutomationWorker {
     this.mainPassAtCourseStart = null;
     this.leftIncomplete = new Set();
     this.workedProgressItems = new Set();
+    this.leftovers = new Map();
     this.lastHandledType = null;
 
     this.status = 'idle';
@@ -929,9 +954,10 @@ class AutomationWorker {
       this.log(`⚠️ อ่านโครงสร้างข้อสอบไม่สำเร็จ: ${e.message}`, 'warn');
       return [];
     });
-    const totalResponses = problems.reduce((n, p) => n + p.responses.length, 0);
-    this.log(`📝 พบจำนวนข้อสอบทั้งหมด ${totalResponses} ข้อ (${problems.length} problem blocks)`);
-    if (totalResponses === 0) return;
+    const totalSlots = problems.reduce((n, p) => n + p.slots.length, 0);
+    this.log(`📝 พบ ${problems.length} problem blocks (${totalSlots} ช่องคำตอบ)`);
+    if (totalSlots === 0) return;
+    this.prepareQuestionTexts(problems);
 
     let allCompleted = true;
     const completedMap = new Map();
@@ -943,41 +969,43 @@ class AutomationWorker {
     }
     if (allCompleted) {
       this.log(`⏭️ [ข้ามทั้งแบบทดสอบ] แบบทดสอบทุกข้อในหน้านี้ได้คะแนนเต็ม/ทำเสร็จแล้ว (ติ๊กเขียว) ข้ามไปหน่วยถัดไปทันที...`);
+      problems.forEach(p => this.leftovers.delete(this.leftoverKey(p)));
       return;
     }
 
+    const anyMultiSlot = problems.some(p => p.slots.length > 1);
+    const ctx = { section, isPretest, problemCount: problems.length, anyMultiSlot };
     let respIndex = 0;
     let anyAnswered = false;
     let unsubmitted = 0;
+    const leftHere = [];
 
     for (const p of problems) {
       if (this.shouldStop) return;
+      const qNo = p.pi + 1;
+      const firstResp = respIndex;
+      respIndex += p.responses.length;
       const chk = completedMap.get(p.pi);
       if (chk && chk.completed) {
-        this.log(`⏭️ [ข้ามข้อนี้] ข้อ ${respIndex + 1}: ${chk.reason} ข้ามไปข้อถัดไป ไม่แตะต้องคำตอบเดิม`);
-        respIndex += p.responses.length;
+        this.log(`⏭️ [ข้ามข้อนี้] ข้อ ${qNo}: ${chk.reason} ข้ามไปข้อถัดไป ไม่แตะต้องคำตอบเดิม`);
+        this.leftovers.delete(this.leftoverKey(p));
         continue;
       }
 
-      let answeredInProblem = 0;
-      for (const r of p.responses) {
-        const qNo = respIndex + 1;
-        try {
-          if (await this.answerResponse(quizFrame, r, { section, isPretest, index: respIndex, qNo })) {
-            answeredInProblem++;
-            anyAnswered = true;
-          }
-        } catch (e) {
-          this.log(`⚠️ ข้อ ${qNo} เกิดข้อผิดพลาดเล็กน้อย: ${e.message}`, 'warn');
-        }
-        respIndex++;
+      let res = { filled: false, reason: 'error' };
+      try {
+        res = await this.answerProblem(quizFrame, p, { ...ctx, qNo, firstResp });
+      } catch (e) {
+        this.log(`⚠️ ข้อ ${qNo} เกิดข้อผิดพลาดเล็กน้อย: ${e.message}`, 'warn');
       }
-
-      if (answeredInProblem === 0) continue;
-      if (answeredInProblem < p.responses.length) {
-        this.log(`   🛑 problem นี้ตอบได้ ${answeredInProblem}/${p.responses.length} ข้อ ไม่กด Submit เพื่อป้องกันการเสียคะแนนข้อที่ยังไม่มีเฉลย`, 'warn');
+      if (!res.filled) {
+        const item = { section: section || context.split('|')[0].trim(), qNo, text: p.texts[0] || p.header || '', reason: res.reason, url: this.page.url() };
+        this.leftovers.set(this.leftoverKey(p), item);
+        leftHere.push(item);
         continue;
       }
+      this.leftovers.delete(this.leftoverKey(p));
+      anyAnswered = true;
 
       const submitSel = 'button.submit, button[data-value="Submit"], button:has-text("Submit"), button:has-text("ส่งคำตอบ"), button:has-text("ตรวจคำตอบ")';
       const pHandle = await quizFrame.$(`[data-tsubot-p="${p.pi}"]`).catch(() => null);
@@ -991,8 +1019,10 @@ class AutomationWorker {
       }
       if (isEn) {
         await qSubmitBtn.click({ force: true }).catch(() => {});
-        this.log(`📤 [ข้อ ${respIndex}] กดปุ่ม Submit เรียบร้อย`);
+        this.log(`📤 [ข้อ ${qNo}] กดปุ่ม Submit เรียบร้อย`);
         await this.sleep(Math.max(800, this.delays.clickDelay));
+      } else {
+        this.log(`⚠️ [ข้อ ${qNo}] ปุ่ม Submit ยังกดไม่ได้หลังกรอกคำตอบครบ`, 'warn');
       }
     }
 
@@ -1005,89 +1035,157 @@ class AutomationWorker {
         await this.sleep(2500);
       }
     }
+    if (leftHere.length) {
+      this.log(`📋 หน้านี้ยังค้าง ${leftHere.length} ข้อที่ไม่ได้ตอบ/ไม่ได้ส่ง (ไม่มีเฉลยที่ใช้ได้): ${leftHere.map(l => `ข้อ ${l.qNo} (${l.reason})`).join(', ')}`, 'warn');
+    }
   }
 
-  // Returns true when this response was filled in.
-  async answerResponse(quizFrame, r, { section, isPretest, index, qNo }) {
-    const scope = `[data-tsubot-r="${r.key}"]`;
-    const isSelect = r.choices.length === 0 && r.selectOptions.length > 0;
-    const selectChoices = r.selectOptions.filter(o => o.value !== '' && !/^select an option|^เลือก/i.test(o.text));
-    const choices = isSelect ? selectChoices.map(o => o.text) : r.choices;
-    const qText = (r.texts[0] || '').replace(/\s+/g, ' ').slice(0, 90);
+  leftoverKey(p) {
+    return `${this.page.url().split('#')[0]}|${p.pi}`;
+  }
 
-    const choose = async (idx) => {
-      if (isSelect) {
-        const sel = await quizFrame.$(`${scope} [data-tsubot-s="0"]`);
-        if (!sel) return false;
-        await sel.selectOption(selectChoices[idx].value).catch(() => {});
-        return true;
-      }
-      const input = await quizFrame.$(`${scope} [data-tsubot-c="${idx}"]`);
-      if (!input) return false;
-      await input.check({ force: true, timeout: 3000 }).catch(async () => { await input.click({ force: true }).catch(() => {}); });
-      return await input.isChecked().catch(() => true);
+  // Question text per block: drop the block title and lines repeated in several blocks on the page
+  // ("Directions: ...", "Part 1 : Choose ..."), which identify no single question.
+  prepareQuestionTexts(problems) {
+    const seen = new Map();
+    problems.forEach(p => new Set([...p.lines, ...p.responses.flatMap(r => r.lines)])
+      .forEach(t => seen.set(t, (seen.get(t) || 0) + 1)));
+    const shared = new Set([...seen].filter(([, n]) => problems.length > 1 && n > 1).map(([t]) => t));
+    const build = lines => {
+      const own = lines.filter(t => !shared.has(t));
+      return own.length > 1 ? [...own, own.join(' ')] : own;
     };
+    problems.forEach(p => {
+      p.texts = build(p.lines);
+      p.responses.forEach(r => { r.texts = build(r.lines); });
+    });
+  }
+
+  // Fills every answer slot of one problem block. Returns { filled, reason }.
+  async answerProblem(quizFrame, p, { section, isPretest, problemCount, anyMultiSlot, qNo, firstResp }) {
+    const qText = (p.texts[0] || p.header || '').replace(/\s+/g, ' ').slice(0, 90);
+    const slotInfo = s => ({ kind: s.kind, choices: s.choices });
 
     if (isPretest) {
-      if (choices.length === 0) return false;
-      const randIdx = Math.floor(Math.random() * choices.length);
-      const ok = await choose(randIdx);
-      if (ok) this.log(`🎲 [Pre-test] ข้อ ${qNo}: สุ่มเลือก "${choices[randIdx]}"`);
-      return ok;
+      const fills = p.slots.map(s => (s.choices && s.choices.length
+        ? (s.kind === 'checkbox' ? { kind: s.kind, indices: [Math.floor(Math.random() * s.choices.length)] } : { kind: s.kind, index: Math.floor(Math.random() * s.choices.length) })
+        : null));
+      if (fills.some(f => !f)) {
+        this.log(`📢 [Pre-test] ข้อ ${qNo}: เป็นช่องพิมพ์คำตอบ ไม่มีตัวเลือกให้สุ่ม — ข้าม`, 'warn');
+        return { filled: false, reason: 'pre-test text input' };
+      }
+      const ok = await this.applyFills(quizFrame, p.slots, fills, qNo);
+      if (ok) this.log(`🎲 [Pre-test] ข้อ ${qNo}: สุ่มเลือก "${fills.map((f, i) => p.slots[i].choices[f.index != null ? f.index : f.indices[0]]).join(' ; ')}"`);
+      return { filled: ok, reason: ok ? '' : 'click failed' };
     }
 
-    const decision = dbManager.decideResponse({
-      courseCode: this.courseCode,
-      texts: r.texts,
-      choices,
-      textInputCount: r.textInputCount,
-      section,
-      index
+    const base = { courseCode: this.courseCode, section };
+    let decision = dbManager.decideProblem({
+      ...base, texts: p.texts, slots: p.slots.map(slotInfo),
+      index: anyMultiSlot ? p.pi : firstResp, problemIndex: p.pi, problemCount
     });
+    this.log(`🔎 ข้อ ${qNo}: โจทย์ "${qText}"${p.slots.length > 1 ? ` (${p.slots.length} ช่อง)` : ''}`);
 
-    this.log(`🔎 ข้อ ${qNo}: โจทย์ "${qText}"`);
-    if (decision.match) {
-      const m = decision.match;
-      this.log(`   ↳ จับคู่ฐาน: "${String(m.question).slice(0, 90)}" [${m.section} #${m.index + 1}, ${m.method}, ${Math.round((m.score || 0) * 100)}%, ${m.status}]`);
+    let plan = null;
+    if (decision.action === 'fill') {
+      plan = [{ slots: p.slots, decision }];
+    } else if (p.responses.length > 1) {
+      // Several independent questions inside one block: each response is its own bank item.
+      const perResp = p.responses.map((r, ri) => ({
+        slots: r.slotIdx.map(i => p.slots[i]),
+        decision: dbManager.decideProblem({ ...base, texts: r.texts, slots: r.slotIdx.map(i => slotInfo(p.slots[i])), index: firstResp + ri })
+      }));
+      if (perResp.every(x => x.decision.action === 'fill')) plan = perResp;
     }
 
-    if (decision.action === 'choice') {
-      const ok = await choose(decision.index);
-      if (ok) {
-        this.log(`🎯 ข้อ ${qNo}: เลือกตัวเลือก ${decision.index + 1}/${choices.length} "${decision.choiceText}" (เฉลย "${decision.answer}", ${decision.choiceMethod}${decision.hint ? ', จากคำแนะนำ tsu_missing.json' : ''})`);
+    if (!plan) {
+      this.logNoMatch(qNo, qText, decision, p.slots);
+      return { filled: false, reason: decision.reason };
+    }
+
+    for (const { slots, decision: d } of plan) {
+      if (d.match) {
+        const m = d.match;
+        this.log(`   ↳ จับคู่ฐาน: "${String(m.question).slice(0, 90)}" [${m.section} #${m.index + 1}, ${m.method}, ${Math.round((m.score || 0) * 100)}%, ${m.status}]`);
+      }
+      if (!(await this.applyFills(quizFrame, slots, d.fills, qNo))) {
+        return { filled: false, reason: 'could not fill the inputs' };
+      }
+      const shown = d.fills.map(f => (f.kind === 'text' ? `พิมพ์ "${f.value}"` : `เลือก "${f.choiceText}"`)).join(' + ');
+      const tag = d.inferred ? ' [inferred — คำตอบที่อนุมาน ยังไม่ยืนยัน]' : d.hint ? ', จากคำแนะนำ tsu_missing.json' : '';
+      this.log(`🎯 ข้อ ${qNo}: ${shown} (เฉลย "${d.answer}"${tag})`);
+    }
+    return { filled: true, reason: '' };
+  }
+
+  // Returns true when every slot holds the intended answer.
+  async applyFills(quizFrame, slots, fills, qNo) {
+    for (let i = 0; i < slots.length; i++) {
+      const s = slots[i], f = fills[i];
+      const sel = `[data-tsubot-slot="${s.id}"]`;
+      if (s.kind === 'choice' || s.kind === 'checkbox') {
+        const want = s.kind === 'checkbox' ? f.indices : [f.index];
+        for (let ci = 0; ci < s.choices.length; ci++) {
+          const input = await quizFrame.$(`${sel}[data-tsubot-c="${ci}"]`);
+          if (!input) continue;
+          const on = want.includes(ci);
+          const checked = await input.isChecked().catch(() => false);
+          if (on && !checked) await input.check({ force: true, timeout: 3000 }).catch(async () => { await input.click({ force: true }).catch(() => {}); });
+          if (!on && checked && s.kind === 'checkbox') await input.uncheck({ force: true, timeout: 3000 }).catch(() => {});
+          if (on && !(await input.isChecked().catch(() => false))) {
+            this.log(`⚠️ ข้อ ${qNo}: คลิกตัวเลือก "${s.choices[ci]}" ไม่สำเร็จ`, 'warn');
+            return false;
+          }
+        }
+      } else if (s.kind === 'select') {
+        const el = await quizFrame.$(sel);
+        const value = s.values[f.index];
+        if (!el) return false;
+        await el.selectOption(value).catch(() => {});
+        if ((await el.inputValue().catch(() => '')) !== value) {
+          this.log(`⚠️ ข้อ ${qNo}: เลือก "${s.choices[f.index]}" ในช่อง ${i + 1} ไม่สำเร็จ`, 'warn');
+          return false;
+        }
       } else {
-        this.log(`⚠️ ข้อ ${qNo}: คลิกตัวเลือก "${decision.choiceText}" ไม่สำเร็จ`, 'warn');
+        const el = await quizFrame.$(sel);
+        if (!el || !(await this.typeText(el, f.value))) {
+          this.log(`⚠️ ข้อ ${qNo}: พิมพ์ "${f.value}" ลงช่อง ${i + 1} ไม่สำเร็จ (ค่าในช่องไม่ตรง)`, 'warn');
+          return false;
+        }
       }
-      return ok;
     }
+    return true;
+  }
 
-    if (decision.action === 'text') {
-      for (let ti = 0; ti < r.textInputCount; ti++) {
-        const tInput = await quizFrame.$(`${scope} [data-tsubot-t="${ti}"]`);
-        if (!tInput) continue;
-        const value = decision.values[ti];
-        await tInput.click().catch(() => {});
-        await tInput.fill('').catch(() => {});
-        await tInput.fill(value).catch(() => {});
-        await tInput.dispatchEvent('input').catch(() => {});
-        await tInput.dispatchEvent('change').catch(() => {});
-        await tInput.press('Tab').catch(() => {});
-      }
-      this.log(`🎯 ข้อ ${qNo}: พิมพ์คำตอบ "${decision.values.join(' ; ')}"${decision.hint ? ' (จากคำแนะนำ tsu_missing.json)' : ''}`);
-      return true;
+  // The grader compares characters exactly (apostrophe style included), so check what the box holds.
+  async typeText(el, value) {
+    await el.click().catch(() => {});
+    await el.fill('').catch(() => {});
+    await el.fill(value).catch(() => {});
+    if ((await el.inputValue().catch(() => null)) !== value) {
+      await el.fill('').catch(() => {});
+      await el.pressSequentially(value, { delay: 20 }).catch(() => {});
     }
+    await el.dispatchEvent('input').catch(() => {});
+    await el.dispatchEvent('change').catch(() => {});
+    await el.press('Tab').catch(() => {});
+    return (await el.inputValue().catch(() => null)) === value;
+  }
 
+  logNoMatch(qNo, qText, decision, slots) {
     this.log(`📢 [no match] ข้อ ${qNo}: ${decision.reason} — "${qText}"`, 'warn');
-    if (choices.length) this.log(`   ตัวเลือกบนหน้า: ${choices.join(' | ')}`, 'warn');
-    if (decision.match && decision.match.correct_answer && decision.match.status === 'confirmed') {
-      this.log(`   เฉลยในฐาน: "${decision.match.correct_answer}" (ไม่ตรงกับตัวเลือกใด)`, 'warn');
+    slots.forEach((s, i) => {
+      if (s.choices && s.choices.length) this.log(`   ตัวเลือกบนหน้า${slots.length > 1 ? ` (ช่อง ${i + 1})` : ''}: ${s.choices.join(' | ')}`, 'warn');
+    });
+    const m = decision.match;
+    if (m && m.correct_answer && (m.status === 'confirmed' || m.status === 'inferred')) {
+      this.log(`   เฉลยในฐาน: "${m.correct_answer}" [${m.status}] (ไม่ตรงกับตัวเลือก/ช่องในข้อนี้)`, 'warn');
     }
     if (decision.hint && decision.hint.hint) this.log(`   💡 คำแนะนำ: ${decision.hint.hint}`, 'warn');
     if (decision.hint && decision.hint.wrong_answers.length) {
       this.log(`   🚫 ตัวเลือกที่เคยผิด (ห้ามกา): ${decision.hint.wrong_answers.join(' | ')}`, 'warn');
     }
     this.log(`   🛑 ข้ามข้อนี้ ไม่สุ่มตอบและไม่ส่ง เพื่อป้องกันการตอบผิด/เสียคะแนน`, 'warn');
-    return false;
   }
 
   async advanceNextUnit() {
@@ -1317,6 +1415,12 @@ class AutomationWorker {
     if (!done && skippedModes.length) {
       const names = { quiz: 'แบบฝึก', video: 'วิดีโอ', doc: 'เอกสาร' };
       this.log(`ℹ️ ไม่ได้เลือกทำ ${skippedModes.map(m => names[m]).join('/')} จึงอาจยังไม่ถึง 100%`);
+    }
+    if (this.leftovers.size) {
+      this.log(`📋 ข้อที่ยังไม่ได้ส่งเพราะไม่มีเฉลยที่ใช้ได้ ${this.leftovers.size} ข้อ:`, 'warn');
+      this.leftovers.forEach(l => this.log(`   • ${l.section} ข้อ ${l.qNo}: "${String(l.text).slice(0, 80)}" — ${l.reason}`, 'warn'));
+    } else if (this.modes.has('quiz')) {
+      this.log(`✅ ไม่มีข้อที่ค้างไม่ได้ส่งในแบบฝึกที่เปิดไป`);
     }
     this.log(`🏁 สรุป: ความคืบหน้า ${data.completion === null ? '?' : data.completion + '%'} | แบบฝึก 0 คะแนนเหลือ ${s.zero.length} รายการ${s.zero.length ? ` (${s.zero.map(r => r.name).join(', ')})` : ''} | ${done ? 'ครบ 100% แล้ว 🎉' : 'ยังไม่ครบ 100%'}`);
   }

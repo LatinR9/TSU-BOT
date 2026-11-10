@@ -107,8 +107,23 @@ function sectionTokens(s) {
 
 // Bank entries whose "question" is a description, not the real stem.
 const NOT_CAPTURED_RE = /not captured/i;
-const BANK_NOTE_PAREN_RE = /\([^()]*(?:truncated|not captured)[^()]*\)/gi;
+const BANK_NOTE_PAREN_RE = /\([^()]*(?:truncated|not captured|two blanks|repeat of|question tag|fill gap with|match sentence)[^()]*\)/gi;
 const BLANK_SPLIT_RE = /\.{3,}|…|_{2,}/;
+// Page blank markers like "___1___", "__(1)__", "_(2)__" are one blank.
+const PAGE_BLANK_RE = /_+\s*\(?\d\)?\s*_+/g;
+// Fuzzy similarity on short text (block titles like "problem", "Dropdown") picks arbitrary entries.
+const MIN_FUZZY_LOOSE = 20;
+const MULTI_PART_SPLIT_RE = /\s+[;/]\s+/;
+
+const answerable = c => !!(c && c.correct_answer && (c.status === 'confirmed' || c.status === 'inferred'));
+
+// Typed contractions: some graders compare the exact apostrophe character.
+function applyApostropheStyle(value, style) {
+  const s = String(value);
+  if (style === 'curly') return s.replace(/(?<=\p{L})'(?=\p{L})/gu, '\u2019');
+  if (style === 'straight') return s.replace(/[\u2018\u2019]/g, "'");
+  return s;
+}
 
 const VERB_MAP = {
   'buy': 'are bought', 'use': 'is used', 'send': 'are sent', 'book': 'are booked',
@@ -176,8 +191,11 @@ class DBManager {
 
   buildIndex() {
     this.entries = [];
+    this.apostropheStyle = new Map();
     for (const course of this.courses) {
       for (const section of (course.sections || [])) {
+        const style = section.text_apostrophe || course.text_apostrophe;
+        if (style) this.apostropheStyle.set(`${course.course_code}|${section.section || ''}`, style);
         const qs = section.questions || [];
         for (let qIdx = 0; qIdx < qs.length; qIdx++) {
           this.entries.push(this.makeEntry(course.course_code, section.section || '', qIdx, qs[qIdx]));
@@ -191,7 +209,7 @@ class DBManager {
   }
 
   makeKeys(questionText) {
-    const cleaned = String(questionText || '').replace(BANK_NOTE_PAREN_RE, ' ');
+    const cleaned = String(questionText || '').replace(BANK_NOTE_PAREN_RE, ' ').replace(PAGE_BLANK_RE, ' ___ ');
     const norm = normalizeText(cleaned);
     const loose = looseKey(cleaned);
     const segments = cleaned.split(BLANK_SPLIT_RE).map(looseKey).filter(s => s.length >= 2);
@@ -241,7 +259,7 @@ class DBManager {
     if (lenRatio < 0.5) return null;
     if (diceCoefficient(cand.loose, entry.loose) < 0.4) return null;
     const r = seqRatio(cand.loose, entry.loose);
-    if (r >= 0.6) return { score: 0.6 * r + 0.15, method: 'fuzzy' };
+    if (r >= (cand.loose.length < MIN_FUZZY_LOOSE ? 0.8 : 0.6)) return { score: 0.6 * r + 0.15, method: 'fuzzy' };
     return null;
   }
 
@@ -274,8 +292,7 @@ class DBManager {
    * texts: candidate question strings from the page (legend/label first, whole block last).
    */
   findAnswerCandidates(courseCode, texts, opts = {}) {
-    const list = (Array.isArray(texts) ? texts : [texts]).filter(Boolean);
-    const cands = list.map(t => ({ norm: normalizeText(t), loose: looseKey(t) })).filter(c => c.loose);
+    const cands = this.pageKeys(texts);
     if (cands.length === 0) return [];
     const allowed = this.coursesFor(courseCode);
     const section = opts.section || '';
@@ -294,10 +311,32 @@ class DBManager {
       rank += Math.min(entry.loose.length, 400) / 1e5;
       if (section && entry.section === section) rank += 0.05;
       if (entry.q.status === 'confirmed') rank += 0.001;
+      else if (entry.q.status === 'inferred') rank += 0.0005;
       out.push(this.toResult(entry, best.score, best.method, rank));
     }
     out.sort((a, b) => b.rank - a.rank);
     return out;
+  }
+
+  pageKeys(texts) {
+    return (Array.isArray(texts) ? texts : [texts]).filter(Boolean)
+      .map(t => String(t).replace(PAGE_BLANK_RE, ' ___ '))
+      .map(t => ({ norm: normalizeText(t), loose: looseKey(t) })).filter(c => c.loose);
+  }
+
+  styleFor(courseCode, section) {
+    return this.apostropheStyle.get(`${courseCode}|${section}`) || '';
+  }
+
+  // Bank section whose question count equals the number of problem blocks on the page:
+  // block N is bank question N (works when the page prompt is missing or generic).
+  findByBlockPosition(courseCode, section, problemIndex, problemCount) {
+    if (!section || problemIndex < 0 || !problemCount) return null;
+    const allowed = this.coursesFor(courseCode);
+    const inSection = this.entries.filter(e => (!allowed || allowed.has(e.course)) && e.section === section);
+    if (inSection.length !== problemCount) return null;
+    const entry = inSection.find(e => e.qIdx === problemIndex);
+    return entry ? this.toResult(entry, 0.85, 'block-position') : null;
   }
 
   toResult(entry, score, method, rank = score) {
@@ -336,8 +375,7 @@ class DBManager {
   }
 
   findMissingItem(courseCode, questionText, section = '') {
-    const list = (Array.isArray(questionText) ? questionText : [questionText]).filter(Boolean);
-    const cands = list.map(t => ({ norm: normalizeText(t), loose: looseKey(t) })).filter(c => c.loose);
+    const cands = this.pageKeys(questionText);
     if (cands.length === 0 || this.missingEntries.length === 0) return null;
 
     let best = null;
@@ -419,78 +457,119 @@ class DBManager {
   }
 
   /**
-   * Decide how to answer one response (one question) on the page.
-   * info: { courseCode, texts[], choices[], textInputCount, section, index, isPretest }
-   * Returns { action: 'choice'|'text'|'skip', ... , log fields }.
+   * Decide how to answer one problem block (one bank question, possibly several blanks).
+   * info: { courseCode, section, texts[], slots[], index, problemIndex, problemCount }
+   *   slots: in page order, { kind: 'choice'|'checkbox'|'select'|'text', choices?: string[] }
+   *   index: page position of the first response (listed-order bank items)
+   * Returns { action: 'fill', fills[], answer, match, inferred } or { action: 'skip', reason, ... }.
+   *   fills[i]: { kind, index, choiceText, choiceMethod } | { kind: 'checkbox', indices } | { kind: 'text', value }
    */
-  decideResponse(info) {
-    const { courseCode, texts = [], choices = [], textInputCount = 0, index = -1 } = info;
+  decideProblem(info) {
+    const { courseCode, texts = [], slots = [], index = -1, problemIndex = -1, problemCount = 0 } = info;
     const section = info.section || '';
-    const hasChoices = choices.length > 0;
     const base = { section, questionText: texts[0] || '' };
+    if (slots.length === 0) return { ...base, action: 'skip', reason: 'no answer inputs found in block', match: null };
 
     const cands = this.findAnswerCandidates(courseCode, texts, { section });
-    // Same stem, but this section's copy is still unconfirmed: the bank warns that answers can
+    // Same stem, but this section's copy has no usable answer: the bank warns that answers can
     // differ per section (chapter quiz vs Post-Test), so never borrow another section's answer.
     const topScore = cands.reduce((m, c) => Math.max(m, c.score), 0);
-    const sameStemUnconfirmed = cands.filter(c => c.score >= topScore - 0.02 && c.status !== 'confirmed' && (!section || c.section === section));
-    const blockOtherSections = !!section && sameStemUnconfirmed.length > 0;
-    const extraWrong = sameStemUnconfirmed.flatMap(c => c.known_wrong_answers || []);
+    const sameStemUnanswered = cands.filter(c => c.score >= topScore - 0.02 && !answerable(c) && (!section || c.section === section));
+    const blockOtherSections = !!section && sameStemUnanswered.length > 0;
+    const extraWrong = sameStemUnanswered.flatMap(c => c.known_wrong_answers || []);
     const extraWrongLoose = new Set(extraWrong.map(looseKey));
+    let failure = '';
 
-    const fromEntry = (cand) => {
-      if (!cand || cand.status !== 'confirmed' || !cand.correct_answer) return null;
+    const fillSlot = (slot, part, wrong) => {
+      if (slot.kind === 'text') return { kind: 'text', value: part };
+      const choices = slot.choices || [];
+      if (slot.kind === 'checkbox') {
+        const picks = part.split(/\s*[;|]\s*/).map(p => this.matchChoice(choices, p, wrong));
+        if (picks.some(p => !p)) return null;
+        return { kind: 'checkbox', indices: picks.map(p => p.index), choiceText: picks.map(p => choices[p.index]).join(' | '), choiceMethod: picks.map(p => p.method).join('+') };
+      }
+      const m = this.matchChoice(choices, part, wrong);
+      if (!m) return null;
+      let idx = m.index;
+      // TSUGE07272: "นาง มานี" item lists "5 ปี" twice; the second one is graded correct.
+      if (m.duplicates && m.duplicates.length > 1 && courseCode === 'TSUGE07272' &&
+          texts.some(t => normalizeText(t).includes('มานี'))) {
+        idx = m.duplicates[1];
+      }
+      return { kind: slot.kind, index: idx, choiceText: choices[idx], choiceMethod: m.method };
+    };
+
+    const fromEntry = (cand, extra = {}) => {
+      if (!answerable(cand)) return null;
       let ans = String(cand.correct_answer).trim();
-      if (courseCode === 'TSUGE00152' && /unit 4 chapter 3/i.test(cand.section)) {
-        ans = ans.replace(/[‘’]/g, "'");
-      }
       if (extraWrongLoose.has(looseKey(ans))) return null;
-      if (hasChoices) {
-        const m = this.matchChoice(choices, ans, [...(cand.known_wrong_answers || []), ...extraWrong]);
-        if (!m) return null;
-        let idx = m.index;
-        // TSUGE07272: "นาง มานี" item lists "5 ปี" twice; the second one is graded correct.
-        if (m.duplicates && m.duplicates.length > 1 && courseCode === 'TSUGE07272' &&
-            texts.some(t => normalizeText(t).includes('มานี'))) {
-          idx = m.duplicates[1];
+      const parts = slots.length === 1 ? [ans] : ans.split(MULTI_PART_SPLIT_RE);
+      if (parts.length !== slots.length) {
+        failure = failure || `bank answer "${ans}" has ${parts.length} part(s) but the block has ${slots.length} blanks`;
+        return null;
+      }
+      const style = this.styleFor(courseCode, cand.section);
+      const wrong = [...(cand.known_wrong_answers || []), ...extraWrong];
+      const fills = [];
+      for (let i = 0; i < slots.length; i++) {
+        const part = slots[i].kind === 'text' ? applyApostropheStyle(parts[i], style) : parts[i];
+        const f = fillSlot(slots[i], part, wrong);
+        if (!f) {
+          failure = failure || (slots.length > 1
+            ? `blank ${i + 1}: bank answer "${parts[i]}" not among its options`
+            : 'bank answer not found among choices');
+          return null;
         }
-        return { ...base, action: 'choice', index: idx, answer: ans, choiceText: choices[idx], match: cand, choiceMethod: m.method };
+        fills.push(f);
       }
-      if (textInputCount > 0) {
-        const parts = ans.split(/\s+;\s+/);
-        const values = parts.length === textInputCount ? parts : Array(textInputCount).fill(ans);
-        return { ...base, action: 'text', values, answer: ans, match: cand };
-      }
-      return null;
+      if (slots.length === 1 && slots[0].kind === 'text') ans = fills[0].value;
+      return { ...base, action: 'fill', fills, answer: ans, match: cand, inferred: cand.status === 'inferred', ...extra };
     };
 
     if (!blockOtherSections) {
-      for (const cand of cands) {
+      const strong = cands.filter(c => c.score >= 0.9 && (!section || c.section === section));
+      let weak = cands.filter(c => !strong.includes(c));
+      // Near-tied fuzzy hits with different answers mean the text is not specific enough.
+      if (weak.length > 1 && weak[0].method === 'fuzzy' && weak[0].score - weak[1].score < 0.01 &&
+          (weak[0].section === section) === (weak[1].section === section) &&
+          looseKey(weak[0].correct_answer || '') !== looseKey(weak[1].correct_answer || '')) {
+        weak = weak.filter(c => c.method !== 'fuzzy');
+      }
+      // A single short captured piece ("They wouldn't...") is less specific than the block position.
+      const specific = strong.filter(c => c.method !== 'contains');
+      const ordered = [
+        ...specific,
+        this.findByBlockPosition(courseCode, section, problemIndex, problemCount),
+        ...strong.filter(c => !specific.includes(c)),
+        this.findPositional(courseCode, section, index),
+        ...weak
+      ].filter(Boolean);
+      for (const cand of ordered) {
         const d = fromEntry(cand);
         if (d) return d;
       }
-
-      const pos = this.findPositional(courseCode, section, index);
-      const dPos = fromEntry(pos);
-      if (dPos) return dPos;
     }
 
-    for (const t of blockOtherSections ? [] : texts) {
-      const vm = t.match(/\(([a-zA-Z\s]+)\)/);
-      const verb = vm ? vm[1].trim().toLowerCase() : '';
-      if (verb && VERB_MAP[verb]) {
-        const d = fromEntry({ question: t, correct_answer: VERB_MAP[verb], status: 'confirmed', known_wrong_answers: [], section, score: 1, method: 'verb-map' });
-        if (d) return d;
-        break;
+    if (slots.length === 1) {
+      for (const t of blockOtherSections ? [] : texts) {
+        const vm = t.match(/\(([a-zA-Z\s]+)\)/);
+        const verb = vm ? vm[1].trim().toLowerCase() : '';
+        if (verb && VERB_MAP[verb]) {
+          const d = fromEntry({ question: t, correct_answer: VERB_MAP[verb], status: 'confirmed', known_wrong_answers: [], section, score: 1, method: 'verb-map' });
+          if (d) return d;
+          break;
+        }
       }
     }
 
     const missing = this.findMissingItem(courseCode, texts, section);
-    if (missing && missing.hint) {
+    if (missing && missing.hint && slots.length === 1) {
       const h = missing.hint;
+      const slot = slots[0];
       const wrong = [...extraWrong, ...missing.wrong_answers];
       const wrongLoose = new Set(wrong.map(looseKey).filter(Boolean));
-      if (hasChoices) {
+      if (slot.kind !== 'text') {
+        const choices = slot.choices || [];
         const hLoose = looseKey(h);
         const pool = choices.map((t, i) => ({ i, loose: looseKey(t), t }))
           .filter(c => c.loose.length >= 3 && !wrongLoose.has(c.loose) && hLoose.includes(c.loose));
@@ -500,20 +579,37 @@ class DBManager {
           const pref = pool.filter(c => preferred.some(p => c.t.includes(p) && h.includes(p)));
           if (pref.length === 1) pick = pref[0];
         }
-        if (pick) {
-          return { ...base, action: 'choice', index: pick.i, answer: pick.t, choiceText: pick.t, hint: missing, match: null, choiceMethod: 'hint' };
+        if (pick && slot.kind !== 'checkbox') {
+          return { ...base, action: 'fill', fills: [{ kind: slot.kind, index: pick.i, choiceText: pick.t, choiceMethod: 'hint' }], answer: pick.t, hint: missing, match: null };
         }
-      } else if (textInputCount > 0) {
+      } else {
         const hit = HINT_TEXT_ANSWERS.find(([needle]) => h.includes(needle));
-        if (hit) return { ...base, action: 'text', values: Array(textInputCount).fill(hit[1]), answer: hit[1], hint: missing, match: null };
+        if (hit) {
+          const value = applyApostropheStyle(hit[1], this.styleFor(courseCode, missing.section || section));
+          return { ...base, action: 'fill', fills: [{ kind: 'text', value }], answer: value, hint: missing, match: null };
+        }
       }
     }
 
-    let reason = 'no match in answer bank';
+    let reason = failure || 'no match in answer bank';
     const top = cands[0];
-    if (top && top.status !== 'confirmed') reason = 'bank entry is unconfirmed';
-    else if (top && hasChoices) reason = 'bank answer not found among choices';
+    if (!failure && top && !answerable(top)) reason = 'bank entry is unconfirmed';
     return { ...base, action: 'skip', reason, match: top || null, hint: missing };
+  }
+
+  /**
+   * One response with a single choice group, or N text inputs (legacy shape).
+   * info: { courseCode, texts[], choices[], textInputCount, section, index }
+   * Returns { action: 'choice'|'text'|'skip', ... }.
+   */
+  decideResponse(info) {
+    const { choices = [], textInputCount = 0 } = info;
+    const slots = choices.length > 0 ? [{ kind: 'choice', choices }]
+      : Array.from({ length: textInputCount }, () => ({ kind: 'text' }));
+    const d = this.decideProblem({ ...info, slots });
+    if (d.action !== 'fill') return d;
+    if (d.fills[0].kind === 'text') return { ...d, action: 'text', values: d.fills.map(f => f.value) };
+    return { ...d, action: 'choice', index: d.fills[0].index, choiceText: d.fills[0].choiceText, choiceMethod: d.fills[0].choiceMethod };
   }
 
   getCoursesSummary() {
@@ -586,4 +682,5 @@ instance.normalizeText = normalizeText;
 instance.looseKey = looseKey;
 instance.seqRatio = seqRatio;
 instance.sectionTokens = sectionTokens;
+instance.applyApostropheStyle = applyApostropheStyle;
 module.exports = instance;
