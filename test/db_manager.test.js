@@ -52,3 +52,41 @@ test('no match is reported instead of defaulting to a choice', () => {
   const d = db.decideResponse({ courseCode: 'TSUGE000111', texts: ['คำถามที่ไม่มีในฐาน'], choices: ['ก', 'ข'] });
   assert.strictEqual(d.action, 'skip');
 });
+
+test('inferred entries are answered and flagged; a known-wrong option is never picked', () => {
+  const tsu = 'TSUGE00152';
+  const meat = db.decideResponse({ courseCode: tsu, section: 'Unit 3 Chapter 1.1', choices: ['tuna', 'crab', 'oysters', 'beef'],
+    texts: ['Ann rarely eats red meat these days; just some _____ from time to time.'] });
+  assert.strictEqual(meat.choiceText, 'beef');
+  assert.strictEqual(meat.inferred, true);
+  const visit = db.decideResponse({ courseCode: tsu, section: 'Unit 2 Chapter 3', choices: ['can', "don't have to", 'should', 'must'], texts: ['You ______ visit them.'] });
+  assert.strictEqual(visit.choiceText, 'should');
+  const produce = db.decideResponse({ courseCode: tsu, section: 'Unit 4 Chapter 2', choices: ['producter', 'producement', 'produceion', 'refused'],
+    texts: ['6. Which noun formed from the verb produce, can be used to fill in the blank? “As a result, the ____ of rice fell.”'] });
+  assert.strictEqual(produce.action, 'skip');
+  const rather = db.decideResponse({ courseCode: tsu, section: 'Unit 3 Chapter 3', choices: ['staying', 'to stay', 'stay'], texts: ["I'd rather _______ here if you don't mind."] });
+  assert.strictEqual(rather.action, 'skip', 'only the graded-wrong "stay" would remain');
+});
+
+test('block titles and short generic text never fuzzy-match a bank entry', () => {
+  for (const t of ['problem', 'Dropdown', 'Multiple Choice', 'Directions: 1. Complete this shopping list with a/an.']) {
+    const d = db.decideProblem({ courseCode: 'TSUGE00152', section: 'Unit 5 Chapter 3', texts: [t], slots: [{ kind: 'text' }], problemIndex: 0, problemCount: 7 });
+    assert.strictEqual(d.action, 'skip', t);
+  }
+  // Same texts with the page's block count equal to the bank section: block N is bank question N.
+  const d = db.decideProblem({ courseCode: 'TSUGE00152', section: 'Unit 5 Chapter 3', texts: ['problem'], slots: [{ kind: 'text' }], problemIndex: 9, problemCount: 20 });
+  assert.deepStrictEqual([d.action, d.answer, d.match.method], ['fill', 'an', 'block-position']);
+});
+
+test('multi-blank answers map to slots in order; dropdown options match across apostrophe styles', () => {
+  const d = db.decideProblem({ courseCode: 'TSUGE00152', section: 'Unit 4 Chapter 4',
+    texts: ['1. They __(1)__ (not/go) back home if you __(2)__ (pay) them.'],
+    slots: [{ kind: 'select', choices: ['won’t go', 'wouldn’t go'] }, { kind: 'select', choices: ['pay', 'paid'] }] });
+  assert.deepStrictEqual(d.fills.map(f => f.choiceText), ['wouldn’t go', 'paid']);
+  const t = db.decideProblem({ courseCode: 'TSUGE00152', section: 'Unit 4 Chapter 4',
+    texts: ['14. If the weather ________ better, we ________ to the park.'], slots: [{ kind: 'text' }, { kind: 'text' }] });
+  assert.deepStrictEqual(t.fills.map(f => f.value), ['were', 'would go']);
+  const one = db.decideProblem({ courseCode: 'TSUGE00152', section: 'Unit 4 Chapter 4',
+    texts: ['1. They __(1)__ (not/go) back home if you __(2)__ (pay) them.'], slots: [{ kind: 'select', choices: ['wouldn’t go', 'paid'] }] });
+  assert.strictEqual(one.action, 'skip', 'a two-part answer is never forced into one slot');
+});

@@ -22,7 +22,7 @@ playwright.chromium.launchPersistentContext = (dir, opts) => realLaunch(fs.mkdte
 const course = ({ withUnanswerable }) => ({
   courseCode: 'TSUGE00152',
   courseName: 'ภาษาอังกฤษเพื่อการสื่อสาร 2',
-  outline: ['Introduction', 'Unit 1 : Entertainment', 'Unit 2 : Sport and health'],
+  outline: ['Introduction', 'Unit 1 : Entertainment', 'Unit 2 : Sport and health', 'Unit 5 : Food'],
   sequences: [
     { id: 'pre', title: 'Pre Test', chapter: 'Introduction' },
     { id: 'q11', title: 'Quiz : Unit 1 : Chapter 1', chapter: 'Unit 1 : Entertainment' },
@@ -30,7 +30,8 @@ const course = ({ withUnanswerable }) => ({
     { id: 'q13', title: 'Quiz : Unit 1 : Chapter 3', chapter: 'Unit 1 : Entertainment' },
     { id: 'q14', title: 'Quiz : Unit 1 : Chapter 4', chapter: 'Unit 1 : Entertainment' },
     { id: 'q15', title: 'Quiz : Unit 1 : Chapter 5', chapter: 'Unit 1 : Entertainment' },
-    { id: 'q21', title: 'Quiz : Unit 2 : Chapter 1', chapter: 'Unit 2 : Sport and health' }
+    { id: 'q21', title: 'Quiz : Unit 2 : Chapter 1', chapter: 'Unit 2 : Sport and health' },
+    { id: 'q55', title: 'Quiz : Unit 5 : Chapter 5', chapter: 'Unit 5 : Food' }
   ],
   units: [
     { id: 'preQuiz', seq: 'pre', type: 'quiz', section: 'Introduction', title: 'Pre Test', pretest: true, problems: [
@@ -58,6 +59,16 @@ const course = ({ withUnanswerable }) => ({
       { id: 'e1', stem: 'I _______ give you a lift to the station. My car broke down yesterday.', choices: ['can', "can't", 'could'], answer: 1, preGraded: 'incorrect', maxAttempts: 3 },
       { id: 'e2', stem: 'My dog _______ jump very high when he was younger.', choices: ['can', 'could', "couldn't"], answer: 1, preGraded: true },
       { id: 'e3', stem: 'Anyone _______ make a mistake.', choices: ['can', 'could not', "can't"], answer: 0 }
+    ] },
+    // Live layout (block titles "Dropdown"/"problem", two selects per block), partly submitted, no
+    // green check: m1 wrong with an attempt left and m3 correct must stay untouched; m2 and m4 are open.
+    { id: 'q55quiz', seq: 'q55', type: 'quiz', section: 'Unit 5 : Food', title: 'Quiz : Unit 5 : Chapter 5', problems: [
+      { id: 'm1', kind: 'select', title: 'Dropdown', stem: '1. If Milada ___1___ (not / be) late, we ___2___ (not / miss) the train.', maxAttempts: 2, preGraded: 'incorrect',
+        blanks: [{ options: ['wasn’t', 'hadn’t been'], answer: 'hadn’t been' }, { options: ['wouldn’t miss', 'wouldn’t have missed'], answer: 'wouldn’t have missed' }] },
+      { id: 'm2', kind: 'select', title: 'problem', stem: '2. If Amada ___1___ (study) harder, she ___2___ (pass) the final exam.', maxAttempts: 2,
+        blanks: [{ options: ['studied', 'had studied'], answer: 'had studied' }, { options: ['would pass', 'would have passed'], answer: 'would have passed' }] },
+      { id: 'm3', kind: 'text', title: 'problem', stem: '6. If she had gone to medical school, she ______ (become) a doctor.', answers: ['would have become'], preGraded: true, maxAttempts: 2 },
+      { id: 'm4', kind: 'text', title: 'problem', stem: "10. They wouldn't have been late if they _______ (not / go) shopping.", answers: ['hadn’t gone'], maxAttempts: 2 }
     ] },
     ...(withUnanswerable ? [
       { id: 'q21quiz', seq: 'q21', type: 'quiz', section: 'Unit 2 : Sport and health', title: 'Quiz : Unit 2 : Chapter 1', problems: [
@@ -107,10 +118,10 @@ test('reads Progress first and lists 0-point / partial quizzes', () => {
   const firstEnter = firstIdx(r, e => e.type === 'enter');
   assert.ok(firstProgress >= 0 && firstProgress < firstEnter, `Progress page was not opened before the first unit${failMsg(r)}`);
   const start = r.progress[0];
-  assert.strictEqual(start.completion, Math.round((100 * 2) / 7), failMsg(r));
+  assert.strictEqual(start.completion, Math.round((100 * 2) / 8), failMsg(r));
   assert.deepStrictEqual(start.zero.map(z => z.name), ['Pre Test', 'Quiz : Unit 1 : Chapter 1'], failMsg(r));
   assert.deepStrictEqual(start.partial.map(z => `${z.name} ${z.earned}/${z.possible}`),
-    ['Quiz : Unit 1 : Chapter 3 1/2', 'Quiz : Unit 1 : Chapter 5 1/3'], failMsg(r));
+    ['Quiz : Unit 1 : Chapter 3 1/2', 'Quiz : Unit 1 : Chapter 5 1/3', 'Quiz : Unit 5 : Chapter 5 1/4'], failMsg(r));
   assert.deepStrictEqual(start.zero.map(z => z.section), ['Introduction', 'Unit 1 : Entertainment'], failMsg(r));
   assert.ok(r.logs.some(l => l.includes('• Introduction › Pre Test (0/2)')), failMsg(r));
 
@@ -130,6 +141,17 @@ test('answers only unsubmitted problems, never resubmits answered ones', () => {
   assert.strictEqual(submits(r, 'q14quiz').length, 0, failMsg(r));
   assert.deepStrictEqual(submits(r, 'q15quiz').map(s => [s.problem, s.correct]), [['e3', true]],
     `Chapter 5: only the unsubmitted problem e3 may be submitted${failMsg(r)}`);
+});
+
+test('revisit of a partly-submitted unit fills every open block (both dropdowns, exact text) and skips submitted ones', () => {
+  const r = full;
+  assert.deepStrictEqual(submits(r, 'q55quiz').map(s => [s.problem, s.values, s.correct]), [
+    ['m2', ['had studied', 'would have passed'], true],
+    ['m4', ['hadn’t gone'], true]
+  ], `only m2 and m4 may be submitted, each once${failMsg(r)}`);
+  assert.ok(r.srv.state.complete.q55quiz, failMsg(r));
+  assert.ok(r.logs.some(l => l.includes('ข้อ 1:') && l.includes('ไม่แตะต้องคำตอบเดิม')), failMsg(r));
+  assert.ok(r.logs.some(l => l.includes('ไม่มีข้อที่ค้างไม่ได้ส่ง')), failMsg(r));
 });
 
 test('final Progress re-check reaches 100% and logs the summary', () => {
@@ -158,6 +180,8 @@ test('unanswerable quiz: one extra pass, then stops and reports it', () => {
   assert.ok(last.completion < 100, failMsg(r));
   const summary = r.logs[r.logs.length - 1];
   assert.ok(summary.includes('Quiz : Unit 2 : Chapter 1') && summary.includes('ยังไม่ครบ 100%'), failMsg(r));
+  const leftover = r.logs.findIndex(l => l.includes('ข้อที่ยังไม่ได้ส่งเพราะไม่มีเฉลยที่ใช้ได้ 1 ข้อ'));
+  assert.ok(leftover > 0 && r.logs[leftover + 1].includes('Unit 2') && r.logs[leftover + 1].includes('fixture bank'), `leftover listed explicitly${failMsg(r)}`);
 });
 
 test('quiz mode off: Progress is read and logged but quizzes are not opened', () => {

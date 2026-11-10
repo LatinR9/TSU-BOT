@@ -20,7 +20,7 @@
         "2024_T2"
       ],
       "pretest_policy": "random",
-      "notes": "แบบทดสอบก่อนเรียนให้สุ่มตอบ ไม่มีในฐานนี้. แบบทดสอบหลังเรียนชุดใกล้เคียงกับก่อนเรียน จึงเก็บเฉลยไว้ในส่วน Post-Test. Unit 6 มีแค่ Chapter 1, 2 #1, 2 #2, 3 (ไม่มี Chapter 4). ข้อที่เป็นรูปภาพหรือประโยคไม่ถูกจับไว้ จะระบุใน notes และเรียงตามลำดับที่บันทึก. ข้อที่ status=unconfirmed คือข้อที่เคยส่งแล้วผิด และยังไม่รู้คำตอบที่ถูก — ห้ามส่งคำใน known_wrong_answers ซ้ำ. quirk: ใน Unit 4 Chapter 3 (reported speech) ต้องใช้ apostrophe แบบตรง ('); ที่อื่น ๆ แนะนำให้ใช้เครื่องหมายโค้งและรูปเต็ม (will not) ถ้าไม่ชัวร์; กรรมวาจาพิมพ์มักต้องการสรรพนาม (by him/her/them); ถ้าถูกปฏิเสธให้ลองตัดจุดท้ายออก.",
+      "notes": "แบบทดสอบก่อนเรียนให้สุ่มตอบ ไม่มีในฐานนี้. แบบทดสอบหลังเรียนชุดใกล้เคียงกับก่อนเรียน จึงเก็บเฉลยไว้ในส่วน Post-Test. Unit 6 มีแค่ Chapter 1, 2 #1, 2 #2, 3 (ไม่มี Chapter 4). ข้อที่เป็นรูปภาพหรือประโยคไม่ถูกจับไว้ จะระบุใน notes และเรียงตามลำดับที่บันทึก. ข้อที่ status=unconfirmed คือข้อที่เคยส่งแล้วผิด และยังไม่รู้คำตอบที่ถูก — ห้ามส่งคำใน known_wrong_answers ซ้ำ. quirk: ใน Unit 4 Chapter 3 (reported speech) ต้องใช้ apostrophe แบบตรง ('); ที่อื่น ๆ แนะนำให้ใช้เครื่องหมายโค้งและรูปเต็ม (will not) ถ้าไม่ชัวร์; กรรมวาจาพิมพ์มักต้องการสรรพนาม (by him/her/them); ถ้าถูกปฏิเสธให้ลองตัดจุดท้ายออก. | text_apostrophe=curly: typed contractions use ’ (live run 2026-11-10: every Unit 2 Ch2 tag typed with a straight ' scored 0/1, every tag without an apostrophe scored 1/1). Unit 4 Chapter 3 overrides to straight.",
       "sections": [
         {
           "section": "Unit 1 Chapter 1",
@@ -337,13 +337,13 @@
             {
               "question": "They are repairing the car (...)",
               "answer_type": "text",
-              "correct_answer": null,
+              "correct_answer": "The car is being repaired.",
               "known_wrong_answers": [
                 "The car is being repaired by them.",
                 "The car is being repaired by them"
               ],
-              "status": "unconfirmed",
-              "notes": "Submitted 'The car is being repaired by them.' was wrong (2026-11-07). Try without 'by them' (untried). Prefer pronouns in other passive items."
+              "status": "inferred",
+              "notes": "INFERRED by assistant 2026-11-10 (not graded yet): Passive without an agent (\"by them\" was graded wrong; an unspecified agent is normally dropped). Previous note: Submitted 'The car is being repaired by them.' was wrong (2026-11-07). Try without 'by them' (untried). Prefer pronouns in other passive items."
             },
             {
               "question": "She is washing the dishes.",
@@ -356,12 +356,12 @@
             {
               "question": "Are the police investigating the incident?",
               "answer_type": "text",
-              "correct_answer": null,
+              "correct_answer": "Is the incident being investigated by the police?",
               "known_wrong_answers": [
                 "Is the incident being investigated by them"
               ],
-              "status": "unconfirmed",
-              "notes": "present continuous passive; grader often wants pronouns (by him/her/them), not names submitted answer was marked incorrect; correct answer unknown"
+              "status": "inferred",
+              "notes": "INFERRED by assistant 2026-11-10 (not graded yet): Present continuous passive question keeping the named agent (\"by them\" was graded wrong). Previous note: present continuous passive; grader often wants pronouns (by him/her/them), not names submitted answer was marked incorrect; correct answer unknown"
             },
             {
               "question": "They have opened a new shop.",
@@ -533,7 +533,7 @@
               "correct_answer": "can't",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": ""
+              "notes": "User-supplied answer list 2026-11-10."
             },
             {
               "question": "My dog _______ jump very high when he was younger.",
@@ -541,7 +541,7 @@
               "correct_answer": "could",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": ""
+              "notes": "User-supplied answer list 2026-11-10."
             },
             {
               "question": "Anyone _______ make a mistake.",
@@ -549,7 +549,7 @@
               "correct_answer": "can",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": ""
+              "notes": "User-supplied answer list 2026-11-10."
             },
             {
               "question": "I wanted to talk to Jim yesterday, but I _______ find him.",
@@ -557,7 +557,7 @@
               "correct_answer": "couldn't",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": ""
+              "notes": "User-supplied answer list 2026-11-10."
             },
             {
               "question": "I don't believe it. It _______ be true.",
@@ -565,7 +565,7 @@
               "correct_answer": "can't",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": ""
+              "notes": "User-supplied answer list 2026-11-10."
             },
             {
               "question": "I have never _______ speak Spanish as well as my brother.",
@@ -573,7 +573,7 @@
               "correct_answer": "been able to",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": ""
+              "notes": "User-supplied answer list 2026-11-10."
             },
             {
               "question": "After 6 hours climbing, we _______ reach the top of the mountain.",
@@ -581,7 +581,7 @@
               "correct_answer": "were able to",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": ""
+              "notes": "User-supplied answer list 2026-11-10."
             },
             {
               "question": "If you follow the instructions you should ______ set up the computer without a problem.",
@@ -589,7 +589,7 @@
               "correct_answer": "be able to",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": ""
+              "notes": "User-supplied answer list 2026-11-10."
             },
             {
               "question": "(same prompt repeated)",
@@ -597,7 +597,7 @@
               "correct_answer": "be able to",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": ""
+              "notes": "User-supplied answer list 2026-11-10."
             }
           ]
         },
@@ -713,17 +713,17 @@
               "correct_answer": "isn't she?",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you). User-supplied answer list 2026-11-10."
             },
             {
               "question": "We are late fo... (question tag; sentence text truncated in bank)",
               "answer_type": "text",
-              "correct_answer": null,
+              "correct_answer": "aren't we",
               "known_wrong_answers": [
                 "We aren't"
               ],
-              "status": "unconfirmed",
-              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you). submitted answer was marked incorrect; correct answer unknown"
+              "status": "inferred",
+              "notes": "INFERRED by assistant 2026-11-10 (not graded yet): \"We are late ...\" -> tag \"aren't we\" (user's answer, unconfirmed; \"We aren't\" was graded wrong because it repeats the subject order). Previous note: question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you). submitted answer was marked incorrect; correct answer unknown"
             },
             {
               "question": "James isn't a... (question tag; sentence text truncated in bank)",
@@ -731,7 +731,7 @@
               "correct_answer": "is he",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you). User-supplied answer list 2026-11-10."
             },
             {
               "question": "I was wrong ab... (question tag; sentence text truncated in bank)",
@@ -739,7 +739,7 @@
               "correct_answer": "wasn't I",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you). User-supplied answer list 2026-11-10."
             },
             {
               "question": "Andrew was pre... (question tag; sentence text truncated in bank)",
@@ -747,7 +747,7 @@
               "correct_answer": "wasn't he",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you). User-supplied answer list 2026-11-10."
             },
             {
               "question": "You have done... (question tag; sentence text truncated in bank)",
@@ -755,7 +755,7 @@
               "correct_answer": "haven't you",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you). User-supplied answer list 2026-11-10."
             },
             {
               "question": "You would never t... (question tag; sentence text truncated in bank)",
@@ -763,7 +763,7 @@
               "correct_answer": "wouldn't you",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you). User-supplied answer list 2026-11-10."
             },
             {
               "question": "You like choco... (question tag; sentence text truncated in bank)",
@@ -771,7 +771,7 @@
               "correct_answer": "Don't you",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you). User-supplied answer list 2026-11-10."
             },
             {
               "question": "Sheena won't m... (question tag; sentence text truncated in bank)",
@@ -779,7 +779,7 @@
               "correct_answer": "will she",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you). User-supplied answer list 2026-11-10."
             },
             {
               "question": "Your little A... (question tag; sentence text truncated in bank)",
@@ -787,7 +787,7 @@
               "correct_answer": "can she",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you). User-supplied answer list 2026-11-10."
             },
             {
               "question": "Patrick will... (question tag; sentence text truncated in bank)",
@@ -795,7 +795,7 @@
               "correct_answer": "won't he",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you). User-supplied answer list 2026-11-10."
             },
             {
               "question": "Rita never ac... (question tag; sentence text truncated in bank)",
@@ -803,7 +803,7 @@
               "correct_answer": "does she",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you). User-supplied answer list 2026-11-10."
             },
             {
               "question": "I'm not inter... (question tag; sentence text truncated in bank)",
@@ -811,7 +811,7 @@
               "correct_answer": "am I",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you). User-supplied answer list 2026-11-10."
             },
             {
               "question": "You haven't w... (question tag; sentence text truncated in bank)",
@@ -819,7 +819,7 @@
               "correct_answer": "have you",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you). User-supplied answer list 2026-11-10."
             },
             {
               "question": "Tom couldn't... (question tag; sentence text truncated in bank)",
@@ -827,7 +827,7 @@
               "correct_answer": "could he",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you). User-supplied answer list 2026-11-10."
             },
             {
               "question": "Let's go surf... (question tag; sentence text truncated in bank)",
@@ -835,7 +835,7 @@
               "correct_answer": "shall we",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you). User-supplied answer list 2026-11-10."
             },
             {
               "question": "The children a... (question tag; sentence text truncated in bank)",
@@ -843,7 +843,7 @@
               "correct_answer": "aren't they",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you). User-supplied answer list 2026-11-10."
             },
             {
               "question": "The pan is hot... (question tag; sentence text truncated in bank)",
@@ -851,7 +851,7 @@
               "correct_answer": "isn't it",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you). User-supplied answer list 2026-11-10."
             },
             {
               "question": "Amy doesn't l... (question tag; sentence text truncated in bank)",
@@ -859,7 +859,7 @@
               "correct_answer": "does she",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you). User-supplied answer list 2026-11-10."
             },
             {
               "question": "You are from... (question tag; sentence text truncated in bank)",
@@ -867,7 +867,7 @@
               "correct_answer": "aren't you",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you). User-supplied answer list 2026-11-10."
             },
             {
               "question": "I like eating... (question tag; sentence text truncated in bank)",
@@ -875,7 +875,7 @@
               "correct_answer": "don't I",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you). User-supplied answer list 2026-11-10."
             },
             {
               "question": "You have comp... (question tag; sentence text truncated in bank)",
@@ -883,7 +883,7 @@
               "correct_answer": "haven't you",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you). User-supplied answer list 2026-11-10."
             },
             {
               "question": "You don't live... (question tag; sentence text truncated in bank)",
@@ -891,7 +891,7 @@
               "correct_answer": "do you",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you). User-supplied answer list 2026-11-10."
             },
             {
               "question": "The children a... (question tag; sentence text truncated in bank)",
@@ -899,7 +899,7 @@
               "correct_answer": "aren't they",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you). User-supplied answer list 2026-11-10."
             },
             {
               "question": "We often go o... (question tag; sentence text truncated in bank)",
@@ -907,7 +907,7 @@
               "correct_answer": "don't we",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+              "notes": "question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you). User-supplied answer list 2026-11-10."
             }
           ]
         },
@@ -921,17 +921,17 @@
               "correct_answer": "don't have to",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": ""
+              "notes": "User-supplied answer list 2026-11-10."
             },
             {
               "question": "You ______ visit them.",
               "answer_type": "choice",
-              "correct_answer": null,
+              "correct_answer": "should",
               "known_wrong_answers": [
                 "can"
               ],
-              "status": "unconfirmed",
-              "notes": "submitted answer was marked incorrect; correct answer unknown"
+              "status": "inferred",
+              "notes": "INFERRED by assistant 2026-11-10 (not graded yet): \"You ___ visit them.\" options can / don't have to / should / must; \"can\" graded wrong; advice reading -> \"should\". Previous note: submitted answer was marked incorrect; correct answer unknown"
             },
             {
               "question": "We ______ clean our room every day.",
@@ -939,7 +939,7 @@
               "correct_answer": "have to",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": ""
+              "notes": "User-supplied answer list 2026-11-10."
             },
             {
               "question": "I hate big multinational companies. I think they ______ pay more taxes.",
@@ -947,7 +947,7 @@
               "correct_answer": "should",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": ""
+              "notes": "User-supplied answer list 2026-11-10."
             },
             {
               "question": "We ______ wear a tie at work. I hate it!",
@@ -955,7 +955,7 @@
               "correct_answer": "have to",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": ""
+              "notes": "User-supplied answer list 2026-11-10."
             },
             {
               "question": "I ______ wear glasses, I still can see perfectly well.",
@@ -963,7 +963,7 @@
               "correct_answer": "don't have to",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": ""
+              "notes": "User-supplied answer list 2026-11-10."
             },
             {
               "question": "I'm not working tomorrow, so I ______ get up early.",
@@ -971,7 +971,7 @@
               "correct_answer": "don't have to",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": ""
+              "notes": "User-supplied answer list 2026-11-10."
             },
             {
               "question": "I ______ get up early tomorrow; I want to go running very early.",
@@ -979,7 +979,7 @@
               "correct_answer": "must",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": ""
+              "notes": "User-supplied answer list 2026-11-10."
             },
             {
               "question": "This is a non-smoking area, you ______ smoke here.",
@@ -987,7 +987,7 @@
               "correct_answer": "mustn't",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": ""
+              "notes": "User-supplied answer list 2026-11-10."
             },
             {
               "question": "You ______ eat so many sweets. They are bad for you",
@@ -995,7 +995,7 @@
               "correct_answer": "shouldn't",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": ""
+              "notes": "User-supplied answer list 2026-11-10."
             }
           ]
         },
@@ -1038,12 +1038,12 @@
             {
               "question": "Ann rarely eats red meat these days; just some _____ from time to time.",
               "answer_type": "choice",
-              "correct_answer": null,
+              "correct_answer": "beef",
               "known_wrong_answers": [
                 "crab"
               ],
-              "status": "unconfirmed",
-              "notes": "submitted answer was marked incorrect; correct answer unknown"
+              "status": "inferred",
+              "notes": "INFERRED by assistant 2026-11-10 (not graded yet): \"rarely eats red meat these days; just some ___ from time to time\" names the red meat she still eats occasionally -> beef (tuna/crab/oysters are seafood; crab graded wrong). Previous note: submitted answer was marked incorrect; correct answer unknown"
             },
             {
               "question": "I had slices of tasty red _____ with my breakfast this morning.",
@@ -1394,12 +1394,12 @@
             {
               "question": "I'd rather _______ here if you don't mind.",
               "answer_type": "text",
-              "correct_answer": null,
+              "correct_answer": "not stay",
               "known_wrong_answers": [
                 "stay"
               ],
-              "status": "unconfirmed",
-              "notes": "gerund / infinitive submitted answer was marked incorrect; correct answer unknown"
+              "status": "inferred",
+              "notes": "INFERRED by assistant 2026-11-10 (not graded yet): \"I'd rather ___ here if you don't mind\": \"stay\" was graded wrong; \"if you don't mind\" goes with a polite refusal -> \"I'd rather not stay here\". If the live block is a dropdown of staying / to stay / stay, no option is left and the bot logs it as missing. Previous note: gerund / infinitive submitted answer was marked incorrect; correct answer unknown"
             },
             {
               "question": "She pretended _______ interested.",
@@ -1466,12 +1466,12 @@
             {
               "question": "The money, $30,000 was taken from t... (match sentence to crime; sentence truncated)",
               "answer_type": "choice",
-              "correct_answer": null,
+              "correct_answer": "Theft",
               "known_wrong_answers": [
                 "Robbery"
               ],
-              "status": "unconfirmed",
-              "notes": "submitted answer was marked incorrect; correct answer unknown"
+              "status": "inferred",
+              "notes": "INFERRED by assistant 2026-11-10 (not graded yet): Money taken with no violence (Robbery graded wrong) and Burglary is already the answer for the break-in item #9 -> Theft. Previous note: submitted answer was marked incorrect; correct answer unknown"
             },
             {
               "question": "A dentist killed his wife using poi... (match sentence to crime; sentence truncated)",
@@ -1541,89 +1541,89 @@
         },
         {
           "section": "Unit 4 Chapter 2",
-          "notes": "Score 14/15",
+          "notes": "Score 14/15 | Q1-10 are Multiple Choice on the live page (stems updated 2026-11-10 from screenshot).",
           "questions": [
             {
-              "question": "Noun from verb \"intend\" (\"Her _____ was...\")",
-              "answer_type": "text",
+              "question": "Which noun formed from the verb intend, can be used to fill in the blank? \"Her ____ was noble.\"",
+              "answer_type": "choice",
               "correct_answer": "intention",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": ""
+              "notes": "User-supplied answer list 2026-11-10. Live page: Multiple Choice \"Part 1 : Choose the best answer.\""
             },
             {
-              "question": "Noun from \"deliver\"",
-              "answer_type": "text",
+              "question": "Which noun formed from the verb deliver, can be used to fill in the blank? ...",
+              "answer_type": "choice",
               "correct_answer": "delivery",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": ""
+              "notes": "User-supplied answer list 2026-11-10. Live page: Multiple Choice \"Part 1 : Choose the best answer.\""
             },
             {
-              "question": "Noun from \"omit\"",
-              "answer_type": "text",
+              "question": "Which noun formed from the verb omit, can be used to fill in the blank? ...",
+              "answer_type": "choice",
               "correct_answer": "omission",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": ""
+              "notes": "User-supplied answer list 2026-11-10. Live page: Multiple Choice \"Part 1 : Choose the best answer.\""
             },
             {
-              "question": "Noun from \"lie\" (\"Tom is a consi...\")",
-              "answer_type": "text",
+              "question": "Which noun formed from the verb lie, can be used to fill in the blank? \"Tom is a consi...",
+              "answer_type": "choice",
               "correct_answer": "liar",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": ""
+              "notes": "User-supplied answer list 2026-11-10. Live page: Multiple Choice \"Part 1 : Choose the best answer.\""
             },
             {
-              "question": "Noun from \"refuse\"",
-              "answer_type": "text",
+              "question": "Which noun formed from the verb refuse, can be used to fill in the blank? ...",
+              "answer_type": "choice",
               "correct_answer": "refusal",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": ""
+              "notes": "User-supplied answer list 2026-11-10. Live page: Multiple Choice \"Part 1 : Choose the best answer.\""
             },
             {
-              "question": "Noun from \"produce\" (\"As a result...\")",
-              "answer_type": "text",
-              "correct_answer": null,
+              "question": "Which noun formed from the verb produce, can be used to fill in the blank? \"As a result...",
+              "answer_type": "choice",
+              "correct_answer": "production",
               "known_wrong_answers": [
                 "produceion"
               ],
-              "status": "unconfirmed",
-              "notes": "submitted answer was marked incorrect; correct answer unknown"
+              "status": "inferred",
+              "notes": "INFERRED by assistant 2026-11-10 (not graded yet): the noun of \"produce\" is \"production\"; user's answer is unconfirmed and produceion was graded wrong. Live options seen: producter / producement / produceion / refused (none is a real noun of produce), so when \"production\" is not offered the bot logs the item as missing instead of guessing."
             },
             {
-              "question": "Noun from \"appoint\"",
-              "answer_type": "text",
+              "question": "Which noun formed from the verb appoint, can be used to fill in the blank? ...",
+              "answer_type": "choice",
               "correct_answer": "appointment",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": ""
+              "notes": "User-supplied answer list 2026-11-10. Live page: Multiple Choice \"Part 1 : Choose the best answer.\""
             },
             {
-              "question": "Noun from \"decide\"",
-              "answer_type": "text",
+              "question": "Which noun formed from the verb decide, can be used to fill in the blank? ...",
+              "answer_type": "choice",
               "correct_answer": "decision",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": ""
+              "notes": "User-supplied answer list 2026-11-10. Live page: Multiple Choice \"Part 1 : Choose the best answer.\""
             },
             {
-              "question": "Noun from \"choose\"",
+              "question": "Which noun formed from the verb choose, can be used to fill in the blank? ...",
               "answer_type": "choice",
               "correct_answer": "choice",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": ""
+              "notes": "User-supplied answer list 2026-11-10. Live page: Multiple Choice \"Part 1 : Choose the best answer.\""
             },
             {
-              "question": "Noun from \"dismiss\"",
-              "answer_type": "text",
+              "question": "Which noun formed from the verb dismiss, can be used to fill in the blank? ...",
+              "answer_type": "choice",
               "correct_answer": "dismissal",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": ""
+              "notes": "User-supplied answer list 2026-11-10. Live page: Multiple Choice \"Part 1 : Choose the best answer.\""
             },
             {
               "question": "\"He slipped on the peel of a banana...\" peel is a noun; choose sentence where it is a verb",
@@ -1793,99 +1793,100 @@
               "status": "confirmed",
               "notes": "reported speech. For this chapter the grader wants a STRAIGHT apostrophe. Q2 was accepted without a final period."
             }
-          ]
+          ],
+          "text_apostrophe": "straight"
         },
         {
           "section": "Unit 4 Chapter 4",
           "notes": "Score 32/32 (some items have two blanks)",
           "questions": [
             {
-              "question": "They ___ (not go) back... (second conditional; two blanks)",
-              "answer_type": "text",
+              "question": "They ___ (not/go) back home if you ___ (pay) them.",
+              "answer_type": "choice",
               "correct_answer": "wouldn't go ; paid",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "two blanks; answers separated by ' ; ' as in the bank"
+              "notes": "Two dropdowns per block, blank (1) then (2); answers separated by ' ; '. User-supplied answer list 2026-11-10."
             },
             {
-              "question": "If I ___ (have) a dog, he ___ ... (second conditional; two blanks)",
-              "answer_type": "text",
+              "question": "If I ___ (have) a dog, he ___ (carry) the things for me.",
+              "answer_type": "choice",
               "correct_answer": "had ; would carry",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "two blanks; answers separated by ' ; ' as in the bank"
+              "notes": "Two dropdowns per block, blank (1) then (2); answers separated by ' ; '. User-supplied answer list 2026-11-10."
             },
             {
-              "question": "Your pencils ___ (break)... (second conditional; two blanks)",
-              "answer_type": "text",
+              "question": "Your pencils ___ (break)... if you ___ (pack)...",
+              "answer_type": "choice",
               "correct_answer": "wouldn't break ; packed",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "two blanks; answers separated by ' ; ' as in the bank"
+              "notes": "Two dropdowns per block, blank (1) then (2); answers separated by ' ; '. User-supplied answer list 2026-11-10."
             },
             {
-              "question": "If Alex ___ (sell) his ... (second conditional; two blanks)",
-              "answer_type": "text",
+              "question": "If Alex ___ (sell) his ...",
+              "answer_type": "choice",
               "correct_answer": "sold ; would buy",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "two blanks; answers separated by ' ; ' as in the bank"
+              "notes": "Two dropdowns per block, blank (1) then (2); answers separated by ' ; '. User-supplied answer list 2026-11-10."
             },
             {
-              "question": "We ___ (come) to the party... (second conditional; two blanks)",
-              "answer_type": "text",
+              "question": "We ___ (come) to the party...",
+              "answer_type": "choice",
               "correct_answer": "would come ; started",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "two blanks; answers separated by ' ; ' as in the bank"
+              "notes": "Two dropdowns per block, blank (1) then (2); answers separated by ' ; '. User-supplied answer list 2026-11-10."
             },
             {
-              "question": "If you ___ (change) you... (second conditional; two blanks)",
-              "answer_type": "text",
+              "question": "If you ___ (change) you...",
+              "answer_type": "choice",
               "correct_answer": "changed ; would save",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "two blanks; answers separated by ' ; ' as in the bank"
+              "notes": "Two dropdowns per block, blank (1) then (2); answers separated by ' ; '. User-supplied answer list 2026-11-10."
             },
             {
-              "question": "If you ___ (not click)... (second conditional; two blanks)",
-              "answer_type": "text",
+              "question": "If you ___ (not click)...",
+              "answer_type": "choice",
               "correct_answer": "didn't click ; wouldn't cancel",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "two blanks; answers separated by ' ; ' as in the bank"
+              "notes": "Two dropdowns per block, blank (1) then (2); answers separated by ' ; '. User-supplied answer list 2026-11-10."
             },
             {
-              "question": "If the students ___ (keep)... (second conditional; two blanks)",
-              "answer_type": "text",
+              "question": "If the students ___ (keep)...",
+              "answer_type": "choice",
               "correct_answer": "kept ; wouldn't forget",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "two blanks; answers separated by ' ; ' as in the bank"
+              "notes": "Two dropdowns per block, blank (1) then (2); answers separated by ' ; '. User-supplied answer list 2026-11-10."
             },
             {
-              "question": "If he ___ (be) younger, he... (second conditional; two blanks)",
-              "answer_type": "text",
+              "question": "If he ___ (be) younger, he...",
+              "answer_type": "choice",
               "correct_answer": "were ; would travel",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "two blanks; answers separated by ' ; ' as in the bank"
+              "notes": "Two dropdowns per block, blank (1) then (2); answers separated by ' ; '. User-supplied answer list 2026-11-10."
             },
             {
-              "question": "(repeat of 9) (second conditional; two blanks)",
-              "answer_type": "text",
+              "question": "If he ___ (be) younger, he... (repeat of 9)",
+              "answer_type": "choice",
               "correct_answer": "were ; would travel",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "two blanks; answers separated by ' ; ' as in the bank"
+              "notes": "Two dropdowns per block, blank (1) then (2); answers separated by ' ; '. User-supplied answer list 2026-11-10."
             },
             {
-              "question": "If she ___ (not be) al... (second conditional; two blanks)",
-              "answer_type": "text",
+              "question": "If she ___ (not be) al...",
+              "answer_type": "choice",
               "correct_answer": "weren't ; would be",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "two blanks; answers separated by ' ; ' as in the bank"
+              "notes": "Two dropdowns per block, blank (1) then (2); answers separated by ' ; '. User-supplied answer list 2026-11-10."
             },
             {
               "question": "If I ______ you, I wouldn't trust him.",
@@ -1893,7 +1894,7 @@
               "correct_answer": "were",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "second conditional"
+              "notes": "second conditional. User-supplied answer list 2026-11-10."
             },
             {
               "question": "If we didn't take precautions, we ______ hurt.",
@@ -1901,7 +1902,7 @@
               "correct_answer": "might get",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "second conditional"
+              "notes": "second conditional. User-supplied answer list 2026-11-10."
             },
             {
               "question": "If the weather ________ better, we ________ to the park.",
@@ -1909,7 +1910,7 @@
               "correct_answer": "were / would go",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "second conditional"
+              "notes": "second conditional. User-supplied answer list 2026-11-10."
             },
             {
               "question": "If her hair were black, she ________ completely different.",
@@ -1917,7 +1918,7 @@
               "correct_answer": "would look",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "second conditional"
+              "notes": "second conditional. User-supplied answer list 2026-11-10."
             },
             {
               "question": "If smoking were allowed, I ________ a cigarette.",
@@ -1925,7 +1926,7 @@
               "correct_answer": "would have",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "second conditional"
+              "notes": "second conditional. User-supplied answer list 2026-11-10."
             },
             {
               "question": "Would you mind if I ______ the window?",
@@ -1933,7 +1934,7 @@
               "correct_answer": "opened",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "second conditional"
+              "notes": "second conditional. User-supplied answer list 2026-11-10."
             },
             {
               "question": "If we sold the house we ______ much right now.",
@@ -1941,7 +1942,7 @@
               "correct_answer": "wouldn't get",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "second conditional"
+              "notes": "second conditional. User-supplied answer list 2026-11-10."
             },
             {
               "question": "You ______ healthier if you ______ a bit of weight.",
@@ -1949,7 +1950,7 @@
               "correct_answer": "would feel / lost",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "second conditional"
+              "notes": "second conditional. User-supplied answer list 2026-11-10."
             },
             {
               "question": "If Paul __________ television so often, he would have more time for his homework.",
@@ -1957,7 +1958,7 @@
               "correct_answer": "didn't watch",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "second conditional"
+              "notes": "second conditional. User-supplied answer list 2026-11-10."
             },
             {
               "question": "We would be able to swim better if we __________ swimming more often.",
@@ -1965,7 +1966,7 @@
               "correct_answer": "went",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "second conditional"
+              "notes": "second conditional. User-supplied answer list 2026-11-10."
             }
           ]
         },
@@ -2436,44 +2437,44 @@
           "notes": "Score 15/15 (some items have two blanks)",
           "questions": [
             {
-              "question": "Third conditional item 1 (two blanks; full sentence not captured)",
-              "answer_type": "text",
+              "question": "If Milada ___ (not / be) late, we ___ (not / miss) the train.",
+              "answer_type": "choice",
               "correct_answer": "hadn't been ; wouldn't have missed",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "two blanks; answers separated by ' ; ' as in the bank"
+              "notes": "Two dropdowns per block (\"1\" then \"2\"); answers separated by ' ; '. User-supplied answer list 2026-11-10."
             },
             {
-              "question": "Third conditional item 2 (two blanks; full sentence not captured)",
-              "answer_type": "text",
+              "question": "If Amada ___ (study) harder, she ___ (pass) the final exam.",
+              "answer_type": "choice",
               "correct_answer": "had studied ; would have passed",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "two blanks; answers separated by ' ; ' as in the bank"
+              "notes": "Two dropdowns per block (\"1\" then \"2\"); answers separated by ' ; '. User-supplied answer list 2026-11-10."
             },
             {
               "question": "Third conditional item 3 (two blanks; full sentence not captured)",
-              "answer_type": "text",
+              "answer_type": "choice",
               "correct_answer": "had arrived ; would have seen",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "two blanks; answers separated by ' ; ' as in the bank"
+              "notes": "Two dropdowns per block (\"1\" then \"2\"); answers separated by ' ; '. User-supplied answer list 2026-11-10."
             },
             {
               "question": "Third conditional item 4 (two blanks; full sentence not captured)",
-              "answer_type": "text",
+              "answer_type": "choice",
               "correct_answer": "had gone ; wouldn't have woken",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "two blanks; answers separated by ' ; ' as in the bank"
+              "notes": "Two dropdowns per block (\"1\" then \"2\"); answers separated by ' ; '. User-supplied answer list 2026-11-10."
             },
             {
               "question": "Third conditional item 5 (two blanks; full sentence not captured)",
-              "answer_type": "text",
+              "answer_type": "choice",
               "correct_answer": "had become ; would have recorded",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "two blanks; answers separated by ' ; ' as in the bank"
+              "notes": "Two dropdowns per block (\"1\" then \"2\"); answers separated by ' ; '. User-supplied answer list 2026-11-10."
             },
             {
               "question": "If she had gone...",
@@ -2481,7 +2482,7 @@
               "correct_answer": "would have become",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "third conditional; sentence truncated"
+              "notes": "third conditional; sentence truncated. User-supplied answer list 2026-11-10."
             },
             {
               "question": "If Emma _______...",
@@ -2489,7 +2490,7 @@
               "correct_answer": "had been",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "third conditional; sentence truncated"
+              "notes": "third conditional; sentence truncated. User-supplied answer list 2026-11-10."
             },
             {
               "question": "If Sophai had g...",
@@ -2497,7 +2498,7 @@
               "correct_answer": "would have studied",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "third conditional; sentence truncated"
+              "notes": "third conditional; sentence truncated. User-supplied answer list 2026-11-10."
             },
             {
               "question": "If they _______...",
@@ -2505,7 +2506,7 @@
               "correct_answer": "hadn't gone",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "third conditional; sentence truncated"
+              "notes": "third conditional; sentence truncated. User-supplied answer list 2026-11-10."
             },
             {
               "question": "They wouldn't...",
@@ -2513,7 +2514,7 @@
               "correct_answer": "hadn't gone",
               "known_wrong_answers": [],
               "status": "confirmed",
-              "notes": "third conditional; sentence truncated"
+              "notes": "third conditional; sentence truncated. User-supplied answer list 2026-11-10."
             }
           ]
         },
@@ -3043,7 +3044,8 @@
             }
           ]
         }
-      ]
+      ],
+      "text_apostrophe": "curly"
     },
     {
       "course_code": "TSUGE000271",

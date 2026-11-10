@@ -194,36 +194,64 @@ ${tabs('Course')}
 </script></body></html>`;
   }
 
-  function problemHtml(u, p, n) {
-    const graded = state.graded[p.id];
-    const maxAttempts = p.maxAttempts || 1;
-    const used = state.attempts[p.id];
-    const locked = graded && used >= maxAttempts;
-    const progress = graded === 'correct' ? '1/1 point (graded)' : graded === 'incorrect' ? '0/1 point (graded)' : '1 point possible (graded)';
+  // p.kind: 'radio' (default, p.choices + p.answer index), 'select' (p.blanks: [{ options, answer }],
+  // several dropdowns in one block) or 'text' (p.answers: exact strings, one text box each).
+  const answersOf = p => (p.kind === 'select' ? p.blanks.map(b => b.answer) : p.answers);
+  function inputsHtml(p, graded, locked) {
+    const dis = locked ? 'disabled' : '';
+    if (p.kind === 'select') {
+      return p.blanks.map((b, k) => {
+        const shown = graded === 'correct' ? b.answer : graded ? b.options.find(o => o !== b.answer) : '';
+        return `
+        <div class="wrapper-problem-response" tabindex="-1" role="group" aria-label="Question ${k + 1}">
+          <div class="inputtype option-input"><label class="problem-group-label" for="input_${p.id}_${k}">${k + 1}</label>
+            <div class="input-wrapper"><select name="input_${p.id}_${k}" id="input_${p.id}_${k}" ${dis}>
+              <option value="option_${p.id}_${k}_dummy_default">Select an option</option>
+              ${b.options.map(o => `<option value="${esc(o)}" ${o === shown ? 'selected' : ''}>${esc(o)}</option>`).join('')}
+            </select></div></div>
+        </div>`;
+      }).join('');
+    }
+    if (p.kind === 'text') {
+      return p.answers.map((a, k) => `
+        <div class="wrapper-problem-response" tabindex="-1" role="group" aria-label="Question">
+          <div class="inputtype textline capa_inputtype"><input type="text" name="input_${p.id}_${k}" id="input_${p.id}_${k}" value="${graded ? esc(graded === 'correct' ? a : 'wrong') : ''}" ${dis}></div>
+        </div>`).join('');
+    }
     const choices = p.choices.map((c, ci) => `
         <div class="field">
-          <input type="radio" name="input_${p.id}" id="input_${p.id}_choice_${ci}" class="field-input input-radio" value="choice_${ci}" ${graded && (graded === 'correct' ? p.answer === ci : ci !== p.answer && ci === (p.answer + 1) % p.choices.length) ? 'checked' : ''} ${locked ? 'disabled' : ''}>
+          <input type="radio" name="input_${p.id}" id="input_${p.id}_choice_${ci}" class="field-input input-radio" value="choice_${ci}" ${graded && (graded === 'correct' ? p.answer === ci : ci !== p.answer && ci === (p.answer + 1) % p.choices.length) ? 'checked' : ''} ${dis}>
           <label id="${p.id}-choice_${ci}-label" for="input_${p.id}_choice_${ci}" class="response-label field-label label-inline">${esc(c)}</label>
         </div>`).join('');
     const stem = p.stemAsParagraph
       ? `<p>${esc(p.stem)}</p><div class="choicegroup capa_inputtype"><fieldset>`
       : `<div class="choicegroup capa_inputtype"><fieldset><legend class="response-fieldset-legend field-group-hd">${esc(p.stem)}</legend>`;
     return `
-<div class="vert vert-${n}">
-  <div class="xblock xblock-student_view xblock-student_view-problem" data-block-type="problem">
-    <div class="problems-wrapper" id="problem_${p.id}">
-      <h3 class="hd hd-3 problem-header">Question ${n + 1}</h3>
-      <div class="problem-progress">${progress}</div>
-      <div class="problem"><div>
-        <div class="wrapper-problem-response" tabindex="-1" role="group" aria-label="Question ${n + 1}">
+        <div class="wrapper-problem-response" tabindex="-1" role="group" aria-label="Question">
           ${stem}${choices}</fieldset>
             <div class="indicator-container">${graded ? `<span class="status ${graded}"><span class="sr">${graded}</span></span>` : '<span class="status unanswered"></span>'}</div>
           </div>
-        </div>
-      </div>
+        </div>`;
+  }
+
+  function problemHtml(u, p, n) {
+    const graded = state.graded[p.id];
+    const maxAttempts = p.maxAttempts || 1;
+    const used = state.attempts[p.id];
+    const locked = graded && used >= maxAttempts;
+    const progress = graded === 'correct' ? '1/1 point (graded)' : graded === 'incorrect' ? '0/1 point (graded)' : '1 point possible (graded)';
+    return `
+<div class="vert vert-${n}">
+  <div class="xblock xblock-student_view xblock-student_view-problem" data-block-type="problem">
+    <div class="problems-wrapper" id="problem_${p.id}">
+      <h3 class="hd hd-3 problem-header">${esc(p.title || `Question ${n + 1}`)}</h3>
+      <div class="problem-progress">${progress}</div>
+      <div class="problem"><div>
+        ${p.kind ? `<p>${esc(p.stem)}</p>` : ''}${inputsHtml(p, graded, locked)}
+      </div></div>
       <div class="action"><div class="submit-attempt-container">
         <button type="button" class="submit btn-brand" data-value="Submit" data-problem="${p.id}" ${locked ? 'disabled' : ''}><span class="submit-label">${spec.submitLabel || 'Submit'}</span></button>
-        ${graded ? `<div class="submission-feedback">Your answer has been received. You have used ${used} of ${maxAttempts} attempt${maxAttempts > 1 ? 's' : ''}</div>` : ''}
+        <div class="submission-feedback">${graded ? 'Your answer has been received. ' : ''}You have used ${used} of ${maxAttempts} attempt${maxAttempts > 1 ? 's' : ''}</div>
       </div></div>
       </div>
     </div>
@@ -238,8 +266,11 @@ ${tabs('Course')}
   const UNIT = ${JSON.stringify(u.id)};
   document.querySelectorAll('button.submit').forEach(b => b.onclick = async () => {
     const pid = b.dataset.problem;
+    const w0 = document.getElementById('problem_' + pid);
+    const fields = Array.from(w0.querySelectorAll('select, input[type="text"]'));
     const sel = document.querySelector('input[name="input_' + pid + '"]:checked');
-    const res = await (await fetch('/submit/' + UNIT + '/' + pid + '/' + (sel ? sel.value : 'none'), { method: 'POST' })).json();
+    const val = fields.length ? encodeURIComponent(JSON.stringify(fields.map(f => f.value))) : (sel ? sel.value : 'none');
+    const res = await (await fetch('/submit/' + UNIT + '/' + pid + '/' + val, { method: 'POST' })).json();
     const w = document.getElementById('problem_' + pid);
     w.querySelector('.problem-progress').textContent = res.correct ? '1/1 point (graded)' : '0/1 point (graded)';
     w.querySelector('.indicator-container').innerHTML = '<span class="status ' + (res.correct ? 'correct' : 'incorrect') + '"></span>';
@@ -352,10 +383,11 @@ ${tabs('Progress')}
     if ((m = url.match(/^\/submit\/([^/]+)\/([^/]+)\/(.+)$/)) && req.method === 'POST') {
       const u = units.find(x => x.id === m[1]);
       const p = u.problems.find(x => x.id === m[2]);
-      const correct = m[3] === `choice_${p.answer}`;
+      const values = p.kind ? JSON.parse(decodeURIComponent(m[3])) : null;
+      const correct = p.kind ? JSON.stringify(values) === JSON.stringify(answersOf(p)) : m[3] === `choice_${p.answer}`;
       state.graded[p.id] = correct ? 'correct' : 'incorrect';
       state.attempts[p.id]++;
-      ev('submit', u.id, { problem: p.id, choice: m[3], correct });
+      ev('submit', u.id, { problem: p.id, choice: p.kind ? undefined : m[3], values, correct });
       const unitComplete = u.problems.every(x => state.graded[x.id]);
       if (unitComplete) { state.complete[u.id] = true; ev('complete', u.id); }
       return send(200, JSON.stringify({ correct, unitComplete }), 'application/json');
