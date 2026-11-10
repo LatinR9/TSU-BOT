@@ -539,6 +539,23 @@ class AutomationWorker {
             ansData = dbManager.findAnswer(this.courseCode, fullText, sectionHint, qIndex - 1);
           }
 
+          // Check for unconfirmed / missing items to report to user
+          const missingInfo = dbManager.findMissingItem(this.courseCode, sentenceLine) ||
+                              dbManager.findMissingItem(this.courseCode, fullText);
+
+          if (missingInfo) {
+            this.log(`📢 [รายงานข้อไม่มีเฉลยยืนยัน] ข้อ ${qIndex}: "${missingInfo.question}"`, 'warn');
+            if (missingInfo.hint) {
+              this.log(`   💡 คำแนะนำ: ${missingInfo.hint}`, 'warn');
+            }
+            if (missingInfo.wrong_answers && missingInfo.wrong_answers.length > 0) {
+              this.log(`   🚫 ตัดตัวเลือกที่เคยผิด: ${missingInfo.wrong_answers.join(' | ')}`, 'warn');
+            }
+          } else if (!ansData || ansData.status !== 'confirmed') {
+            this.log(`📢 [รายงานข้อสอบไม่มีในฐานข้อมูล] ข้อ ${qIndex}: "${(sentenceLine || fullText).substring(0, 80)}"`, 'warn');
+            this.log(`   ⚠️ ไม่พบคำตอบในฐานข้อมูล กรุณาตรวจสอบหรือส่งคำตอบด้วยตนเองหากต้องการคะแนนเต็ม`, 'warn');
+          }
+
           if (ansData && ansData.status === 'confirmed' && ansData.correct_answer) {
             let targetAns = ansData.correct_answer.trim();
 
@@ -576,16 +593,68 @@ class AutomationWorker {
             }
           }
 
-          // Case 3: Unconfirmed or unknown choice — avoid known_wrong_answers per README_TH.md
+          // Case 3: Missing or unconfirmed with hint suggestions
+          if (!answered && missingInfo) {
+            const combinedWrong = [...(ansData?.known_wrong_answers || []), ...(missingInfo.wrong_answers || [])];
+
+            // If text input and hint has a clear suggested phrase
+            if (textInputs.length > 0) {
+              let suggestedText = '';
+              const h = missingInfo.hint;
+              if (h.includes('production')) suggestedText = 'production';
+              else if (h.includes('The car is being repaired.')) suggestedText = 'The car is being repaired.';
+              else if (h.includes("aren't we?")) suggestedText = "aren't we?";
+              else if (h.includes('Is the incident being investigated by the police?')) suggestedText = 'Is the incident being investigated by the police?';
+
+              if (suggestedText) {
+                for (const tInput of textInputs) {
+                  await tInput.click().catch(() => {});
+                  await tInput.fill('');
+                  await tInput.fill(suggestedText).catch(() => {});
+                  await tInput.dispatchEvent('input').catch(() => {});
+                  await tInput.dispatchEvent('change').catch(() => {});
+                  await tInput.press('Tab').catch(() => {});
+                  answered = true;
+                  this.log(`🎯 ข้อ ${qIndex}: พิมพ์คำตอบตามคำแนะนำวิเคราะห์ "${suggestedText}"`);
+                }
+              }
+            }
+
+            // If choice and hint suggests an option
+            if (!answered && choiceLabels.length > 0) {
+              const h = missingInfo.hint;
+              for (const ch of choiceLabels) {
+                const labelText = (await ch.innerText().catch(() => '')).trim();
+                if (combinedWrong.some(w => labelText.includes(w) || w.includes(labelText))) continue;
+
+                let matchesHint = false;
+                if (h.includes('Define') && labelText.includes('Define')) matchesHint = true;
+                else if (h.includes('การรู้เท่าทันสื่อ') && labelText.includes('การรู้เท่าทันสื่อ')) matchesHint = true;
+                else if (h.includes('ปรับปรุงผลิตภัณฑ์เดิมให้ดีขึ้น') && labelText.includes('ปรับปรุงผลิตภัณฑ์เดิมให้ดีขึ้น')) matchesHint = true;
+                else if (h.includes('สิ่งใหม่ของผลิตภัณฑ์') && labelText.includes('สิ่งใหม่ของผลิตภัณฑ์')) matchesHint = true;
+                else if (h.includes('Burglary') && labelText.includes('Burglary')) matchesHint = true;
+                else if (h.includes('Theft') && labelText.includes('Theft')) matchesHint = true;
+
+                if (matchesHint) {
+                  await ch.click().catch(() => {});
+                  answered = true;
+                  this.log(`🎯 ข้อ ${qIndex}: เลือกตัวเลือกตามคำแนะนำวิเคราะห์ "${labelText}"`);
+                  break;
+                }
+              }
+            }
+          }
+
+          // Case 4: Unconfirmed or unknown choice — avoid known_wrong_answers per README_TH.md
           if (!answered && choiceLabels.length > 0) {
-            const wrongList = ansData?.known_wrong_answers || [];
+            const wrongList = [...(ansData?.known_wrong_answers || []), ...(missingInfo?.wrong_answers || [])];
             let picked = false;
             for (const ch of choiceLabels) {
               const t = await ch.innerText().catch(() => '');
-              if (!wrongList.some(w => t.includes(w))) {
+              if (!wrongList.some(w => t.includes(w) || (w && w.length > 3 && t.toLowerCase().includes(w.toLowerCase())))) {
                 await ch.click().catch(() => {});
                 picked = true;
-                this.log(`💡 ข้อ ${qIndex}: เลือกตัวเลือกที่ไม่อยู่ในรายการที่เคยผิด`);
+                this.log(`💡 ข้อ ${qIndex}: เลือกตัวเลือกที่ไม่อยู่ในรายการที่เคยผิด ("${t.trim()}")`);
                 break;
               }
             }

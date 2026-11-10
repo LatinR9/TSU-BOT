@@ -4,15 +4,19 @@ const path = require('path');
 
 const MAIN_DB_PATH = path.join(__dirname, 'tsu_answers.json');
 const CUSTOM_DB_PATH = path.join(__dirname, 'custom_courses.json');
+const MISSING_DB_PATH = path.join(__dirname, 'tsu_missing.json');
 
 class DBManager {
   constructor() {
     this.courses = [];
+    this.missingItems = [];
     this.loadDatabase();
   }
 
   loadDatabase() {
     this.courses = [];
+    this.missingItems = [];
+
     if (fs.existsSync(MAIN_DB_PATH)) {
       try {
         const raw = fs.readFileSync(MAIN_DB_PATH, 'utf-8');
@@ -36,6 +40,42 @@ class DBManager {
         console.error('Error reading custom_courses.json:', err.message);
       }
     }
+
+    if (fs.existsSync(MISSING_DB_PATH)) {
+      try {
+        const raw = fs.readFileSync(MISSING_DB_PATH, 'utf-8');
+        const missing = JSON.parse(raw);
+        if (Array.isArray(missing)) {
+          this.missingItems.push(...missing);
+        }
+      } catch (err) {
+        console.error('Error reading tsu_missing.json:', err.message);
+      }
+    }
+  }
+
+  findMissingItem(courseCode, questionText) {
+    if (!questionText || this.missingItems.length === 0) return null;
+    const cleanQ = questionText.replace(/\s+/g, ' ').trim().toLowerCase();
+
+    for (const item of this.missingItems) {
+      if (item.course && courseCode && item.course !== courseCode) continue;
+      const itemQ = (item.question || '').replace(/\s+/g, ' ').trim().toLowerCase();
+      const score = this.calculateSimilarity(cleanQ, itemQ);
+
+      if (score >= 0.5 || cleanQ.includes(itemQ) || itemQ.includes(cleanQ)) {
+        return {
+          isMissing: true,
+          course: item.course,
+          section: item.section,
+          question: item.question,
+          type: item.type,
+          wrong_answers: (item.wrong_answers || '').split('|').map(s => s.trim()).filter(Boolean),
+          hint: item.hint || ''
+        };
+      }
+    }
+    return null;
   }
 
   getCoursesSummary() {

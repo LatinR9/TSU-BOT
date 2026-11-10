@@ -1,0 +1,114 @@
+[
+  {
+    "course": "TSUGE00152",
+    "section": "Unit 1 Chapter 3",
+    "question": "They are repairing the car (...)",
+    "type": "text",
+    "wrong_answers": "The car is being repaired by them. | The car is being repaired by them",
+    "hint": "ลองตอบ The car is being repaired. (ตัด by them ออก)"
+  },
+  {
+    "course": "TSUGE00152",
+    "section": "Unit 1 Chapter 3",
+    "question": "Are the police investigating the incident?",
+    "type": "text",
+    "wrong_answers": "Is the incident being investigated by them",
+    "hint": "ลอง Is the incident being investigated by the police? หรือตัด by ... ออก"
+  },
+  {
+    "course": "TSUGE00152",
+    "section": "Unit 2 Chapter 2",
+    "question": "We are late fo... (question tag; sentence text truncated in bank)",
+    "type": "text",
+    "wrong_answers": "We aren't",
+    "hint": "ต้องดูประโยคเต็มก่อน ถ้าเป็น We are late... tag ควรเป็น aren't we?"
+  },
+  {
+    "course": "TSUGE00152",
+    "section": "Unit 2 Chapter 3",
+    "question": "You ______ visit them.",
+    "type": "choice",
+    "wrong_answers": "can",
+    "hint": "ตัด can ออก แล้วเลือกจากตัวเลือกที่เหลือ (เช่น should/must/might)"
+  },
+  {
+    "course": "TSUGE00152",
+    "section": "Unit 3 Chapter 1.1",
+    "question": "Ann rarely eats red meat these days; just some _____ from time to time.",
+    "type": "choice",
+    "wrong_answers": "crab",
+    "hint": "ตัด crab ออก น่าจะเป็นสัตว์ปีกหรือปลาในตัวเลือก"
+  },
+  {
+    "course": "TSUGE00152",
+    "section": "Unit 3 Chapter 3",
+    "question": "I'd rather _______ here if you don't mind.",
+    "type": "text",
+    "wrong_answers": "stay",
+    "hint": "หลัง would rather ต้องเป็นกริยาช่อง 1 (ห้ามใช้ staying หรือ to stay) ดูกริยาในวงเล็บของโจทย์ หรือลองรูปปฏิเสธ not + กริยา"
+  },
+  {
+    "course": "TSUGE00152",
+    "section": "Unit 4 Chapter 1",
+    "question": "The money, $30,000 was taken from t... (match sentence to crime; sentence truncated)",
+    "type": "choice",
+    "wrong_answers": "Robbery",
+    "hint": "ตัด Robbery ออก ถ้าเอาไปจากบ้านหรืออาคารให้ตอบ Burglary ถ้าไม่ใช่ให้ตอบ Theft"
+  },
+  {
+    "course": "TSUGE00152",
+    "section": "Unit 4 Chapter 2",
+    "question": "Noun from \"produce\" (\"As a result...\")",
+    "type": "text",
+    "wrong_answers": "produceion",
+    "hint": "น่าจะเป็น production"
+  },
+  {
+    "course": "TSUGE000271",
+    "section": "แบบทดสอบ : บทที่ 2",
+    "question": "ข้อใดเป็นการใช้ประโยชน์จากโอกาสที่เกิดขึ้นของผู้ประกอบการ",
+    "type": "choice",
+    "wrong_answers": "การลดต้นทุนจากเทคโนโลยีใหม่",
+    "hint": "Submitted 'การลดต้นทุนจากเทคโนโลยีใหม่' was wrong. Options seen: การจัดรูปแบบองค์กรใหม่; ถูกทุกข้อ; การหาตลาดใหม่; การลดต้นทุนจากเทคโนโลยีใหม่; มีความคิดสร้างสรรค์. Note: a near-identical question starting with 'ข้อใดถือเป็น...' is confirmed as 'การนำเสนอสินค้าและบริการใหม่', and the Post-Test item 'ข้อใดเป็นการใช้ประโยชน์...' is confirmed as 'ถูกทุกข้อ'. Match by exact stem and by section."
+  },
+  {
+    "course": "TSUGE000271",
+    "section": "แบบทดสอบ : บทที่ 3",
+    "question": "ผู้ประกอบการในปัจจุบัน ควรมีรู้เท่าทันเรื่องใด",
+    "type": "choice",
+    "wrong_answers": "การรู้เท่าทันความต้องการของทุกคน",
+    "hint": "Submitted 'การรู้เท่าทันความต้องการของทุกคน' was wrong. In chapter 1 / Post-Test the same question accepts 'การรู้เท่าทันสื่อและข้อมูลสารสนเทศ'. Chapter 3 option wording may be 'การรู้เท่าทันสื่อและสารสนเทศ' (without the word ข้อมูล). Other options seen: ถูกทุกข้อ; การรู้เท่าทันของอุปกรณ์สื่อสาร; การรู้เท่าทันการเติบโตของประชาการ."
+  },
+  {
+    "course": "TSUGE000271",
+    "section": "แบบทดสอบ : บทที่ 4",
+    "question": "ข้อใด ถูกต้อง เกี่ยวกับองค์ประกอบนวัตกรรม",
+    "type": "choice",
+    "wrong_answers": "ถูกทุกข้อ | สิ่งใหม่ที่พัฒนาจากสิ่งที่มีอยู่แล้ว",
+    "hint": "Still unconfirmed. Remaining untried: สิ่งใหม่ที่ไม่เป็นประโยชน์เชิงเศรษฐกิจ; สิ่งใหม่ที่ถูกพัฒนาขึ้นมาโดยอาจจะเป็นสิ่งใหม่ของผลิตภัณฑ์"
+  },
+  {
+    "course": "TSUGE000271",
+    "section": "แบบทดสอบ : บทที่ 4",
+    "question": "Product innovation หมายถึง อะไร",
+    "type": "choice",
+    "wrong_answers": "การพัฒนาผลิตภัณฑ์หรือบริการใหม่ ๆ ที่ตอบสนองความต้องการของลูกค้า | การใช้กระบวนการใหม่หรือปรับปรุงกระบวนการเดิมให้มีประสิทธิภาพมากขึ้น",
+    "hint": "Still unconfirmed. Remaining untried: การใช้กลยุทธ์การตลาดใหม่หรือปรับปรุงกลยุทธ์การตลาดเดิมให้มีประสิทธิภาพมากขึ้น; การพัฒนาผลิตภัณฑ์ใหม่หรือปรับปรุงผลิตภัณฑ์เดิมให้ดีขึ้น (the latter is the more likely of the two)"
+  },
+  {
+    "course": "TSUGE000271",
+    "section": "แบบทดสอบ : บทที่ 4",
+    "question": "ข้อใด ไม่ใช่ การเปลี่ยนแปลงโดยไม่จำเป็นต้องพัฒนาเทคโนโลยีขึ้นมาใช้เอง?",
+    "type": "choice",
+    "wrong_answers": "บริการสั่งอาหารออนไลน์ | ช่องทางการจ่ายเงินออนไลน์",
+    "hint": "Still unconfirmed after 2025 and 2026_T1. Remaining untried: การสร้างสื่อออนไลน์; เพิ่มช่องทางการตลาดออนไลน์"
+  },
+  {
+    "course": "TSUGE000271",
+    "section": "แบบทดสอบ : บทที่ 5",
+    "question": "เจนกำลังสร้าง Persona หรือตัวอย่างของคนที่อาจจะเป็นลูกค้ามีทั้งอายุ เพศ และอาชีพ เจนกำลังอยู่ในขั้นตอนใดของ Design Thinking",
+    "type": "choice",
+    "wrong_answers": "Empathize เพราะเจนกำลังทำความเข้าใจลูกค้า",
+    "hint": "Wrong in the chapter 5 quiz in both 2025_T1 and 2026_T1. Try next: 'Define เพราะเจนกำลังหาว่าลูกค้ามีปัญหาอะไร'. Warning: the 2025 Post-Test marked 'Empathize เพราะเจนกำลังทำความเข้าใจลูกค้า' as correct — treat chapter quiz and post-test separately."
+  }
+]
