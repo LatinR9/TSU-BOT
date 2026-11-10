@@ -10,17 +10,38 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 
 function startCourseServer(spec) {
   const cid = `course-v1:TSU+${spec.courseCode}+2026_T1`;
-  const units = spec.units.map((u, i) => ({ ...u, idx: i, key: `block-v1:TSU+${spec.courseCode}+2026_T1+type@vertical+block@${u.id}` }));
+  const blockKey = (type, id) => `block-v1:TSU+${spec.courseCode}+2026_T1+type@${type}+block@${id}`;
+  // Subsections (sequences). Units without `seq` get a one-unit sequence of their own.
+  const sequences = [];
+  const units = spec.units.map((u, i) => {
+    const seqId = u.seq || `seq_${u.id}`;
+    let sq = sequences.find(x => x.id === seqId);
+    if (!sq) {
+      const def = (spec.sequences || []).find(x => x.id === seqId) || {};
+      sq = { id: seqId, title: def.title || u.title, chapter: def.chapter || u.section, key: blockKey('sequential', seqId), units: [] };
+      sequences.push(sq);
+    }
+    const unit = { ...u, idx: i, seqId, key: blockKey('vertical', u.id) };
+    sq.units.push(unit);
+    return unit;
+  });
+  const gradeOf = p => (p.preGraded === true ? 'correct' : p.preGraded || null);
   const state = {
     complete: Object.fromEntries(units.map(u => [u.id, !!u.complete])),
-    graded: Object.fromEntries(units.flatMap(u => (u.problems || []).map(p => [p.id, p.preGraded ? 'correct' : null]))),
+    graded: Object.fromEntries(units.flatMap(u => (u.problems || []).map(p => [p.id, gradeOf(p)]))),
+    attempts: Object.fromEntries(units.flatMap(u => (u.problems || []).map(p => [p.id, p.attemptsUsed != null ? p.attemptsUsed : (gradeOf(p) ? 1 : 0)]))),
     events: []
   };
   const ev = (type, unit, data = {}) => state.events.push({ t: Date.now(), type, unit, ...data });
-  const unitUrl = u => `/learning/course/${cid}/${u.key}`;
+  const seqOf = u => sequences.find(x => x.id === u.seqId);
+  const unitUrl = u => `/learning/course/${cid}/${seqOf(u).key}/${u.key}`;
+  const seqUrl = sq => `/learning/course/${cid}/${sq.key}`;
+  const tabs = active => `<nav class="nav nav-underline-tabs course-tabs-navigation" aria-label="Course Material">
+    ${[['Course', `/learning/course/${cid}/home`], ['Progress', `/learning/course/${cid}/progress`], ['Dates', `/learning/course/${cid}/dates`]]
+      .map(([n, h]) => `<a class="nav-item flex-shrink-0 nav-link${n === active ? ' active' : ''}" href="${h}">${n}</a>`).join('')}</nav>`;
 
   function shell(u) {
-    const navItems = units.map(x => `
+    const navItems = seqOf(u).units.map(x => `
       <li><button class="btn nav-link${x.id === u.id ? ' active' : ''}" data-unit="${x.id}" ${x.id === u.id ? 'aria-current="page"' : ''}
           aria-label="${esc(x.title)}${state.complete[x.id] ? ', Completed' : ''}">
         <span class="pgn__icon unit-icon"><svg width="16" height="16"></svg></span>
@@ -30,11 +51,12 @@ function startCourseServer(spec) {
     return `<!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><title>${esc(u.title)} | ${esc(spec.courseName)} | TSU COURSE</title></head>
 <body style="margin:0;font-family:sans-serif">
 <header style="height:60px;background:#0b6">TSU COURSE</header>
+${tabs('Course')}
 <aside class="course-outline-sidebar" style="position:fixed;right:0;top:60px;width:200px">
   <h4>Course Outline</h4><ul><li>แบบทดสอบก่อนเรียน (Pre-Test)</li>${spec.outline.map(s => `<li>${esc(s)}</li>`).join('')}</ul>
 </aside>
 <main style="margin-right:220px">
-  <nav aria-label="breadcrumb" class="breadcrumbs"><ol><li>${esc(spec.courseName)}</li><li>${esc(u.section)}</li></ol></nav>
+  <nav aria-label="breadcrumb" class="breadcrumbs"><ol><li>${esc(spec.courseName)}</li><li>${esc(u.section)}</li><li>${esc(seqOf(u).title)}</li></ol></nav>
   <div class="sequence-container">
     <nav class="sequence-navigation" aria-label="Unit navigation" style="display:flex">
       <button class="btn previous-btn" ${prev ? '' : 'disabled'} data-go="${prev ? prev.id : ''}">Previous</button>
@@ -52,6 +74,7 @@ function startCourseServer(spec) {
   let current = ${JSON.stringify(u.id)};
   const post = (o) => navigator.sendBeacon('/event', JSON.stringify(o));
   post({ type: 'enter', unit: current });
+  addEventListener('pagehide', () => post({ type: 'leave', unit: current, to: 'page' }));
   let maxScroll = innerHeight, quietUntil = 0;
   addEventListener('scroll', () => {
     if (Date.now() < quietUntil) return; // scroll clamping caused by the shell's own navigation
@@ -173,10 +196,13 @@ function startCourseServer(spec) {
 
   function problemHtml(u, p, n) {
     const graded = state.graded[p.id];
+    const maxAttempts = p.maxAttempts || 1;
+    const used = state.attempts[p.id];
+    const locked = graded && used >= maxAttempts;
     const progress = graded === 'correct' ? '1/1 point (graded)' : graded === 'incorrect' ? '0/1 point (graded)' : '1 point possible (graded)';
     const choices = p.choices.map((c, ci) => `
         <div class="field">
-          <input type="radio" name="input_${p.id}" id="input_${p.id}_choice_${ci}" class="field-input input-radio" value="choice_${ci}" ${graded && p.answer === ci ? 'checked' : ''} ${graded ? 'disabled' : ''}>
+          <input type="radio" name="input_${p.id}" id="input_${p.id}_choice_${ci}" class="field-input input-radio" value="choice_${ci}" ${graded && (graded === 'correct' ? p.answer === ci : ci !== p.answer && ci === (p.answer + 1) % p.choices.length) ? 'checked' : ''} ${locked ? 'disabled' : ''}>
           <label id="${p.id}-choice_${ci}-label" for="input_${p.id}_choice_${ci}" class="response-label field-label label-inline">${esc(c)}</label>
         </div>`).join('');
     const stem = p.stemAsParagraph
@@ -196,8 +222,8 @@ function startCourseServer(spec) {
         </div>
       </div>
       <div class="action"><div class="submit-attempt-container">
-        <button type="button" class="submit btn-brand" data-value="Submit" data-problem="${p.id}" ${graded ? 'disabled' : ''}><span class="submit-label">${spec.submitLabel || 'Submit'}</span></button>
-        ${graded ? '<div class="submission-feedback">Your answer has been received. You have used 1 of 1 attempt</div>' : ''}
+        <button type="button" class="submit btn-brand" data-value="Submit" data-problem="${p.id}" ${locked ? 'disabled' : ''}><span class="submit-label">${spec.submitLabel || 'Submit'}</span></button>
+        ${graded ? `<div class="submission-feedback">Your answer has been received. You have used ${used} of ${maxAttempts} attempt${maxAttempts > 1 ? 's' : ''}</div>` : ''}
       </div></div>
       </div>
     </div>
@@ -223,16 +249,88 @@ function startCourseServer(spec) {
 </script></body></html>`;
   }
 
+  function progressData() {
+    const done = units.filter(u => state.complete[u.id]).length;
+    const graded = sequences.filter(sq => sq.units.some(u => u.problems)).map(sq => {
+      const probs = sq.units.flatMap(u => u.problems || []);
+      return {
+        chapter: sq.chapter, title: sq.title, url: seqUrl(sq),
+        earned: probs.filter(p => state.graded[p.id] === 'correct').length, possible: probs.length,
+        problems: probs.map(p => `${state.graded[p.id] === 'correct' ? 1 : 0}/1`)
+      };
+    });
+    return { completion: Math.round((100 * done) / units.length), graded };
+  }
+
+  // Learning MFE progress tab: rendered client-side after the API call, like frontend-app-learning
+  // (CompletionDonutChart + GradeSummary + DetailedGrades tables with expandable problem scores).
+  function progressPage() {
+    return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Progress | ${esc(spec.courseName)} | TSU COURSE</title></head>
+<body style="margin:0;font-family:sans-serif">
+<header style="height:60px;background:#0b6">TSU COURSE</header>
+${tabs('Progress')}
+<main id="main-content"><div class="spinner" role="status">Loading...</div></main>
+<script>
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  setTimeout(async () => {
+    const d = await (await fetch('/progress-data')).json();
+    const chapters = [];
+    d.graded.forEach(g => { let c = chapters.find(x => x.name === g.chapter); if (!c) chapters.push(c = { name: g.chapter, rows: [] }); c.rows.push(g); });
+    document.getElementById('main-content').innerHTML = \`
+      <h1>Your progress</h1>
+      <section class="course-completion">
+        <h2>Course completion</h2>
+        <p>This represents how much of the course content you have completed. Note that some content may not yet be released.</p>
+        <div class="donut"><svg class="donut-chart" role="img" width="160" height="160" viewBox="0 0 42 42">
+          <circle class="donut-hole" cx="21" cy="21" r="15.9"></circle>
+          <g class="donut-chart-text"><text class="donut-chart-number" x="50%" y="50%">\${d.completion}<tspan>%</tspan></text>
+          <text class="donut-chart-label" x="50%" y="62%">completed</text></g></svg></div>
+      </section>
+      <section class="grade-summary"><h2>Grade summary</h2>
+        <table class="pgn__data-table"><thead><tr><th>Assignment type</th><th>Weight</th><th>Grade</th></tr></thead>
+        <tbody><tr><td>Quiz</td><td>100%</td><td>0%</td></tr></tbody></table></section>
+      <section class="detailed-grades"><h2>Detailed grades</h2>
+        \${chapters.map(c => \`<div class="pgn__data-table-wrapper detailed-grades-table"><table class="pgn__data-table" role="table">
+          <thead><tr><th>\${esc(c.name)}</th><th class="text-right">Score</th></tr></thead><tbody>
+          \${c.rows.map(r => \`<tr><td><div class="d-flex">
+              <button class="btn btn-icon toggle" aria-label="Toggle individual problem scores for \${esc(r.title)}" aria-expanded="false">&#9660;</button>
+              <a class="muted-link" href="\${r.url}">\${esc(r.title)}</a></div>
+              <div class="problem-scores" hidden>Problem Scores: \${r.problems.join(' ')}</div></td>
+            <td class="text-right">\${r.earned}/\${r.possible}</td></tr>\`).join('')}
+          </tbody></table></div>\`).join('')}
+      </section>\`;
+    document.querySelectorAll('button.toggle').forEach(b => b.onclick = () => {
+      const body = b.closest('td').querySelector('.problem-scores');
+      body.hidden = !body.hidden; b.setAttribute('aria-expanded', String(!body.hidden));
+    });
+    document.querySelectorAll('.detailed-grades a').forEach(a => a.addEventListener('click', () =>
+      navigator.sendBeacon('/event', JSON.stringify({ type: 'progress-link', title: a.textContent }))));
+  }, 700);
+</script></body></html>`;
+  }
+
   const server = http.createServer((req, res) => {
     const url = decodeURIComponent(req.url.split('?')[0]);
     const send = (code, body, type = 'text/html; charset=utf-8') => { res.writeHead(code, { 'Content-Type': type }); res.end(body); };
     let m;
     if (url === `/learning/course/${cid}/home`) {
       return send(200, `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(spec.courseName)} | Home</title></head><body>
-        <h1>${esc(spec.courseName)}</h1><a class="btn btn-primary" href="${unitUrl(units[0])}">Resume course</a>
+        ${tabs('Course')}<h1>${esc(spec.courseName)}</h1><a class="btn btn-primary" href="${unitUrl(units[0])}">Resume course</a>
         <ol class="outline-sections">${units.map(x => `<li><a href="${unitUrl(x)}">${esc(x.title)}</a></li>`).join('')}</ol></body></html>`);
     }
-    if ((m = url.match(/^\/learning\/course\/[^/]+\/(block-v1:.+)$/))) {
+    if (url === `/learning/course/${cid}/progress`) {
+      ev('progress-view');
+      return send(200, progressPage());
+    }
+    if (url === '/progress-data') return send(200, JSON.stringify(progressData()), 'application/json');
+    if ((m = url.match(/^\/learning\/course\/[^/]+\/(block-v1:[^/]+type@sequential[^/]+)$/))) {
+      const sq = sequences.find(x => x.key === m[1]);
+      if (!sq) return send(404, 'no sequence');
+      ev('sequence-open', sq.units[0].id, { seq: sq.id });
+      res.writeHead(302, { Location: unitUrl(sq.units[0]) });
+      return res.end();
+    }
+    if ((m = url.match(/^\/learning\/course\/[^/]+\/block-v1:[^/]+type@sequential[^/]+\/(block-v1:.+)$/))) {
       const u = units.find(x => x.key === m[1]);
       return u ? send(200, shell(u)) : send(404, 'no unit');
     }
@@ -256,8 +354,9 @@ function startCourseServer(spec) {
       const p = u.problems.find(x => x.id === m[2]);
       const correct = m[3] === `choice_${p.answer}`;
       state.graded[p.id] = correct ? 'correct' : 'incorrect';
+      state.attempts[p.id]++;
       ev('submit', u.id, { problem: p.id, choice: m[3], correct });
-      const unitComplete = u.problems.every(x => state.graded[x.id] === 'correct');
+      const unitComplete = u.problems.every(x => state.graded[x.id]);
       if (unitComplete) { state.complete[u.id] = true; ev('complete', u.id); }
       return send(200, JSON.stringify({ correct, unitComplete }), 'application/json');
     }
@@ -284,7 +383,7 @@ function startCourseServer(spec) {
 
   return new Promise(resolve => server.listen(0, '127.0.0.1', () => {
     const base = `http://127.0.0.1:${server.address().port}`;
-    resolve({ base, homeUrl: `${base}/learning/course/${cid}/home`, units, state, close: () => new Promise(r => server.close(r)) });
+    resolve({ base, homeUrl: `${base}/learning/course/${cid}/home`, progressUrl: `${base}/learning/course/${cid}/progress`, units, sequences, state, progressData, close: () => new Promise(r => server.close(r)) });
   }));
 }
 

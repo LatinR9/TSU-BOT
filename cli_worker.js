@@ -16,7 +16,7 @@ function getArg(name, defaultVal = '') {
   return defaultVal;
 }
 
-const action = getArg('action', 'run'); // login | run | list_courses
+const action = getArg('action', 'run'); // login | run | progress | list_courses
 const courseCode = getArg('course', '');
 const speed = getArg('speed', 'normal');
 const url = getArg('url', '');
@@ -65,10 +65,15 @@ async function main() {
     process.exit(0);
   }
 
-  if (action === 'run') {
+  if (action === 'run' || action === 'progress') {
     activeWorker = new AutomationWorker(
       workerId,
-      { courseCode, targetUrl: url, speedMode: speed, modes },
+      {
+        courseCode, targetUrl: url, speedMode: speed, modes,
+        progressOnly: action === 'progress',
+        // Machine-readable Progress page summary; the desktop app only displays [LOG] lines.
+        onProgress: (summary) => console.log(`[PROGRESS] ${JSON.stringify(summary)}`)
+      },
       (id, text, level) => {
         console.log(`[LOG] ${text}`);
       },
