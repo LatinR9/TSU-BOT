@@ -163,49 +163,73 @@ class AutomationWorker {
   async processCurrentUnit() {
     if (!this.page || this.page.isClosed()) return;
 
-    // Check if video element is present
-    const hasVideo = await this.page.evaluate(() => {
-      const v = document.querySelector('video');
-      return !!v;
-    }).catch(() => false);
+    // Wait for dynamic edX content and iframes to render
+    await this.sleep(2500);
 
-    if (hasVideo) {
-      await this.handleVideo();
+    const allFrames = [this.page.mainFrame(), ...this.page.frames()];
+
+    // 1. Check if video element is present across any frame
+    let videoFrame = null;
+    for (const f of allFrames) {
+      try {
+        const hasV = await f.evaluate(() => {
+          return !!document.querySelector('video, .video-player, div[data-component-type="video"], iframe[src*="youtube"], .video');
+        }).catch(() => false);
+        if (hasV) {
+          videoFrame = f;
+          break;
+        }
+      } catch (e) {}
+    }
+
+    if (videoFrame) {
+      await this.handleVideo(videoFrame);
       return;
     }
 
-    // Check if quiz/problem block is present
-    const hasQuiz = await this.page.evaluate(() => {
-      return !!document.querySelector('.problem, .xblock-student_view[data-block-type="problem"], .que, button.submit');
-    }).catch(() => false);
+    // 2. Check if quiz/problem block is present across any frame
+    let quizFrame = null;
+    for (const f of allFrames) {
+      try {
+        const hasQ = await f.evaluate(() => {
+          return !!document.querySelector('.problem, .xblock-student_view[data-block-type="problem"], div[data-block-type="problem"], form.problem-form, .capa_inputtype, .que');
+        }).catch(() => false);
+        if (hasQ) {
+          quizFrame = f;
+          break;
+        }
+      } catch (e) {}
+    }
 
-    if (hasQuiz) {
-      await this.handleQuiz();
+    if (quizFrame) {
+      await this.handleQuiz(quizFrame);
       return;
     }
 
-    // Otherwise handle as document / slide reading unit
-    await this.handleDocument();
+    // 3. Otherwise handle as document / slide reading unit
+    await this.handleDocument(this.page.mainFrame());
   }
 
-  async handleVideo() {
+  async handleVideo(frame) {
     this.setStatus('running', 'Watching Video');
     this.log(`🎬 Video detected. Starting playback...`);
 
     // Unmute & play
-    await this.page.evaluate(() => {
+    await frame.evaluate(() => {
       const v = document.querySelector('video');
       if (v) {
         v.muted = true;
         v.play().catch(() => {});
       }
+      const playBtn = document.querySelector('.btn-play, .play-btn, button[aria-label="Play"], .video-control.play-pause');
+      if (playBtn) playBtn.click();
     }).catch(() => {});
 
     // Wait until play begins (currentTime > 0)
     let started = false;
     for (let i = 0; i < 15; i++) {
       if (this.shouldStop) return;
-      const cur = await this.page.evaluate(() => {
+      const cur = await frame.evaluate(() => {
         const v = document.querySelector('video');
         return v ? v.currentTime : 0;
       }).catch(() => 0);
@@ -217,9 +241,9 @@ class AutomationWorker {
       await this.sleep(1000);
     }
 
-    // Fast-forward to last N seconds per specification
+    // Fast-forward to last N seconds per specification (10 seconds before end)
     const margin = this.delays.videoSeekMargin;
-    const durInfo = await this.page.evaluate((m) => {
+    const durInfo = await frame.evaluate((m) => {
       const v = document.querySelector('video');
       if (!v) return null;
       const dur = v.duration || 0;
@@ -230,10 +254,10 @@ class AutomationWorker {
     }, margin).catch(() => null);
 
     this.log(`⏩ Video seeked to ${Math.round(durInfo?.current || 0)}s / ${Math.round(durInfo?.duration || 0)}s`);
-    await this.sleep(2500);
+    await this.sleep(4000);
   }
 
-  async handleDocument() {
+  async handleDocument(frame) {
     this.setStatus('running', 'Reading Document');
     this.log(`📄 Document/Reading material detected. Simulating read...`);
 
@@ -251,7 +275,7 @@ class AutomationWorker {
     this.log(`✅ Document reading requirement fulfilled.`);
   }
 
-  async handleQuiz() {
+  async handleQuiz(frame) {
     this.setStatus('running', 'Solving Quiz');
     this.log(`📝 Quiz detected. Analyzing questions...`);
 
@@ -259,14 +283,20 @@ class AutomationWorker {
     const isPretest = pageUrl.includes('pre-test') || pageUrl.includes('pretest') ||
                       (await this.page.content().catch(() => '')).includes('ก่อนเรียน');
 
-    // Extract questions and choices
-    const questions = await this.page.$$('.problem, .xblock-student_view[data-block-type="problem"], .que');
+    // Extract questions across frame or main page
+    let questions = await frame.$$('.problem, .xblock-student_view[data-block-type="problem"], div[data-block-type="problem"], .capa_inputtype, .que');
+    if (questions.length === 0) {
+      questions = await this.page.$$('.problem, .xblock-student_view[data-block-type="problem"], div[data-block-type="problem"], .capa_inputtype, .que');
+    }
+
+    this.log(`📝 Found ${questions.length} questions in this quiz.`);
 
     for (const qEl of questions) {
       if (this.shouldStop) return;
       try {
-        const qText = await qEl.$eval('legend, .question-title, p, h3', el => el.innerText.trim()).catch(() => '');
-        const choiceLabels = await qEl.$$('label, .choice, input[type="radio"], input[type="checkbox"]');
+        const qText = await qEl.$eval('legend, .question-title, .problem-header, p, h3, .qtext', el => el.innerText.trim()).catch(() => '');
+        const choiceLabels = await qEl.$$('label, .choice, input[type="radio"], input[type="checkbox"], fieldset div');
+        const textInput = await qEl.$('input.input[type="text"], input[type="text"]');
 
         if (isPretest) {
           // Pretest policy: Random answer
@@ -278,22 +308,33 @@ class AutomationWorker {
         } else {
           // Post-test or Chapter Quiz: Lookup in database
           const ansData = dbManager.findAnswer(this.courseCode, qText);
-          let matched = false;
+          let answered = false;
 
           if (ansData && ansData.status === 'confirmed' && ansData.correct_answer) {
             const targetAns = ansData.correct_answer.trim();
-            for (const ch of choiceLabels) {
-              const labelText = await ch.innerText().catch(() => '');
-              if (labelText.includes(targetAns) || targetAns.includes(labelText)) {
-                await ch.click().catch(() => {});
-                matched = true;
-                this.log(`🎯 Match found: "${targetAns}" (Score: ${Math.round(ansData.score * 100)}%)`);
-                break;
+
+            // Case 1: Multiple choice
+            if (choiceLabels.length > 0) {
+              for (const ch of choiceLabels) {
+                const labelText = await ch.innerText().catch(() => '');
+                if (labelText.includes(targetAns) || targetAns.includes(labelText)) {
+                  await ch.click().catch(() => {});
+                  answered = true;
+                  this.log(`🎯 Match found: "${targetAns}" (Score: ${Math.round(ansData.score * 100)}%)`);
+                  break;
+                }
               }
+            }
+
+            // Case 2: Text input
+            if (!answered && textInput) {
+              await textInput.fill(targetAns).catch(() => {});
+              answered = true;
+              this.log(`🎯 Filled text answer: "${targetAns}"`);
             }
           }
 
-          if (!matched && choiceLabels.length > 0) {
+          if (!answered && choiceLabels.length > 0) {
             // Unconfirmed or unknown: Pick choice not in known_wrong_answers
             const wrongList = ansData?.known_wrong_answers || [];
             let picked = false;
@@ -313,12 +354,14 @@ class AutomationWorker {
       }
     }
 
-    // Submit attempt if button exists
-    const submitBtn = await this.page.$('button.submit, button:has-text("Submit"), button:has-text("ส่ง")');
+    // Submit attempt: search both frame and page
+    const submitBtn = (await frame.$('button.submit, button[data-value="Submit"], button:has-text("Submit"), button:has-text("ส่ง"), button:has-text("ตรวจคำตอบ")'))
+                   || (await this.page.$('button.submit, button[data-value="Submit"], button:has-text("Submit"), button:has-text("ส่ง"), button:has-text("ตรวจคำตอบ")'));
+
     if (submitBtn) {
       await submitBtn.click().catch(() => {});
       this.log(`📤 Quiz answers submitted.`);
-      await this.sleep(2000);
+      await this.sleep(3000);
     }
   }
 
