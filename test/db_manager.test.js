@@ -61,11 +61,22 @@ test('inferred entries are answered and flagged; a known-wrong option is never p
   assert.strictEqual(meat.inferred, true);
   const visit = db.decideResponse({ courseCode: tsu, section: 'Unit 2 Chapter 3', choices: ['can', "don't have to", 'should', 'must'], texts: ['You ______ visit them.'] });
   assert.strictEqual(visit.choiceText, 'should');
+});
+
+test('user-supplied and newly confirmed answers are picked from the live options', () => {
+  const tsu = 'TSUGE00152';
   const produce = db.decideResponse({ courseCode: tsu, section: 'Unit 4 Chapter 2', choices: ['producter', 'producement', 'produceion', 'refused'],
-    texts: ['6. Which noun formed from the verb produce, can be used to fill in the blank? “As a result, the ____ of rice fell.”'] });
-  assert.strictEqual(produce.action, 'skip');
-  const rather = db.decideResponse({ courseCode: tsu, section: 'Unit 3 Chapter 3', choices: ['staying', 'to stay', 'stay'], texts: ["I'd rather _______ here if you don't mind."] });
-  assert.strictEqual(rather.action, 'skip', 'only the graded-wrong "stay" would remain');
+    texts: ['6. Which noun formed from the verb produce, can be used to fill in the blank? “As a result, the cotton ____ went up.”'] });
+  assert.strictEqual(produce.choiceText, 'refused');
+  const p = db.decideProblem({ courseCode: tsu, section: 'Unit 4 Chapter 2', slots: [{ kind: 'choice', choices: ['producter', 'producement', 'produceion', 'refused'] }],
+    texts: ['6. Which noun formed from the verb produce, can be used to fill in the blank? “As a result, the cotton ____ went up.”'] });
+  assert.deepStrictEqual([p.action, p.userSupplied, p.inferred, p.match.status], ['fill', true, false, 'user_supplied']);
+  for (const section of ['Unit 3 Chapter 3', '']) {
+    const rather = db.decideResponse({ courseCode: tsu, section, choices: ['staying', 'to stay', 'stay'], texts: ["I'd rather _______ here if you don't mind."] });
+    assert.strictEqual(rather.choiceText, 'to stay', section);
+  }
+  const r = db.decideProblem({ courseCode: tsu, section: 'Unit 3 Chapter 3', slots: [{ kind: 'choice', choices: ['staying', 'to stay', 'stay'] }], texts: ["9. I'd rather _______ here if you don't mind."] });
+  assert.strictEqual(r.match.status, 'confirmed');
 });
 
 test('block titles and short generic text never fuzzy-match a bank entry', () => {

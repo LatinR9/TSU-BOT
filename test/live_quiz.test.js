@@ -64,15 +64,34 @@ test('U4C4 Part 1 (1)/(2) dropdowns and Part 2 text blanks, repeated prompt by b
   want.forEach((w, i) => assert.deepStrictEqual(got[`b${i + 1}`], w.map(curly), `block ${i + 1}${r.msg}`));
 });
 
-test('U4C2 Multiple Choice: real prompt matched; Q6 without a real noun is logged, not guessed', async () => {
+test('U4C2 Multiple Choice: real prompt matched; Q6 answered with the user-supplied "refused", tagged unconfirmed', async () => {
   const r = await runQuiz(fixture('live_u4c2_nouns_from_verbs.html'));
   const got = byBlock(r.submits);
-  assert.strictEqual(got.b6, undefined, `Q6 must not be submitted${r.msg}`);
-  assert.strictEqual(Object.keys(got).length, 14, r.msg);
-  assert.ok(r.logs.some(l => l.includes('[no match] ข้อ 6')), r.msg);
-  assert.ok(r.logs.some(l => l.includes('"production" [inferred]')), `log names the inferred answer missing from options${r.msg}`);
-  assert.ok(r.logs.some(l => l.includes('ยังค้าง 1 ข้อ')), `leftover listed${r.msg}`);
-  assert.strictEqual(r.worker.leftovers.size, 1, r.msg);
+  assert.strictEqual(Object.keys(got).length, 15, r.msg);
+  assert.deepStrictEqual(got.b6, ['choice_3'], `Q6 submits "refused"${r.msg}`);
+  assert.ok(r.logs.some(l => l.includes('ข้อ 6:') && l.includes('เลือก "refused"') && l.includes('[user-supplied')), r.msg);
+  assert.ok(!r.logs.some(l => l.includes('[no match]')), r.msg);
+  assert.strictEqual(r.worker.leftovers.size, 0, r.msg);
+});
+
+test('U3C3 radio: Q9 "I\'d rather ___ here" picks the confirmed "to stay"', async () => {
+  const page = await browser.newPage();
+  await page.setContent(fixture('live_u3c3_gerund_infinitive.html'));
+  const logs = [];
+  const worker = new AutomationWorker('T', { courseCode: 'TSUGE00152', speedMode: 'turbo' }, (id, msg) => logs.push(msg));
+  worker.page = page;
+  worker.delays = { ...worker.delays, clickDelay: 0, randomJitter: 0 };
+  await worker.handleQuiz(page.mainFrame());
+  const picked = await page.$$eval('.problems-wrapper', ws => ws.map(w => {
+    const c = w.querySelector('input[type="radio"]:checked');
+    return c ? w.querySelector(`label[for="${c.id}"]`).textContent.trim() : null;
+  }));
+  const submits = await page.evaluate(() => window.__submits);
+  await page.close();
+  const msg = `\n--- worker log ---\n${logs.join('\n')}`;
+  assert.deepStrictEqual(picked, ['seeing', 'to stay', 'to be'], msg);
+  assert.strictEqual(submits.length, 3, msg);
+  assert.ok(!logs.some(l => l.includes('[no match]')), msg);
 });
 
 test('U4C2 picks the user answers per block (radio)', async () => {
@@ -88,7 +107,7 @@ test('U4C2 picks the user answers per block (radio)', async () => {
   }));
   await page.close();
   assert.deepStrictEqual(picked.slice(0, 10),
-    ['intention', 'delivery', 'omission', 'liar', 'refusal', null, 'appointment', 'decision', 'choice', 'dismissal']);
+    ['intention', 'delivery', 'omission', 'liar', 'refusal', 'refused', 'appointment', 'decision', 'choice', 'dismissal']);
   assert.deepStrictEqual(picked.slice(10), ['Monkeys peel bananas very easily.',
     'The maid had to vacuum the house twice to clean the house thoroughly.', 'I will present her with a board game on her birthday.',
     'The biological park was close to the venue.', 'The thief wanted to steal the plant.']);

@@ -160,7 +160,7 @@ const u4c4 = [
   { title: 'problem', paras: ['21. We would be able to swim better if we __________ swimming more often.'], inputs: [{ text: true }] }
 ];
 
-// Unit 4 Chapter 2: Multiple Choice blocks; Q6 has the live options with no real noun of "produce".
+// Unit 4 Chapter 2: Multiple Choice blocks; Q6 has the live options with no real noun of "produce" (user picked "refused").
 const mc = (title, paras, choices) => ({ title, points: 1, attempts: 3, paras, inputs: [{ radio: choices }] });
 const noun = (n, verb, sentence, choices, title = 'problem') =>
   mc(title, ['<b style="color:#1f5fa8">Part 1 : Choose the best answer.</b>', `<b>${n}. Which noun formed from the verb ${verb}, can be used to fill in the blank? “${sentence}”</b>`], choices);
@@ -170,7 +170,7 @@ const u4c2 = [
   noun(3, 'omit', 'The ____ of his name was a mistake.', ['omitting', 'omitance', 'omission', 'omited']),
   noun(4, 'lie', 'Tom is a consistent ____.', ['liar', 'lier', 'lying', 'lies']),
   noun(5, 'refuse', 'His ____ to help surprised us.', ['refusing', 'refusement', 'refused', 'refusal']),
-  noun(6, 'produce', 'As a result, the ____ of rice fell.', ['producter', 'producement', 'produceion', 'refused']),
+  noun(6, 'produce', 'As a result, the cotton ____ went up.', ['producter', 'producement', 'produceion', 'refused']),
   noun(7, 'appoint', 'I have an ____ with the dentist.', ['appointment', 'appointion', 'appointance', 'appointed']),
   noun(8, 'decide', 'It was a difficult ____.', ['decidement', 'decision', 'deciding', 'decidance']),
   noun(9, 'choose', 'You have no ____.', ['chose', 'chosen', 'choice', 'choosing']),
@@ -196,6 +196,13 @@ const u5c4Items = ['Christ need to be at ____ hospital for her check-up.', 'Blas
   '____ Chinese practise tai chi.', 'Sadly, Martin doesn\'t go to ____ church.', 'Suzanne works at ____ university near here.'];
 const u5c4 = u5c4Items.map((s, i) => ({ title: 'problem', points: 1, paras: [...(i === 0 ? ['Directions: Fill the gap with \'the\' or no article \'-\'.'] : []), `${i + 1}. ${s}`], inputs: [{ text: true }] }));
 
+// Unit 3 Chapter 3: gerund / infinitive radio blocks around Q9 (live options staying / to stay / stay).
+const u3c3 = [
+  mc('Multiple Choice', ['8. We are looking forward _______ you.'], ['to see', 'seeing', 'see']),
+  mc('problem', ["9. I'd rather _______ here if you don't mind."], ['staying', 'to stay', 'stay']),
+  mc('problem', ['10. She pretended _______ interested.'], ['being', 'to be', 'be'])
+];
+
 // Unit 2 Chapter 2: question tags typed into text boxes.
 const u2c2Items = ['Anna is from Mexico, ______?', 'We are late for the meeting, ______?', 'James isn\'t a doctor, ______?', 'I was wrong about that, ______?',
   'Andrew was pretty angry, ______?', 'You have done your homework, ______?', 'You would never tell anyone, ______?', 'You like chocolate, ______?',
@@ -212,7 +219,8 @@ const out = {
   'live_u4c2_nouns_from_verbs.html': page('Quiz : Unit 4 : Chapter 2', u4c2),
   'live_u5c3_a_an.html': page('Quiz : Unit 5 : Chapter 3', u5c3),
   'live_u5c4_articles.html': page('Quiz : Unit 5 : Chapter 4', u5c4),
-  'live_u2c2_question_tags.html': page('Quiz : Unit 2 : Chapter 2', u2c2)
+  'live_u2c2_question_tags.html': page('Quiz : Unit 2 : Chapter 2', u2c2),
+  'live_u3c3_gerund_infinitive.html': page('Quiz : Unit 3 : Chapter 3', u3c3)
 };
 if (require.main === module) {
   for (const [name, html] of Object.entries(out)) fs.writeFileSync(path.join(__dirname, name), html);
