@@ -12,6 +12,19 @@ using System.Windows.Forms;
 
 namespace TSUBotDesktop
 {
+    public class CourseItem
+    {
+        public string Code { get; set; }
+        public string Name { get; set; }
+        public string Url { get; set; }
+        public string Org { get; set; }
+
+        public override string ToString()
+        {
+            return string.Format("{0} - {1}", Code, Name);
+        }
+    }
+
     public class MainForm : Form
     {
         private ComboBox comboCourse;
@@ -27,14 +40,16 @@ namespace TSUBotDesktop
         private Button btnPauseWorker;
         private Button btnStop;
         private Button btnAddCourse;
+        private Button btnSettings;
         private Button btnCheckUpdate;
 
+        private List<CourseItem> courses = new List<CourseItem>();
         private Dictionary<string, Process> runningWorkers = new Dictionary<string, Process>();
         private Dictionary<string, bool> workerPausedStates = new Dictionary<string, bool>();
         private int workerCounter = 1;
         private string appDir;
         private string nodePath;
-        private const string APP_VERSION = "1.0.2";
+        private const string APP_VERSION = "1.0.3";
         private const string GITHUB_REPO = "LatinR9/TSU-BOT";
 
         [STAThread]
@@ -129,14 +144,19 @@ namespace TSUBotDesktop
             };
 
             // Login Button
-            btnLogin = CreateButton("🔐 เปิด Chrome เข้าสู่ระบบ (Manual Login)", Color.FromArgb(16, 185, 129), 290, 36);
+            btnLogin = CreateButton("🔐 เปิด Chrome เข้าสู่ระบบ (Manual Login)", Color.FromArgb(16, 185, 129), 270, 36);
             btnLogin.Location = new Point(20, 15);
             btnLogin.Click += BtnLogin_Click;
             pnlControls.Controls.Add(btnLogin);
 
-            btnAddCourse = CreateButton("➕ เพิ่มวิชาใหม่", Color.FromArgb(99, 102, 241), 140, 36);
-            btnAddCourse.Location = new Point(320, 15);
-            btnAddCourse.Click += BtnAddCourse_Click;
+            btnSettings = CreateButton("⚙️ ตั้งค่ารายวิชา & ลิงก์ URL (Settings)", Color.FromArgb(99, 102, 241), 250, 36);
+            btnSettings.Location = new Point(300, 15);
+            btnSettings.Click += BtnSettings_Click;
+            pnlControls.Controls.Add(btnSettings);
+
+            btnAddCourse = CreateButton("➕ เพิ่มวิชาด่วน", Color.FromArgb(59, 130, 246), 130, 36);
+            btnAddCourse.Location = new Point(560, 15);
+            btnAddCourse.Click += BtnSettings_Click;
             pnlControls.Controls.Add(btnAddCourse);
 
             // Course Selector
@@ -150,6 +170,14 @@ namespace TSUBotDesktop
                 DropDownStyle = ComboBoxStyle.DropDownList,
                 BackColor = Color.FromArgb(15, 23, 42),
                 ForeColor = Color.White
+            };
+            comboCourse.SelectedIndexChanged += (s, ev) =>
+            {
+                CourseItem ci = comboCourse.SelectedItem as CourseItem;
+                if (ci != null && !string.IsNullOrEmpty(ci.Url))
+                {
+                    txtUrl.Text = ci.Url;
+                }
             };
             pnlControls.Controls.Add(comboCourse);
 
@@ -302,7 +330,9 @@ namespace TSUBotDesktop
 
         private void LoadCourses()
         {
+            courses.Clear();
             comboCourse.Items.Clear();
+
             string mainDb = Path.Combine(appDir, "tsu_answers.json");
             string customDb = Path.Combine(appDir, "custom_courses.json");
 
@@ -314,7 +344,25 @@ namespace TSUBotDesktop
                     var matches = Regex.Matches(json, "\"course_code\"\\s*:\\s*\"([^\"]+)\"\\s*,\\s*\"course_name\"\\s*:\\s*\"([^\"]+)\"");
                     foreach (Match m in matches)
                     {
-                        comboCourse.Items.Add(string.Format("{0} - {1}", m.Groups[1].Value, m.Groups[2].Value));
+                        string code = m.Groups[1].Value;
+                        string name = m.Groups[2].Value;
+                        string url = "";
+
+                        int cIdx = m.Index;
+                        int nextCIdx = json.IndexOf("\"course_code\"", cIdx + 20);
+                        string block = nextCIdx > cIdx ? json.Substring(cIdx, nextCIdx - cIdx) : json.Substring(cIdx);
+                        Match mUrl = Regex.Match(block, "\"course_id_url_if_known\"\\s*:\\s*\"([^\"]+)\"");
+                        if (mUrl.Success) url = mUrl.Groups[1].Value;
+
+                        bool exists = false;
+                        foreach (var c in courses)
+                        {
+                            if (c.Code.Equals(code, StringComparison.OrdinalIgnoreCase)) { exists = true; break; }
+                        }
+                        if (!exists)
+                        {
+                            courses.Add(new CourseItem { Code = code, Name = name, Url = url });
+                        }
                     }
                 }
                 catch { }
@@ -328,14 +376,50 @@ namespace TSUBotDesktop
                     var matches = Regex.Matches(json, "\"course_code\"\\s*:\\s*\"([^\"]+)\"\\s*,\\s*\"course_name\"\\s*:\\s*\"([^\"]+)\"");
                     foreach (Match m in matches)
                     {
-                        comboCourse.Items.Add(string.Format("{0} - {1}", m.Groups[1].Value, m.Groups[2].Value));
+                        string code = m.Groups[1].Value;
+                        string name = m.Groups[2].Value;
+                        string url = "";
+
+                        int cIdx = m.Index;
+                        int nextCIdx = json.IndexOf("\"course_code\"", cIdx + 20);
+                        string block = nextCIdx > cIdx ? json.Substring(cIdx, nextCIdx - cIdx) : json.Substring(cIdx);
+                        Match mUrl = Regex.Match(block, "\"(?:course_id_url_if_known|url)\"\\s*:\\s*\"([^\"]+)\"");
+                        if (mUrl.Success) url = mUrl.Groups[1].Value;
+
+                        CourseItem existing = null;
+                        foreach (var c in courses)
+                        {
+                            if (c.Code.Equals(code, StringComparison.OrdinalIgnoreCase)) { existing = c; break; }
+                        }
+
+                        if (existing != null)
+                        {
+                            existing.Name = name;
+                            if (!string.IsNullOrEmpty(url)) existing.Url = url;
+                        }
+                        else
+                        {
+                            courses.Add(new CourseItem { Code = code, Name = name, Url = url });
+                        }
                     }
                 }
                 catch { }
             }
 
+            foreach (var c in courses)
+            {
+                comboCourse.Items.Add(c);
+            }
+
             if (comboCourse.Items.Count > 0)
+            {
                 comboCourse.SelectedIndex = 0;
+                CourseItem ci = comboCourse.SelectedItem as CourseItem;
+                if (ci != null && !string.IsNullOrEmpty(ci.Url))
+                {
+                    txtUrl.Text = ci.Url;
+                }
+            }
         }
 
         private void EnsureDependencies()
@@ -416,10 +500,17 @@ namespace TSUBotDesktop
 
         private void BtnStart_Click(object sender, EventArgs e)
         {
-            string selected = comboCourse.SelectedItem != null ? comboCourse.SelectedItem.ToString() : "";
-            string courseCode = selected.Contains(" - ") ? selected.Split(new string[] { " - " }, StringSplitOptions.None)[0] : "";
+            CourseItem ci = comboCourse.SelectedItem as CourseItem;
+            string courseCode = ci != null ? ci.Code : (comboCourse.SelectedItem != null ? comboCourse.SelectedItem.ToString() : "");
+            if (courseCode.Contains(" - ")) courseCode = courseCode.Split(new string[] { " - " }, StringSplitOptions.None)[0];
+
             string speed = comboSpeed.SelectedItem.ToString().Split(' ')[0];
             string customUrl = txtUrl.Text.Trim();
+            if (string.IsNullOrEmpty(customUrl) && ci != null && !string.IsNullOrEmpty(ci.Url))
+            {
+                customUrl = ci.Url;
+            }
+
             string workerId = "Worker-" + (workerCounter++);
 
             AppendLog(string.Format("🚀 เริ่มต้น {0} | วิชา: {1} | โหมด: {2}", workerId, courseCode, speed), Color.FromArgb(96, 165, 250));
@@ -681,42 +772,210 @@ namespace TSUBotDesktop
             }
         }
 
-        private void BtnAddCourse_Click(object sender, EventArgs e)
+        private void BtnSettings_Click(object sender, EventArgs e)
         {
             Form dlg = new Form
             {
-                Text = "เพิ่มวิชาใหม่",
-                Size = new Size(420, 260),
+                Text = "⚙️ ตั้งค่ารายวิชาและลิงก์ URL (Course Settings)",
+                Size = new Size(820, 560),
                 StartPosition = FormStartPosition.CenterParent,
-                BackColor = Color.FromArgb(30, 41, 59),
+                BackColor = Color.FromArgb(15, 23, 42),
                 ForeColor = Color.White,
                 FormBorderStyle = FormBorderStyle.FixedDialog,
                 MaximizeBox = false,
-                MinimizeBox = false
+                MinimizeBox = false,
+                Font = new Font("Segoe UI", 9.5f)
             };
 
-            Label l1 = new Label { Text = "รหัสวิชา (เช่น TSUGE99999):", Location = new Point(20, 20), AutoSize = true };
-            TextBox t1 = new TextBox { Location = new Point(20, 45), Width = 360, BackColor = Color.FromArgb(15, 23, 42), ForeColor = Color.White };
+            Label lblH = new Label
+            {
+                Text = "⚙️ ตั้งค่ารายวิชา (กำหนดชื่อวิชา และแนบลิงก์ URL ให้ตรงกับวิชานั้น)",
+                Font = new Font("Segoe UI", 12f, FontStyle.Bold),
+                ForeColor = Color.FromArgb(96, 165, 250),
+                Location = new Point(20, 15),
+                AutoSize = true
+            };
+            dlg.Controls.Add(lblH);
 
-            Label l2 = new Label { Text = "ชื่อวิชา:", Location = new Point(20, 80), AutoSize = true };
-            TextBox t2 = new TextBox { Location = new Point(20, 105), Width = 360, BackColor = Color.FromArgb(15, 23, 42), ForeColor = Color.White };
+            ListView lv = new ListView
+            {
+                Location = new Point(20, 55),
+                Size = new Size(765, 220),
+                View = View.Details,
+                FullRowSelect = true,
+                BackColor = Color.FromArgb(30, 41, 59),
+                ForeColor = Color.White,
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            lv.Columns.Add("รหัสวิชา (Code)", 130);
+            lv.Columns.Add("ชื่อวิชา (Course Name)", 260);
+            lv.Columns.Add("ลิงก์ URL ประจำวิชา (Default URL)", 360);
+            dlg.Controls.Add(lv);
 
-            Button btnSave = CreateButton("💾 บันทึก", Color.FromArgb(16, 185, 129), 100, 32);
-            btnSave.Location = new Point(280, 160);
+            Action populateList = () =>
+            {
+                lv.Items.Clear();
+                foreach (var c in courses)
+                {
+                    ListViewItem it = new ListViewItem(c.Code);
+                    it.SubItems.Add(c.Name);
+                    it.SubItems.Add(c.Url ?? "");
+                    it.Tag = c;
+                    lv.Items.Add(it);
+                }
+            };
+            populateList();
+
+            Label l1 = new Label { Text = "รหัสวิชา (Course Code):", Location = new Point(20, 290), AutoSize = true, ForeColor = Color.FromArgb(203, 213, 225) };
+            TextBox tCode = new TextBox { Location = new Point(20, 315), Width = 180, BackColor = Color.FromArgb(30, 41, 59), ForeColor = Color.White };
+            dlg.Controls.Add(l1); dlg.Controls.Add(tCode);
+
+            Label l2 = new Label { Text = "ชื่อวิชา (Course Name):", Location = new Point(220, 290), AutoSize = true, ForeColor = Color.FromArgb(203, 213, 225) };
+            TextBox tName = new TextBox { Location = new Point(220, 315), Width = 565, BackColor = Color.FromArgb(30, 41, 59), ForeColor = Color.White };
+            dlg.Controls.Add(l2); dlg.Controls.Add(tName);
+
+            Label l3 = new Label { Text = "ลิงก์ URL ประจำวิชา (เช่น https://apps.course.tsu.ac.th/learning/course/.../home):", Location = new Point(20, 355), AutoSize = true, ForeColor = Color.FromArgb(203, 213, 225) };
+            TextBox tUrl = new TextBox { Location = new Point(20, 380), Width = 765, BackColor = Color.FromArgb(30, 41, 59), ForeColor = Color.White };
+            dlg.Controls.Add(l3); dlg.Controls.Add(tUrl);
+
+            lv.SelectedIndexChanged += (s, ev) =>
+            {
+                if (lv.SelectedItems.Count > 0)
+                {
+                    CourseItem ci = lv.SelectedItems[0].Tag as CourseItem;
+                    if (ci != null)
+                    {
+                        tCode.Text = ci.Code;
+                        tName.Text = ci.Name;
+                        tUrl.Text = ci.Url ?? "";
+                    }
+                }
+            };
+
+            Action saveAllToDisk = () =>
+            {
+                string customDb = Path.Combine(appDir, "custom_courses.json");
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine("[");
+                for (int i = 0; i < courses.Count; i++)
+                {
+                    var c = courses[i];
+                    sb.AppendLine("  {");
+                    sb.AppendLine(string.Format("    \"course_code\": \"{0}\",", c.Code));
+                    sb.AppendLine(string.Format("    \"course_name\": \"{0}\",", c.Name));
+                    sb.AppendLine(string.Format("    \"url\": \"{0}\",", c.Url ?? ""));
+                    sb.AppendLine(string.Format("    \"course_id_url_if_known\": \"{0}\"", c.Url ?? ""));
+                    sb.Append("  }");
+                    if (i < courses.Count - 1) sb.Append(",");
+                    sb.AppendLine();
+                }
+                sb.AppendLine("]");
+                File.WriteAllText(customDb, sb.ToString(), Encoding.UTF8);
+            };
+
+            Button btnSave = CreateButton("💾 บันทึกการแก้ไข", Color.FromArgb(16, 185, 129), 150, 36);
+            btnSave.Location = new Point(20, 435);
             btnSave.Click += (s, ev) =>
             {
-                if (string.IsNullOrEmpty(t1.Text.Trim())) return;
-                string newEntry = string.Format("  {{\n    \"course_code\": \"{0}\",\n    \"course_name\": \"{1}\",\n    \"sections\": []\n  }}\n", t1.Text.Trim(), t2.Text.Trim());
-                string path = Path.Combine(appDir, "custom_courses.json");
-                File.WriteAllText(path, "[\n" + newEntry + "]", Encoding.UTF8);
-                MessageBox.Show("เพิ่มวิชาสำเร็จ!", "สำเร็จ");
-                dlg.Close();
-                LoadCourses();
-            };
+                string code = tCode.Text.Trim();
+                string name = tName.Text.Trim();
+                string url = tUrl.Text.Trim();
 
-            dlg.Controls.Add(l1); dlg.Controls.Add(t1);
-            dlg.Controls.Add(l2); dlg.Controls.Add(t2);
+                if (string.IsNullOrEmpty(code))
+                {
+                    MessageBox.Show("กรุณาระบุรหัสวิชา", "เตือน");
+                    return;
+                }
+
+                CourseItem target = null;
+                foreach (var c in courses)
+                {
+                    if (c.Code.Equals(code, StringComparison.OrdinalIgnoreCase))
+                    {
+                        target = c;
+                        break;
+                    }
+                }
+
+                if (target != null)
+                {
+                    target.Name = name;
+                    target.Url = url;
+                }
+                else
+                {
+                    courses.Add(new CourseItem { Code = code, Name = name, Url = url });
+                }
+
+                saveAllToDisk();
+                populateList();
+                LoadCourses();
+                AppendLog(string.Format("⚙️ บันทึกการตั้งค่าวิชา {0} (URL: {1}) เรียบร้อยแล้ว", code, url), Color.FromArgb(52, 211, 153));
+                MessageBox.Show("บันทึกการตั้งค่ารายวิชาเรียบร้อยแล้ว!", "สำเร็จ", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            };
             dlg.Controls.Add(btnSave);
+
+            Button btnAddNew = CreateButton("➕ เพิ่มเป็นวิชาใหม่", Color.FromArgb(37, 99, 235), 150, 36);
+            btnAddNew.Location = new Point(185, 435);
+            btnAddNew.Click += (s, ev) =>
+            {
+                string code = tCode.Text.Trim();
+                string name = tName.Text.Trim();
+                string url = tUrl.Text.Trim();
+
+                if (string.IsNullOrEmpty(code))
+                {
+                    MessageBox.Show("กรุณาระบุรหัสวิชาใหม่", "เตือน");
+                    return;
+                }
+
+                foreach (var c in courses)
+                {
+                    if (c.Code.Equals(code, StringComparison.OrdinalIgnoreCase))
+                    {
+                        MessageBox.Show("มีรหัสวิชานี้อยู่ในระบบแล้ว กรุณากดปุ่ม 'บันทึกการแก้ไข' แทน", "แจ้งเตือน");
+                        return;
+                    }
+                }
+
+                courses.Add(new CourseItem { Code = code, Name = name, Url = url });
+                saveAllToDisk();
+                populateList();
+                LoadCourses();
+                AppendLog(string.Format("➕ เพิ่มวิชาใหม่ {0} - {1} เรียบร้อย", code, name), Color.FromArgb(52, 211, 153));
+                MessageBox.Show("เพิ่มวิชาใหม่เรียบร้อยแล้ว!", "สำเร็จ", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            };
+            dlg.Controls.Add(btnAddNew);
+
+            Button btnDel = CreateButton("🗑️ ลบวิชาที่เลือก", Color.FromArgb(239, 68, 68), 130, 36);
+            btnDel.Location = new Point(350, 435);
+            btnDel.Click += (s, ev) =>
+            {
+                if (lv.SelectedItems.Count == 0)
+                {
+                    MessageBox.Show("กรุณาเลือกวิชาในตารางที่ต้องการลบ", "เตือน");
+                    return;
+                }
+                CourseItem ci = lv.SelectedItems[0].Tag as CourseItem;
+                if (ci == null) return;
+
+                if (MessageBox.Show(string.Format("ต้องการลบวิชา {0} - {1} ใช่หรือไม่?", ci.Code, ci.Name), "ยืนยันการลบ", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    courses.Remove(ci);
+                    saveAllToDisk();
+                    populateList();
+                    LoadCourses();
+                    tCode.Clear(); tName.Clear(); tUrl.Clear();
+                    AppendLog(string.Format("🗑️ ลบวิชา {0} เรียบร้อย", ci.Code), Color.FromArgb(239, 68, 68));
+                }
+            };
+            dlg.Controls.Add(btnDel);
+
+            Button btnClose = CreateButton("ปิดหน้าต่าง", Color.FromArgb(71, 85, 105), 100, 36);
+            btnClose.Location = new Point(685, 435);
+            btnClose.Click += (s, ev) => dlg.Close();
+            dlg.Controls.Add(btnClose);
+
             dlg.ShowDialog();
         }
 
