@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
 using System.Net;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -127,6 +128,8 @@ namespace TSUBotDesktop
         private Button btnAddCourse;
         private Button btnSettings;
         private Button btnCheckUpdate;
+        private Label lblUpdateStatus;
+        private ProgressBar progUpdate;
         private Panel pnlHeader;
         private Panel pnlWorkersHeader;
         private SplitContainer splitMain;
@@ -137,8 +140,13 @@ namespace TSUBotDesktop
         private int workerCounter = 1;
         private string appDir;
         private string nodePath;
+        private string latestRemoteVersion = "";
+        private string latestRemoteChangelog = "";
+        private string latestRemoteSha256 = "";
+        private bool updateInProgress = false;
         private const string APP_VERSION = "1.0.5";
         private const string GITHUB_REPO = "LatinR9/TSU-BOT";
+        private const string EXE_NAME = "TSU-BOT-Pro.exe";
 
         [STAThread]
         public static void Main()
@@ -150,19 +158,25 @@ namespace TSUBotDesktop
 
         public MainForm()
         {
-            try
-            {
-                ServicePointManager.Expect100Continue = true;
-                ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072 | (SecurityProtocolType)12288 | SecurityProtocolType.Tls12;
-                ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-            }
-            catch { }
+            ConfigureTls();
 
             appDir = AppDomain.CurrentDomain.BaseDirectory;
             ResolveNodePath();
             InitializeComponent();
             LoadCourses();
             CheckUpdateAsync(false);
+        }
+
+        private static void ConfigureTls()
+        {
+            try
+            {
+                ServicePointManager.Expect100Continue = true;
+                ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072 | (SecurityProtocolType)12288 | SecurityProtocolType.Tls12;
+                // Keep system TLS certificate validation enabled (never bypass).
+                ServicePointManager.ServerCertificateValidationCallback = null;
+            }
+            catch { }
         }
 
         private void ResolveNodePath()
@@ -229,8 +243,8 @@ namespace TSUBotDesktop
             this.Padding = new Padding(16, 12, 16, 16);
 
             // —— Brand header ——
-            pnlHeader = CreateSurfacePanel(DockStyle.Top, 96);
-            pnlHeader.Padding = new Padding(22, 16, 22, 14);
+            pnlHeader = CreateSurfacePanel(DockStyle.Top, 118);
+            pnlHeader.Padding = new Padding(22, 14, 22, 12);
             pnlHeader.Paint += PaintSurfaceCard;
 
             lblBrand = new Label
@@ -239,7 +253,7 @@ namespace TSUBotDesktop
                 Font = UiTheme.UiFont(28f, FontStyle.Bold),
                 ForeColor = UiTheme.Brand,
                 AutoSize = true,
-                Location = new Point(22, 14),
+                Location = new Point(22, 12),
                 BackColor = Color.Transparent
             };
             pnlHeader.Controls.Add(lblBrand);
@@ -250,7 +264,7 @@ namespace TSUBotDesktop
                 Font = UiTheme.UiFont(10f, FontStyle.Regular),
                 ForeColor = UiTheme.TextMuted,
                 AutoSize = true,
-                Location = new Point(26, 58),
+                Location = new Point(26, 52),
                 BackColor = Color.Transparent
             };
             pnlHeader.Controls.Add(lblTagline);
@@ -263,9 +277,33 @@ namespace TSUBotDesktop
                 BackColor = UiTheme.BrandSoft,
                 AutoSize = true,
                 Padding = new Padding(10, 4, 10, 4),
-                Location = new Point(210, 28)
+                Location = new Point(210, 22)
             };
             pnlHeader.Controls.Add(lblVersion);
+
+            lblUpdateStatus = new Label
+            {
+                Text = "อัปเดต: กำลังตรวจสอบจาก GitHub...",
+                Font = UiTheme.UiFont(8.5f, FontStyle.Regular),
+                ForeColor = UiTheme.TextMuted,
+                AutoSize = true,
+                Location = new Point(26, 78),
+                BackColor = Color.Transparent,
+                MaximumSize = new Size(620, 0)
+            };
+            pnlHeader.Controls.Add(lblUpdateStatus);
+
+            progUpdate = new ProgressBar
+            {
+                Location = new Point(26, 98),
+                Size = new Size(420, 10),
+                Minimum = 0,
+                Maximum = 100,
+                Value = 0,
+                Visible = false,
+                Style = ProgressBarStyle.Continuous
+            };
+            pnlHeader.Controls.Add(progUpdate);
 
             btnCheckUpdate = CreateButton("เช็คอัปเดต", UiTheme.Info, 128, 36, false);
             btnCheckUpdate.Click += (s, e) => CheckUpdateAsync(true);
@@ -492,10 +530,20 @@ namespace TSUBotDesktop
                 int rightPad = 22;
                 btnCheckUpdate.Location = new Point(
                     Math.Max(360, pnlHeader.ClientSize.Width - btnCheckUpdate.Width - rightPad),
-                    28);
+                    22);
                 if (lblVersion != null && lblBrand != null)
                 {
-                    lblVersion.Location = new Point(lblBrand.Right + 12, 28);
+                    lblVersion.Location = new Point(lblBrand.Right + 12, 22);
+                }
+                if (lblUpdateStatus != null)
+                {
+                    lblUpdateStatus.MaximumSize = new Size(
+                        Math.Max(200, btnCheckUpdate.Left - 40),
+                        0);
+                }
+                if (progUpdate != null)
+                {
+                    progUpdate.Width = Math.Max(180, Math.Min(520, btnCheckUpdate.Left - 40));
                 }
             }
 
@@ -1299,6 +1347,11 @@ namespace TSUBotDesktop
             };
             card.Controls.Add(btnDel);
 
+            Button btnUpdateHere = CreateButton("เช็คอัปเดต", UiTheme.Info, 120, 36, false);
+            btnUpdateHere.Location = new Point(490, 440);
+            btnUpdateHere.Click += (s, ev) => CheckUpdateAsync(true);
+            card.Controls.Add(btnUpdateHere);
+
             Button btnClose = CreateButton("ปิดหน้าต่าง", UiTheme.TextMuted, 110, 36, false);
             btnClose.Location = new Point(682, 440);
             btnClose.Click += (s, ev) => dlg.Close();
@@ -1307,102 +1360,318 @@ namespace TSUBotDesktop
             dlg.ShowDialog();
         }
 
+        private void SetUpdateStatus(string text, Color? color = null)
+        {
+            if (lblUpdateStatus == null) return;
+            if (lblUpdateStatus.InvokeRequired)
+            {
+                lblUpdateStatus.Invoke(new Action(() => SetUpdateStatus(text, color)));
+                return;
+            }
+            lblUpdateStatus.Text = text;
+            lblUpdateStatus.ForeColor = color ?? UiTheme.TextMuted;
+        }
+
+        private void SetUpdateProgress(int percent, bool visible)
+        {
+            if (progUpdate == null) return;
+            if (progUpdate.InvokeRequired)
+            {
+                progUpdate.Invoke(new Action(() => SetUpdateProgress(percent, visible)));
+                return;
+            }
+            progUpdate.Visible = visible;
+            progUpdate.Value = Math.Max(0, Math.Min(100, percent));
+        }
+
+        private void SetUpdateBusy(bool busy)
+        {
+            if (btnCheckUpdate == null) return;
+            if (btnCheckUpdate.InvokeRequired)
+            {
+                btnCheckUpdate.Invoke(new Action(() => SetUpdateBusy(busy)));
+                return;
+            }
+            btnCheckUpdate.Enabled = !busy;
+            updateInProgress = busy;
+        }
+
+        private WebClient CreateUpdateClient()
+        {
+            ConfigureTls();
+            WebClient wc = new WebClient();
+            wc.Headers.Add("User-Agent", "TSU-BOT-Desktop");
+            wc.Encoding = Encoding.UTF8;
+            wc.Headers.Add("Cache-Control", "no-cache");
+            wc.Headers.Add("Pragma", "no-cache");
+
+            // Optional local token file only — never commit tokens.
+            string tokenPath = Path.Combine(appDir, "github_token.txt");
+            if (File.Exists(tokenPath))
+            {
+                string token = File.ReadAllText(tokenPath).Trim();
+                if (!string.IsNullOrEmpty(token))
+                    wc.Headers.Add("Authorization", "token " + token);
+            }
+            return wc;
+        }
+
+        private static string ComputeSha256Hex(string filePath)
+        {
+            using (FileStream fs = File.OpenRead(filePath))
+            using (SHA256 sha = SHA256.Create())
+            {
+                byte[] hash = sha.ComputeHash(fs);
+                StringBuilder sb = new StringBuilder(hash.Length * 2);
+                for (int i = 0; i < hash.Length; i++)
+                    sb.Append(hash[i].ToString("x2"));
+                return sb.ToString();
+            }
+        }
+
         private void CheckUpdateAsync(bool verbose)
         {
+            if (updateInProgress)
+            {
+                if (verbose)
+                    MessageBox.Show("กำลังอัปเดตอยู่ กรุณารอสักครู่", "แจ้งเตือน", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            SetUpdateBusy(true);
+            SetUpdateStatus("อัปเดต: กำลังตรวจสอบ version.json จาก GitHub...", UiTheme.Info);
+            SetUpdateProgress(0, verbose);
+
             Thread t = new Thread(() =>
             {
                 try
                 {
-                    ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072 | (SecurityProtocolType)12288 | SecurityProtocolType.Tls12;
-                    ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-
-                    using (WebClient wc = new WebClient())
+                    using (WebClient wc = CreateUpdateClient())
                     {
-                        wc.Headers.Add("User-Agent", "TSU-BOT-Desktop");
-                        wc.Encoding = Encoding.UTF8;
-
-                        string tokenPath = Path.Combine(appDir, "github_token.txt");
-                        if (File.Exists(tokenPath))
-                        {
-                            string token = File.ReadAllText(tokenPath).Trim();
-                            if (!string.IsNullOrEmpty(token))
-                                wc.Headers.Add("Authorization", "token " + token);
-                        }
-
                         string rawUrl = string.Format("https://raw.githubusercontent.com/{0}/main/version.json", GITHUB_REPO);
                         string json = wc.DownloadString(rawUrl);
 
                         Match mV = Regex.Match(json, "\"version\"\\s*:\\s*\"([^\"]+)\"");
                         Match mC = Regex.Match(json, "\"changelog\"\\s*:\\s*\"([^\"]+)\"");
+                        Match mH = Regex.Match(json, "\"sha256\"\\s*:\\s*\"([^\"]*)\"");
 
                         string latestVer = mV.Success ? mV.Groups[1].Value : APP_VERSION;
                         string changelog = mC.Success ? mC.Groups[1].Value : "การปรับปรุงประสิทธิภาพทั่วไป";
+                        string sha256 = mH.Success ? mH.Groups[1].Value.Trim().ToLowerInvariant() : "";
+
+                        latestRemoteVersion = latestVer;
+                        latestRemoteChangelog = changelog;
+                        latestRemoteSha256 = sha256;
 
                         if (latestVer != APP_VERSION)
                         {
-                            string msg = string.Format("พบอัปเดตใหม่: v{0} (ปัจจุบัน v{1})\n\nรายละเอียด:\n{2}\n\nต้องการอัปเดตโปรแกรมตอนนี้เลยหรือไม่?\n(ระบบจะดาวน์โหลดและเริ่มโปรแกรมใหม่ให้อัตโนมัติ โดยไม่ต้องโหลดไฟล์ใหม่)", latestVer, APP_VERSION, changelog);
-                            if (MessageBox.Show(msg, "มีอัปเดตเวอร์ชันใหม่", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
+                            SetUpdateStatus(
+                                string.Format("มีอัปเดตใหม่: ปัจจุบัน v{0} → ล่าสุด v{1}", APP_VERSION, latestVer),
+                                UiTheme.Accent);
+
+                            bool shouldUpdate = false;
+                            this.Invoke(new Action(() =>
                             {
-                                PerformInPlaceUpdate(latestVer);
+                                shouldUpdate = ShowUpdatePrompt(latestVer, changelog, sha256, verbose);
+                            }));
+
+                            if (shouldUpdate)
+                            {
+                                PerformInPlaceUpdate(latestVer, sha256);
+                                return;
                             }
+
+                            SetUpdateBusy(false);
+                            SetUpdateProgress(0, false);
                             return;
                         }
-                    }
 
-                    if (verbose)
-                    {
-                        if (MessageBox.Show(string.Format("คุณกำลังใช้งานเวอร์ชันล่าสุด (v{0}) อยู่แล้ว\n\nต้องการซิงค์และอัปเดตฐานเฉลยข้อสอบล่าสุดจาก GitHub ทันทีหรือไม่?", APP_VERSION), "เวอร์ชันล่าสุด", MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes)
+                        SetUpdateStatus(
+                            string.Format("อัปเดต: ใช้งานเวอร์ชันล่าสุดแล้ว (v{0})", APP_VERSION),
+                            UiTheme.Success);
+                        SetUpdateProgress(0, false);
+
+                        if (verbose)
                         {
-                            PerformDataSync();
+                            bool sync = false;
+                            this.Invoke(new Action(() =>
+                            {
+                                sync = MessageBox.Show(
+                                    string.Format(
+                                        "คุณกำลังใช้งานเวอร์ชันล่าสุด (v{0}) อยู่แล้ว\n\nChangelog ล่าสุด:\n{1}\n\nต้องการซิงค์ฐานเฉลย/สคริปต์จาก GitHub ตอนนี้หรือไม่?",
+                                        APP_VERSION, changelog),
+                                    "เวอร์ชันล่าสุด",
+                                    MessageBoxButtons.YesNo,
+                                    MessageBoxIcon.Information) == DialogResult.Yes;
+                            }));
+                            if (sync)
+                            {
+                                PerformDataSync();
+                                return;
+                            }
                         }
+
+                        SetUpdateBusy(false);
+                        SetUpdateProgress(0, false);
                     }
                 }
                 catch (WebException wex)
                 {
+                    SetUpdateStatus("อัปเดต: ตรวจสอบไม่สำเร็จ — " + wex.Message, UiTheme.Danger);
                     if (verbose)
                     {
-                        HttpWebResponse resp = wex.Response as HttpWebResponse;
-                        if (resp != null && resp.StatusCode == HttpStatusCode.NotFound)
+                        this.Invoke(new Action(() =>
                         {
-                            MessageBox.Show("ไม่สามารถเช็คอัปเดตได้ (Error 404):\n\nเกิดจาก Repository บน GitHub ของคุณถูกตั้งค่าเป็น 'Private' (ส่วนตัว) อยู่ครับ\n\nวิธีแก้ (เลือกวิธีใดวิธีหนึ่ง):\n1. ไปที่หน้า GitHub Repo -> Settings -> เลื่อนลงล่างสุด -> เปลี่ยนเป็น 'Public'\nหรือ\n2. นำ GitHub Token มาใส่ในไฟล์ github_token.txt ในโฟลเดอร์โปรแกรมครับ", "Repository เป็นแบบ Private", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        }
-                        else
-                        {
-                            MessageBox.Show("ไม่สามารถเชื่อมต่อเพื่อเช็คอัปเดตได้: " + wex.Message, "เตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                        }
+                            HttpWebResponse resp = wex.Response as HttpWebResponse;
+                            if (resp != null && resp.StatusCode == HttpStatusCode.NotFound)
+                            {
+                                MessageBox.Show(
+                                    "ไม่สามารถเช็คอัปเดตได้ (Error 404):\n\nRepository อาจเป็น Private หรือยังไม่มี version.json\n\nทางเลือก:\n1. ตั้ง Repo เป็น Public\n2. ใส่ GitHub token ในไฟล์ local ชื่อ github_token.txt (อย่า commit ไฟล์นี้)",
+                                    "เช็คอัปเดตไม่สำเร็จ",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Information);
+                            }
+                            else
+                            {
+                                MessageBox.Show("ไม่สามารถเชื่อมต่อเพื่อเช็คอัปเดตได้: " + wex.Message, "เตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            }
+                        }));
                     }
+                    SetUpdateBusy(false);
+                    SetUpdateProgress(0, false);
                 }
                 catch (Exception ex)
                 {
+                    SetUpdateStatus("อัปเดต: เกิดข้อผิดพลาด — " + ex.Message, UiTheme.Danger);
                     if (verbose)
-                        MessageBox.Show("ไม่สามารถเชื่อมต่อเพื่อเช็คอัปเดตได้: " + ex.Message, "เตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    {
+                        this.Invoke(new Action(() =>
+                        {
+                            MessageBox.Show("ไม่สามารถเชื่อมต่อเพื่อเช็คอัปเดตได้: " + ex.Message, "เตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        }));
+                    }
+                    SetUpdateBusy(false);
+                    SetUpdateProgress(0, false);
                 }
             });
             t.IsBackground = true;
             t.Start();
         }
 
+        private bool ShowUpdatePrompt(string latestVer, string changelog, string sha256, bool verbose)
+        {
+            using (Form dlg = new Form())
+            {
+                dlg.Text = "อัปเดต TSU-BOT Pro";
+                dlg.Size = new Size(560, 420);
+                dlg.StartPosition = FormStartPosition.CenterParent;
+                dlg.BackColor = UiTheme.BgWash;
+                dlg.ForeColor = UiTheme.Text;
+                dlg.FormBorderStyle = FormBorderStyle.FixedDialog;
+                dlg.MaximizeBox = false;
+                dlg.MinimizeBox = false;
+                dlg.Font = UiTheme.UiFont(9.5f, FontStyle.Regular);
+
+                Panel card = new Panel
+                {
+                    Location = new Point(16, 16),
+                    Size = new Size(512, 348),
+                    BackColor = UiTheme.Surface
+                };
+                card.Paint += PaintSurfaceCard;
+                dlg.Controls.Add(card);
+
+                Label title = new Label
+                {
+                    Text = "พบเวอร์ชันใหม่",
+                    Font = UiTheme.UiFont(16f, FontStyle.Bold),
+                    ForeColor = UiTheme.Brand,
+                    Location = new Point(20, 16),
+                    AutoSize = true,
+                    BackColor = Color.Transparent
+                };
+                card.Controls.Add(title);
+
+                Label versions = new Label
+                {
+                    Text = string.Format("ปัจจุบัน: v{0}    →    ล่าสุด: v{1}", APP_VERSION, latestVer),
+                    Font = UiTheme.UiFont(11f, FontStyle.Bold),
+                    ForeColor = UiTheme.BrandDeep,
+                    Location = new Point(20, 52),
+                    AutoSize = true,
+                    BackColor = Color.Transparent
+                };
+                card.Controls.Add(versions);
+
+                Label hashNote = new Label
+                {
+                    Text = string.IsNullOrEmpty(sha256)
+                        ? "คำเตือน: version.json ยังไม่มี sha256 — จะไม่ติดตั้งจนกว่าจะมีค่าแฮช"
+                        : ("SHA256: " + (sha256.Length > 20 ? sha256.Substring(0, 20) + "…" : sha256)),
+                    Font = UiTheme.UiFont(8.5f, FontStyle.Regular),
+                    ForeColor = string.IsNullOrEmpty(sha256) ? UiTheme.Danger : UiTheme.TextMuted,
+                    Location = new Point(20, 78),
+                    AutoSize = true,
+                    BackColor = Color.Transparent
+                };
+                card.Controls.Add(hashNote);
+
+                Label clLabel = new Label
+                {
+                    Text = "Changelog",
+                    Font = UiTheme.UiFont(9.5f, FontStyle.Bold),
+                    ForeColor = UiTheme.TextMuted,
+                    Location = new Point(20, 108),
+                    AutoSize = true,
+                    BackColor = Color.Transparent
+                };
+                card.Controls.Add(clLabel);
+
+                TextBox txtCl = new TextBox
+                {
+                    Location = new Point(20, 130),
+                    Size = new Size(472, 140),
+                    Multiline = true,
+                    ReadOnly = true,
+                    ScrollBars = ScrollBars.Vertical,
+                    BackColor = UiTheme.SurfaceSoft,
+                    ForeColor = UiTheme.Text,
+                    BorderStyle = BorderStyle.FixedSingle,
+                    Text = changelog,
+                    Font = UiTheme.UiFont(9.5f, FontStyle.Regular)
+                };
+                card.Controls.Add(txtCl);
+
+                bool accepted = false;
+                Button btnGo = CreateButton("อัปเดตเลย", UiTheme.Success, 140, 36, true);
+                btnGo.Location = new Point(20, 290);
+                btnGo.Enabled = !string.IsNullOrEmpty(sha256);
+                btnGo.Click += (s, e) => { accepted = true; dlg.Close(); };
+                card.Controls.Add(btnGo);
+
+                Button btnLater = CreateButton("ไว้ทีหลัง", UiTheme.TextMuted, 120, 36, false);
+                btnLater.Location = new Point(172, 290);
+                btnLater.Click += (s, e) => dlg.Close();
+                card.Controls.Add(btnLater);
+
+                if (!verbose)
+                {
+                    // Auto-check still shows the prompt so the user can one-click update.
+                }
+
+                dlg.ShowDialog(this);
+                return accepted;
+            }
+        }
+
         private void PerformDataSync()
         {
             AppendLog("กำลังซิงค์ฐานเฉลยข้อสอบล่าสุดจาก GitHub...", UiTheme.Info);
+            SetUpdateStatus("อัปเดต: กำลังซิงค์ข้อมูลจาก GitHub...", UiTheme.Info);
             try
             {
-                ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072 | (SecurityProtocolType)12288 | SecurityProtocolType.Tls12;
-                ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-
-                using (WebClient wc = new WebClient())
+                using (WebClient wc = CreateUpdateClient())
                 {
-                    wc.Headers.Add("User-Agent", "TSU-BOT-Desktop");
-                    wc.Encoding = Encoding.UTF8;
-
-                    string tokenPath = Path.Combine(appDir, "github_token.txt");
-                    if (File.Exists(tokenPath))
-                    {
-                        string token = File.ReadAllText(tokenPath).Trim();
-                        if (!string.IsNullOrEmpty(token))
-                            wc.Headers.Add("Authorization", "token " + token);
-                    }
-
                     string baseRaw = string.Format("https://raw.githubusercontent.com/{0}/main/", GITHUB_REPO);
                     wc.DownloadFile(baseRaw + "tsu_answers.json", Path.Combine(appDir, "tsu_answers.json"));
                     wc.DownloadFile(baseRaw + "cli_worker.js", Path.Combine(appDir, "cli_worker.js"));
@@ -1411,60 +1680,132 @@ namespace TSUBotDesktop
                 }
                 LoadCourses();
                 AppendLog("ซิงค์ฐานเฉลยและไฟล์ระบบล่าสุดเรียบร้อยแล้ว!", UiTheme.Success);
+                SetUpdateStatus(string.Format("อัปเดต: ซิงค์ข้อมูลแล้ว (แอปยังเป็น v{0})", APP_VERSION), UiTheme.Success);
                 MessageBox.Show("ซิงค์ฐานเฉลยและระบบล่าสุดเรียบร้อยแล้ว!", "สำเร็จ", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
                 AppendLog("ซิงค์ข้อมูลล้มเหลว: " + ex.Message, UiTheme.Danger);
+                SetUpdateStatus("อัปเดต: ซิงค์ล้มเหลว — " + ex.Message, UiTheme.Danger);
+            }
+            finally
+            {
+                SetUpdateBusy(false);
+                SetUpdateProgress(0, false);
             }
         }
 
-        private void PerformInPlaceUpdate(string targetVersion)
+        private void PerformInPlaceUpdate(string targetVersion, string expectedSha256)
         {
+            updateInProgress = true;
+            SetUpdateBusy(true);
             AppendLog(string.Format("กำลังเริ่มดาวน์โหลดอัปเดตเวอร์ชัน v{0}...", targetVersion), UiTheme.Info);
+            SetUpdateStatus(string.Format("อัปเดต: กำลังดาวน์โหลด v{0}...", targetVersion), UiTheme.Info);
+            SetUpdateProgress(1, true);
+
+            if (string.IsNullOrEmpty(expectedSha256))
+            {
+                string msg = "ปฏิเสธการอัปเดต: version.json ไม่มีค่า sha256 ของไฟล์ exe";
+                AppendLog(msg, UiTheme.Danger);
+                SetUpdateStatus(msg, UiTheme.Danger);
+                MessageBox.Show(msg + "\n\nให้รัน build_desktop.bat บนเครื่อง Windows เพื่อเขียน sha256 ลง version.json แล้ว push ขึ้น repo", "อัปเดตล้มเหลว", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                SetUpdateBusy(false);
+                SetUpdateProgress(0, false);
+                updateInProgress = false;
+                return;
+            }
+
+            string updateExePath = Path.Combine(appDir, "TSU-BOT-Pro.update");
+            string backupExePath = Path.Combine(appDir, "TSU-BOT-Pro.exe.bak");
+            string currentExe = Process.GetCurrentProcess().MainModule.FileName;
+
             try
             {
-                ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072 | (SecurityProtocolType)12288 | SecurityProtocolType.Tls12;
-                ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-
-                using (WebClient wc = new WebClient())
+                using (WebClient wc = CreateUpdateClient())
                 {
-                    wc.Headers.Add("User-Agent", "TSU-BOT-Desktop");
-                    wc.Headers.Add("Cache-Control", "no-cache");
-                    wc.Headers.Add("Pragma", "no-cache");
                     long ticks = DateTime.UtcNow.Ticks;
                     string baseRaw = string.Format("https://raw.githubusercontent.com/{0}/main/", GITHUB_REPO);
 
-                    AppendLog("1/4 ดาวน์โหลดฐานเฉลยล่าสุด...");
+                    AppendLog("1/5 ดาวน์โหลดฐานเฉลยล่าสุด...");
+                    SetUpdateStatus("อัปเดต: 1/5 ดาวน์โหลดฐานเฉลย...", UiTheme.Info);
+                    SetUpdateProgress(8, true);
                     wc.DownloadFile(baseRaw + "tsu_answers.json?t=" + ticks, Path.Combine(appDir, "tsu_answers.json"));
                     try { wc.DownloadFile(baseRaw + "tsu_missing.json?t=" + ticks, Path.Combine(appDir, "tsu_missing.json")); } catch { }
 
-                    AppendLog("2/4 ดาวน์โหลดสคริปต์ระบบล่าสุด...");
+                    AppendLog("2/5 ดาวน์โหลดสคริปต์ระบบล่าสุด...");
+                    SetUpdateStatus("อัปเดต: 2/5 ดาวน์โหลดสคริปต์...", UiTheme.Info);
+                    SetUpdateProgress(20, true);
                     wc.DownloadFile(baseRaw + "cli_worker.js?t=" + ticks, Path.Combine(appDir, "cli_worker.js"));
                     wc.DownloadFile(baseRaw + "worker.js?t=" + ticks, Path.Combine(appDir, "worker.js"));
                     wc.DownloadFile(baseRaw + "db_manager.js?t=" + ticks, Path.Combine(appDir, "db_manager.js"));
 
-                    AppendLog("3/4 ดาวน์โหลดโปรแกรม .exe เวอร์ชั่นใหม่...");
-                    string updateExePath = Path.Combine(appDir, "TSU-BOT-Pro.update");
-                    wc.DownloadFile(baseRaw + "TSU-BOT-Pro.exe?t=" + ticks, updateExePath);
+                    AppendLog("3/5 ดาวน์โหลดโปรแกรม .exe เวอร์ชันใหม่...");
+                    SetUpdateStatus("อัปเดต: 3/5 ดาวน์โหลด TSU-BOT-Pro.exe...", UiTheme.Info);
+                    SetUpdateProgress(40, true);
+                    if (File.Exists(updateExePath))
+                    {
+                        try { File.Delete(updateExePath); } catch { }
+                    }
+                    // Synchronous download still raises DownloadProgressChanged on some frameworks when using DownloadFileTask-less API;
+                    // WebClient.DownloadFile does not fire progress — use OpenRead stream copy for progress.
+                    DownloadFileWithProgress(wc, baseRaw + EXE_NAME + "?t=" + ticks, updateExePath, targetVersion);
 
-                    AppendLog("4/4 เตรียมรีสตาร์ทเพื่อติดตั้ง...", UiTheme.Success);
+                    AppendLog("4/5 ตรวจสอบ SHA256...");
+                    SetUpdateStatus("อัปเดต: 4/5 ตรวจสอบความถูกต้องของไฟล์...", UiTheme.Info);
+                    SetUpdateProgress(92, true);
+                    string actual = ComputeSha256Hex(updateExePath);
+                    if (!string.Equals(actual, expectedSha256, StringComparison.OrdinalIgnoreCase))
+                    {
+                        try { File.Delete(updateExePath); } catch { }
+                        string mismatch = string.Format(
+                            "ปฏิเสธการอัปเดต: SHA256 ไม่ตรงกัน\nคาดหวัง: {0}\nได้จริง: {1}",
+                            expectedSha256, actual);
+                        AppendLog(mismatch, UiTheme.Danger);
+                        SetUpdateStatus("อัปเดต: SHA256 ไม่ตรง — ยกเลิกและคงไฟล์เดิมไว้", UiTheme.Danger);
+                        MessageBox.Show(mismatch, "อัปเดตล้มเหลว", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        SetUpdateBusy(false);
+                        SetUpdateProgress(0, false);
+                        updateInProgress = false;
+                        return;
+                    }
+
+                    AppendLog("5/5 สำรองไฟล์เดิมแล้วเตรียมติดตั้ง...", UiTheme.Success);
+                    SetUpdateStatus("อัปเดต: 5/5 สำรอง exe เดิมและติดตั้ง...", UiTheme.Success);
+                    SetUpdateProgress(96, true);
+
+                    try
+                    {
+                        File.Copy(currentExe, backupExePath, true);
+                    }
+                    catch (Exception bakEx)
+                    {
+                        AppendLog("ไม่สามารถสร้างไฟล์สำรองได้: " + bakEx.Message, UiTheme.Warning);
+                    }
 
                     string batPath = Path.Combine(appDir, "updater_runner.bat");
-                    string currentExe = Process.GetCurrentProcess().MainModule.FileName;
                     int currentPid = Process.GetCurrentProcess().Id;
                     string batScript = string.Format(
                         "@echo off\r\n" +
-                        ":loop\r\n" +
-                        "taskkill /F /PID {0} >nul 2>nul\r\n" +
-                        "move /y \"{1}\" \"{2}\" >nul 2>nul\r\n" +
-                        "if errorlevel 1 (\r\n" +
-                        "    timeout /t 1 /nobreak >nul\r\n" +
-                        "    goto loop\r\n" +
-                        ")\r\n" +
-                        "start \"\" \"{2}\"\r\n" +
-                        "del \"%~f0\"\r\n",
-                        currentPid, updateExePath, currentExe);
+                        "setlocal\r\n" +
+                        "set \"EXE={0}\"\r\n" +
+                        "set \"NEW={1}\"\r\n" +
+                        "set \"BAK={2}\"\r\n" +
+                        "set \"PID={3}\"\r\n" +
+                        "set /a TRIES=0\r\n" +
+                        "taskkill /F /PID %PID% >nul 2>nul\r\n" +
+                        ":retry\r\n" +
+                        "set /a TRIES+=1\r\n" +
+                        "timeout /t 1 /nobreak >nul\r\n" +
+                        "move /y \"%NEW%\" \"%EXE%\" >nul 2>nul\r\n" +
+                        "if not errorlevel 1 goto launch\r\n" +
+                        "if %TRIES% LSS 15 goto retry\r\n" +
+                        "echo rollback\r\n" +
+                        "if exist \"%BAK%\" copy /y \"%BAK%\" \"%EXE%\" >nul 2>nul\r\n" +
+                        ":launch\r\n" +
+                        "start \"\" \"%EXE%\"\r\n" +
+                        "del \"%~f0\"\r\n" +
+                        "endlocal\r\n",
+                        currentExe, updateExePath, backupExePath, currentPid);
                     File.WriteAllText(batPath, batScript, Encoding.Default);
 
                     ProcessStartInfo psi = new ProcessStartInfo
@@ -1476,20 +1817,73 @@ namespace TSUBotDesktop
                     };
                     Process.Start(psi);
 
+                    SetUpdateProgress(100, true);
                     if (this.InvokeRequired)
-                    {
                         this.Invoke(new Action(() => Application.Exit()));
-                    }
                     else
-                    {
                         Application.Exit();
-                    }
                 }
             }
             catch (Exception ex)
             {
+                // Roll back: restore backup if current exe was somehow replaced mid-flight (usually still running).
+                try
+                {
+                    if (File.Exists(backupExePath) && !File.Exists(currentExe))
+                        File.Copy(backupExePath, currentExe, true);
+                }
+                catch { }
+                try { if (File.Exists(updateExePath)) File.Delete(updateExePath); } catch { }
+
                 AppendLog("อัปเดตล้มเหลว: " + ex.Message, UiTheme.Danger);
+                SetUpdateStatus("อัปเดต: ล้มเหลว — กู้คืนไฟล์เดิมแล้ว", UiTheme.Danger);
                 MessageBox.Show("เกิดข้อผิดพลาดในการอัปเดต: " + ex.Message, "ผิดพลาด", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                SetUpdateBusy(false);
+                SetUpdateProgress(0, false);
+                updateInProgress = false;
+            }
+        }
+
+        private void DownloadFileWithProgress(WebClient wc, string url, string destination, string targetVersion)
+        {
+            using (Stream remote = wc.OpenRead(url))
+            {
+                if (remote == null)
+                    throw new IOException("ไม่สามารถเปิดสตรีมดาวน์โหลดได้: " + url);
+
+                long total = -1;
+                try
+                {
+                    string len = wc.ResponseHeaders != null ? wc.ResponseHeaders["Content-Length"] : null;
+                    if (!string.IsNullOrEmpty(len)) long.TryParse(len, out total);
+                }
+                catch { }
+
+                using (FileStream fs = new FileStream(destination, FileMode.Create, FileAccess.Write, FileShare.None))
+                {
+                    byte[] buffer = new byte[81920];
+                    long readTotal = 0;
+                    int read;
+                    int lastPct = -1;
+                    while ((read = remote.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        fs.Write(buffer, 0, read);
+                        readTotal += read;
+                        if (total > 0)
+                        {
+                            int pct = (int)((readTotal * 100L) / total);
+                            if (pct != lastPct)
+                            {
+                                lastPct = pct;
+                                int mapped = 40 + (int)(pct * 0.50);
+                                SetUpdateProgress(mapped, true);
+                                SetUpdateStatus(
+                                    string.Format("อัปเดต: ดาวน์โหลด exe {0}% (v{1})", pct, targetVersion),
+                                    UiTheme.Info);
+                            }
+                        }
+                    }
+                }
             }
         }
     }
