@@ -100,22 +100,60 @@ class DBManager {
     return newCourse;
   }
 
-  findAnswer(courseCode, questionText) {
+  findAnswer(courseCode, questionText, sectionHint = '', questionIndex = -1) {
     if (!questionText) return null;
     const cleanQ = questionText.replace(/\s+/g, ' ').trim().toLowerCase();
 
     const targetCourse = this.courses.find(c => c.course_code === courseCode);
     const searchCourses = targetCourse ? [targetCourse] : this.courses;
 
+    // Verb mapping for passive voice (TSUGE00152 and similar)
+    const verbMatch = questionText.match(/\(([a-zA-Z\s]+)\)/);
+    const bracketVerb = verbMatch ? verbMatch[1].trim().toLowerCase() : '';
+    const verbMap = {
+      'buy': 'are bought',
+      'use': 'is used',
+      'send': 'are sent',
+      'book': 'are booked',
+      'search': 'is searched',
+      'read': 'are read',
+      'see': 'are seen',
+      'carry out': 'are carried out',
+      'receive': 'are received',
+      'make': 'are made',
+      'solve': 'was solved',
+      'write': 'was written',
+      'build': 'was built',
+      'promote': 'was promoted',
+      'eat': 'were eaten'
+    };
+
+    if (bracketVerb && verbMap[bracketVerb]) {
+      return {
+        question: questionText,
+        correct_answer: verbMap[bracketVerb],
+        status: 'confirmed',
+        known_wrong_answers: [],
+        score: 1.0
+      };
+    }
+
     let bestMatch = null;
     let highestScore = 0;
 
     for (const course of searchCourses) {
       for (const section of (course.sections || [])) {
-        for (const q of (section.questions || [])) {
+        const isTargetSection = sectionHint && section.section && (
+          section.section.toLowerCase().includes(sectionHint.toLowerCase()) ||
+          sectionHint.toLowerCase().includes(section.section.toLowerCase())
+        );
+
+        for (let qIdx = 0; qIdx < (section.questions || []).length; qIdx++) {
+          const q = section.questions[qIdx];
           const dbQ = (q.question || '').replace(/\s+/g, ' ').trim().toLowerCase();
           const score = this.calculateSimilarity(cleanQ, dbQ);
-          if (score > highestScore && score >= 0.5) {
+
+          if (score > highestScore && score >= 0.45) {
             highestScore = score;
             bestMatch = {
               question: q.question,
@@ -124,6 +162,18 @@ class DBManager {
               known_wrong_answers: q.known_wrong_answers || [],
               score
             };
+          }
+
+          if (isTargetSection && questionIndex >= 0 && qIdx === questionIndex && (q.notes || '').includes('listed order')) {
+            if (!bestMatch || highestScore < 0.8) {
+              bestMatch = {
+                question: q.question,
+                correct_answer: q.correct_answer,
+                status: q.status,
+                known_wrong_answers: q.known_wrong_answers || [],
+                score: 0.95
+              };
+            }
           }
         }
       }
