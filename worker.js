@@ -229,28 +229,34 @@ class AutomationWorker {
   async isCurrentUnitCompleted() {
     try {
       return await this.page.evaluate(() => {
-        const activeNav = document.querySelector('nav[aria-label="Unit"] button[aria-current="true"], nav[aria-label="Unit"] ol li.active button, .tab-item.active, button.seq_video.active, nav[aria-label="Unit"] button.active');
+        // Find active unit tab/button in Open edX sequence navigation
+        const activeNav = document.querySelector('nav[aria-label="Unit"] button[aria-current="true"], nav[aria-label="Unit"] ol li.active button, .tab-item.active, button.seq_video.active, nav[aria-label="Unit"] button.active, [aria-current="page"]');
         if (!activeNav) return false;
 
-        // Explicit checkmark icon inside active button
-        const hasCheckIcon = !!activeNav.querySelector('.fa-check, [data-icon="check-circle"], [data-icon="check"], .check-circle, svg.text-success');
+        const parentLi = activeNav.closest('li') || activeNav;
+
+        // 1. Explicit green checkmark icon inside active button or parent li
+        const hasCheckIcon = !!(
+          activeNav.querySelector('.fa-check, [data-icon="check-circle"], [data-icon="check"], .check-circle, svg.text-success, svg[class*="success"]') ||
+          parentLi.querySelector('.fa-check, [data-icon="check-circle"], [data-icon="check"], .check-circle, svg.text-success, svg[class*="success"]')
+        );
         if (hasCheckIcon) return true;
 
-        // Check aria-label carefully (must NOT match incomplete)
-        const ariaLabel = (activeNav.getAttribute('aria-label') || '').toLowerCase();
-        if (ariaLabel.includes('incomplete') || ariaLabel.includes('not completed')) {
+        // 2. Check aria-label carefully (must NOT match incomplete)
+        const ariaLabel = ((activeNav.getAttribute('aria-label') || '') + ' ' + (parentLi.getAttribute('aria-label') || '')).toLowerCase();
+        if (ariaLabel.includes('incomplete') || ariaLabel.includes('not completed') || ariaLabel.includes('uncompleted')) {
           return false;
         }
         if (ariaLabel.includes('completed') || (ariaLabel.includes('complete') && !ariaLabel.includes('incomplete'))) {
           return true;
         }
 
-        // Check classes (must NOT match incomplete)
-        const classStr = (activeNav.className || '').toLowerCase();
+        // 3. Check classes (must NOT match incomplete)
+        const classStr = ((activeNav.className || '') + ' ' + (parentLi.className || '')).toLowerCase();
         if (classStr.includes('incomplete')) {
           return false;
         }
-        if (classStr.includes('is-complete') || (classStr.includes('complete') && !classStr.includes('incomplete'))) {
+        if (classStr.includes('is-complete') || (classStr.includes('complete') && !classStr.includes('incomplete')) || classStr.includes('success')) {
           return true;
         }
 
@@ -259,6 +265,27 @@ class AutomationWorker {
     } catch (e) {
       return false;
     }
+  }
+
+  async handleDocument(frame) {
+    this.setStatus('running', 'Reading Document/Sheet');
+    this.log(`📄 ตรวจพบเอกสาร/ชีทเรียน (Sheet/Document) รอเอกสารโหลดและรอครบ 5 วินาทีตามเกณฑ์...`);
+
+    // Ensure document or iframe contents have rendered
+    await this.page.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
+
+    // Smooth scroll down to simulate real reading behavior
+    await this.page.evaluate(() => {
+      window.scrollTo({ top: document.body.scrollHeight / 2, behavior: 'smooth' });
+    }).catch(() => {});
+    await this.sleep(2500);
+
+    await this.page.evaluate(() => {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }).catch(() => {});
+    await this.sleep(2500);
+
+    this.log(`✅ เอกสาร/ชีทอ่านครบ 5 วินาทีเรียบร้อยตามเกณฑ์ TSU พร้อมกด Next ทันที.`);
   }
 
   async handleVideo(frame) {
@@ -424,24 +451,6 @@ class AutomationWorker {
     // 5. Let it play for a few seconds in the last 10s so the server records completion
     await this.sleep(4000);
     this.log(`✅ วิดีโอเล่นครบเกณฑ์เรียบร้อย เตรียมไปหน่วยถัดไป.`);
-  }
-
-  async handleDocument(frame) {
-    this.setStatus('running', 'Reading Document');
-    this.log(`📄 ตรวจพบเอกสาร/สไลด์ กำลังเลื่อนอ่านและรอตามเกณฑ์ TSU (5 วินาที)...`);
-
-    // Smooth scroll down
-    await this.page.evaluate(() => {
-      window.scrollTo({ top: document.body.scrollHeight / 2, behavior: 'smooth' });
-    }).catch(() => {});
-    await this.sleep(2500);
-
-    await this.page.evaluate(() => {
-      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-    }).catch(() => {});
-    await this.sleep(2500);
-
-    this.log(`✅ อ่านเอกสารครบ 5 วินาทีเรียบร้อยตามเกณฑ์.`);
   }
 
   async handleQuiz(frame) {
