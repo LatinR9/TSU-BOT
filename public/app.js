@@ -60,6 +60,47 @@ async function openLoginBrowser() {
   }
 }
 
+// Reset bot browser (cache, cookies, storage, saved login)
+const RESET_CONFIRM = 'ล้างแคชเบราว์เซอร์ของบอท?\n\n' +
+  'จะลบ: แคช คุกกี้ ข้อมูลเว็บ และการล็อกอิน TSU ที่บันทึกไว้\n' +
+  'ไม่ลบ: ฐานเฉลย การตั้งค่า บันทึกการทำงาน และตัวเบราว์เซอร์ที่ดาวน์โหลดไว้\n\n' +
+  'หลังล้างแล้วต้องกด "เปิดหน้าต่างล็อกอิน" เพื่อล็อกอินใหม่';
+
+async function resetBrowser() {
+  if (!confirm(RESET_CONFIRM)) return;
+  const btn = document.getElementById('btnResetBrowser');
+  const label = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'กำลังล้าง...';
+  try {
+    const post = stopRunning => fetch('/api/reset-browser', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ stopRunning })
+    });
+    let res = await post(false);
+    let data = await res.json();
+    if (res.status === 409 && data.running) {
+      if (!confirm(`มีบอทหรือหน้าต่างล็อกอินทำงานอยู่ ${data.running} หน้าต่าง\nต้องการหยุดทั้งหมดแล้วล้างแคชเบราว์เซอร์หรือไม่?`)) return;
+      res = await post(true);
+      data = await res.json();
+    }
+    if (data.success) {
+      loadWorkers();
+      alert(data.removed
+        ? 'ล้างแคชเบราว์เซอร์เรียบร้อยแล้ว กรุณาล็อกอิน TSU ใหม่ก่อนเริ่มบอท'
+        : 'ไม่มีแคชเบราว์เซอร์ให้ล้าง (ยังไม่เคยเปิดเบราว์เซอร์หรือถูกล้างไปแล้ว)');
+    } else {
+      alert('ล้างแคชเบราว์เซอร์ไม่สำเร็จ: ' + (data.error || res.status));
+    }
+  } catch (e) {
+    alert('ล้างแคชเบราว์เซอร์ไม่สำเร็จ: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = label;
+  }
+}
+
 // Create New Multi-Worker
 async function createNewWorker() {
   const courseCode = document.getElementById('selectCourse').value;

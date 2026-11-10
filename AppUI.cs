@@ -132,6 +132,7 @@ namespace TSUBotDesktop
         private Button btnAddCourse;
         private Button btnSettings;
         private Button btnCheckUpdate;
+        private Button btnResetBrowser;
         private Label lblUpdateStatus;
         private ProgressBar progUpdate;
         private Panel pnlHeader;
@@ -148,7 +149,11 @@ namespace TSUBotDesktop
         private string latestRemoteChangelog = "";
         private string latestRemoteSha256 = "";
         private bool updateInProgress = false;
-        private const string APP_VERSION = "1.0.8";
+        private Process loginProcess;
+        private volatile bool resetInProgress = false;
+        private const string APP_VERSION = "1.0.9";
+        // Must match USER_DATA_DIR in worker.js / cli_worker.js / server.js (Playwright persistent profile).
+        private const string PROFILE_DIR = "user_profile";
         private const string GITHUB_REPO = "LatinR9/TSU-BOT";
         private const string EXE_NAME = "TSU-BOT-Pro.exe";
         private const string SETTINGS_FILE = "desktop_settings.json";
@@ -393,6 +398,12 @@ namespace TSUBotDesktop
             btnAddCourse.Click += BtnSettings_Click;
             pnlControls.Controls.Add(btnAddCourse);
 
+            btnResetBrowser = CreateButton("ล้างแคชเบราว์เซอร์", UiTheme.Danger, 170, 36, false);
+            btnResetBrowser.Location = new Point(578, 42);
+            btnResetBrowser.Click += BtnResetBrowser_Click;
+            new ToolTip().SetToolTip(btnResetBrowser, "ลบแคช คุกกี้ ข้อมูลเว็บ และการล็อกอินที่บันทึกไว้ของเบราว์เซอร์บอท");
+            pnlControls.Controls.Add(btnResetBrowser);
+
             Label lblCourse = CreateFieldLabel("เลือกวิชาที่จะทำ", new Point(18, 92));
             pnlControls.Controls.Add(lblCourse);
 
@@ -580,6 +591,7 @@ namespace TSUBotDesktop
                 {
                     try { if (!p.HasExited) p.Kill(); } catch { }
                 }
+                try { if (loginProcess != null && !loginProcess.HasExited) loginProcess.Kill(); } catch { }
             };
         }
 
@@ -953,6 +965,7 @@ namespace TSUBotDesktop
 
         private void BtnLogin_Click(object sender, EventArgs e)
         {
+            if (resetInProgress) return;
             AppendLog("กำลังตรวจสอบระบบและเปิดหน้าต่าง Chrome สำหรับล็อกอินเข้าสู่ระบบ TSU...", UiTheme.Success);
             Thread t = new Thread(() =>
             {
@@ -974,6 +987,7 @@ namespace TSUBotDesktop
                 try
                 {
                     Process p = Process.Start(psi);
+                    loginProcess = p;
                     p.OutputDataReceived += (s, ev) =>
                     {
                         if (!string.IsNullOrEmpty(ev.Data))
@@ -987,7 +1001,9 @@ namespace TSUBotDesktop
                     p.BeginOutputReadLine();
                     p.BeginErrorReadLine();
                     p.WaitForExit();
-                    AppendLog("ปิดหน้าต่างล็อกอินแล้ว บัญชีถูกบันทึกในระบบเรียบร้อย", UiTheme.Success);
+                    if (loginProcess == p) loginProcess = null;
+                    if (!resetInProgress)
+                        AppendLog("ปิดหน้าต่างล็อกอินแล้ว บัญชีถูกบันทึกในระบบเรียบร้อย", UiTheme.Success);
                 }
                 catch (Exception ex)
                 {
@@ -1000,6 +1016,7 @@ namespace TSUBotDesktop
 
         private void BtnStart_Click(object sender, EventArgs e)
         {
+            if (resetInProgress) return;
             CourseItem ci = comboCourse.SelectedItem as CourseItem;
             string courseCode = ci != null ? ci.Code : (comboCourse.SelectedItem != null ? comboCourse.SelectedItem.ToString() : "");
             if (courseCode.Contains(" - ")) courseCode = courseCode.Split(new string[] { " - " }, StringSplitOptions.None)[0];
@@ -1280,6 +1297,185 @@ namespace TSUBotDesktop
             {
                 AppendLog(string.Format("ข้อผิดพลาดในการยกเลิก {0}: {1}", workerId, ex.Message), UiTheme.Danger);
             }
+        }
+
+        private void BtnResetBrowser_Click(object sender, EventArgs e)
+        {
+            if (resetInProgress) return;
+
+            string profileDir = Path.GetFullPath(Path.Combine(appDir, PROFILE_DIR));
+            List<string> workerIds = new List<string>(runningWorkers.Keys);
+            Process login = loginProcess;
+            bool loginOpen = false;
+            try { loginOpen = login != null && !login.HasExited; } catch { }
+            int activeCount = workerIds.Count + (loginOpen ? 1 : 0);
+
+            string msg =
+                "ล้างแคชเบราว์เซอร์ของบอท?\n\n" +
+                "จะลบ: แคช คุกกี้ ข้อมูลเว็บ และการล็อกอิน TSU ที่บันทึกไว้\n(" + profileDir + ")\n\n" +
+                "ไม่ลบ: ฐานเฉลย การตั้งค่า บันทึกการทำงาน และตัวเบราว์เซอร์ที่ดาวน์โหลดไว้\n\n" +
+                "หลังล้างแล้วต้องกด \"เปิด Chrome เข้าสู่ระบบ\" เพื่อล็อกอินใหม่";
+            if (activeCount > 0)
+            {
+                msg = string.Format("ขณะนี้มีบอทหรือหน้าต่างล็อกอินทำงานอยู่ {0} หน้าต่าง\nโปรแกรมจะหยุดและปิด Chrome ทั้งหมดก่อนล้าง\n\n", activeCount) + msg;
+            }
+            if (MessageBox.Show(msg, "ยืนยันล้างแคชเบราว์เซอร์", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) != DialogResult.Yes)
+                return;
+
+            resetInProgress = true;
+            SetResetBusy(true);
+
+            List<Process> toStop = new List<Process>();
+            foreach (string id in workerIds)
+            {
+                Process p;
+                if (!runningWorkers.TryGetValue(id, out p)) continue;
+                try { p.StandardInput.WriteLine("stop"); } catch { }
+                toStop.Add(p);
+                runningWorkers.Remove(id);
+                if (workerPausedStates.ContainsKey(id)) workerPausedStates.Remove(id);
+                UpdateWorkerStatus(id, "หยุดเพื่อล้างแคชเบราว์เซอร์");
+            }
+            if (loginOpen) toStop.Add(login);
+            UpdatePauseButtons(false);
+            AppendLog(activeCount > 0 ? "กำลังหยุดบอท/ปิด Chrome และล้างแคชเบราว์เซอร์..." : "กำลังล้างแคชเบราว์เซอร์...", UiTheme.Warning);
+
+            Thread t = new Thread(() =>
+            {
+                bool removed = false;
+                string error = null;
+                try
+                {
+                    StopProcessesForReset(toStop);
+                    if (Directory.Exists(profileDir)) KillChromeUsingProfile(profileDir);
+                    removed = DeleteProfileDir(profileDir);
+                }
+                catch (Exception ex)
+                {
+                    error = ex.Message;
+                }
+
+                this.BeginInvoke(new Action(() =>
+                {
+                    resetInProgress = false;
+                    SetResetBusy(false);
+                    if (error == null)
+                    {
+                        string done = removed
+                            ? "ล้างแคชเบราว์เซอร์เรียบร้อยแล้ว กรุณากด \"เปิด Chrome เข้าสู่ระบบ\" เพื่อล็อกอิน TSU ใหม่ก่อนเริ่มบอท"
+                            : "ไม่มีแคชเบราว์เซอร์ให้ล้าง (ยังไม่เคยเปิดเบราว์เซอร์ หรือถูกล้างไปแล้ว)";
+                        AppendLog(done, UiTheme.Success);
+                        MessageBox.Show(done, "สำเร็จ", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        AppendLog("ล้างแคชเบราว์เซอร์ไม่สำเร็จ: " + error, UiTheme.Danger);
+                        MessageBox.Show(
+                            "ล้างแคชเบราว์เซอร์ไม่สำเร็จ\n\n" + error +
+                            "\n\nกรุณาปิดหน้าต่าง Chrome ของบอททั้งหมดแล้วลองใหม่อีกครั้ง",
+                            "ล้มเหลว", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }));
+            });
+            t.IsBackground = true;
+            t.Start();
+        }
+
+        private void SetResetBusy(bool busy)
+        {
+            btnResetBrowser.Enabled = !busy;
+            btnResetBrowser.Text = busy ? "กำลังล้าง..." : "ล้างแคชเบราว์เซอร์";
+            btnStart.Enabled = !busy;
+            btnLogin.Enabled = !busy;
+        }
+
+        // Give each worker a moment to close its browser after "stop", then kill whatever is left
+        // (node + its Chrome children) so no process keeps the profile files locked.
+        private static void StopProcessesForReset(List<Process> procs)
+        {
+            DateTime deadline = DateTime.UtcNow.AddSeconds(6);
+            foreach (Process p in procs)
+            {
+                try
+                {
+                    int remaining = (int)Math.Max(0, (deadline - DateTime.UtcNow).TotalMilliseconds);
+                    if (!p.HasExited) p.WaitForExit(remaining);
+                }
+                catch { }
+            }
+            foreach (Process p in procs)
+            {
+                try
+                {
+                    if (!p.HasExited) RunHidden("taskkill.exe", "/PID " + p.Id + " /T /F", 10000);
+                }
+                catch { }
+                try { if (!p.HasExited) p.Kill(); } catch { }
+            }
+        }
+
+        // Chrome children can outlive a killed node.exe; find them by their --user-data-dir.
+        private static void KillChromeUsingProfile(string profileDir)
+        {
+            string script =
+                "$d = '--user-data-dir=" + profileDir.TrimEnd(new char[] { '\\' }).Replace("'", "''") + "'.ToLowerInvariant();" +
+                "Get-WmiObject Win32_Process -Filter \"Name='chrome.exe' OR Name='chrome-headless-shell.exe'\" | " +
+                "Where-Object { $_.CommandLine -and $_.CommandLine.ToLowerInvariant().Contains($d) } | " +
+                "ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }";
+            string encoded = Convert.ToBase64String(Encoding.Unicode.GetBytes(script));
+            try { RunHidden("powershell.exe", "-NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand " + encoded, 20000); } catch { }
+            Thread.Sleep(500);
+        }
+
+        private static void RunHidden(string file, string args, int timeoutMs)
+        {
+            ProcessStartInfo psi = new ProcessStartInfo
+            {
+                FileName = file,
+                Arguments = args,
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                WindowStyle = ProcessWindowStyle.Hidden
+            };
+            using (Process p = Process.Start(psi))
+            {
+                if (p != null && !p.WaitForExit(timeoutMs))
+                {
+                    try { p.Kill(); } catch { }
+                }
+            }
+        }
+
+        // Returns false when there was no profile to delete; throws if it could not be fully removed.
+        private bool DeleteProfileDir(string profileDir)
+        {
+            string full = Path.GetFullPath(profileDir).TrimEnd(new char[] { '\\', '/' });
+            string parent = Path.GetDirectoryName(full);
+            string expectedParent = Path.GetFullPath(appDir).TrimEnd(new char[] { '\\', '/' });
+            if (!string.Equals(Path.GetFileName(full), PROFILE_DIR, StringComparison.OrdinalIgnoreCase) ||
+                !string.Equals(parent, expectedParent, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("ไม่ลบโฟลเดอร์ที่ไม่ใช่โปรไฟล์เบราว์เซอร์ของบอท: " + full);
+            }
+            if (!Directory.Exists(full)) return false;
+
+            Exception last = null;
+            for (int attempt = 0; attempt < 8; attempt++)
+            {
+                try
+                {
+                    foreach (string f in Directory.GetFiles(full, "*", SearchOption.AllDirectories))
+                    {
+                        try { File.SetAttributes(f, FileAttributes.Normal); } catch { }
+                    }
+                    Directory.Delete(full, true);
+                }
+                catch (IOException ex) { last = ex; }
+                catch (UnauthorizedAccessException ex) { last = ex; }
+                if (!Directory.Exists(full)) return true;
+                Thread.Sleep(750);
+            }
+            throw new IOException("ยังมีไฟล์ถูกใช้งานอยู่ ลบโฟลเดอร์ " + full + " ไม่หมด" + (last != null ? " (" + last.Message + ")" : ""));
         }
 
         private void BtnSettings_Click(object sender, EventArgs e)

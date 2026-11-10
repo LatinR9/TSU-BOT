@@ -7,6 +7,7 @@ const { chromium } = require('playwright');
 const dbManager = require('./db_manager');
 const AutomationWorker = require('./worker');
 const updater = require('./updater');
+const browserReset = require('./browser_reset');
 
 const app = express();
 const server = http.createServer(app);
@@ -25,6 +26,7 @@ app.get('/', (req, res) => {
 // Multi-Worker Store
 const workers = new Map();
 let workerCounter = 1;
+let resetInProgress = false;
 
 // Broadcast to WebSocket clients
 function broadcast(type, payload) {
@@ -47,6 +49,7 @@ app.get('/api/check-update', async (req, res) => {
 // 2. Open Manual Login Browser
 let loginContext = null;
 app.post('/api/login-browser', async (req, res) => {
+  if (resetInProgress) return res.status(409).json({ success: false, error: 'กำลังล้างแคชเบราว์เซอร์ กรุณารอสักครู่' });
   try {
     if (loginContext) {
       await loginContext.close().catch(() => {});
@@ -103,6 +106,7 @@ app.get('/api/workers', (req, res) => {
 });
 
 app.post('/api/workers/create', (req, res) => {
+  if (resetInProgress) return res.status(409).json({ success: false, error: 'กำลังล้างแคชเบราว์เซอร์ กรุณารอสักครู่' });
   const { courseCode, targetUrl, speedMode } = req.body;
   const id = `Worker-${workerCounter++}`;
 
@@ -118,7 +122,7 @@ app.post('/api/workers/create', (req, res) => {
   );
 
   workers.set(id, worker);
-  worker.start(); // Run async in background
+  worker.runPromise = worker.start(); // Run async in background
 
   res.json({
     success: true,
@@ -154,6 +158,42 @@ app.post('/api/workers/:id/stop', async (req, res) => {
     res.json({ success: true });
   } else {
     res.status(404).json({ error: 'Worker not found' });
+  }
+});
+
+// 5. Reset browser: stop everything using the profile, then wipe it (cache, cookies, storage, login)
+app.post('/api/reset-browser', async (req, res) => {
+  if (resetInProgress) {
+    return res.status(409).json({ success: false, error: 'กำลังล้างแคชเบราว์เซอร์อยู่แล้ว' });
+  }
+  const active = workers.size + (loginContext ? 1 : 0);
+  if (active > 0 && !(req.body && req.body.stopRunning)) {
+    return res.status(409).json({ success: false, running: active, error: 'มีบอทหรือหน้าต่างล็อกอินกำลังทำงานอยู่' });
+  }
+
+  resetInProgress = true;
+  try {
+    const list = [...workers.values()];
+    await Promise.all(list.map(w => browserReset.stopWorkerBrowser(w)));
+    await Promise.all(list.map(w => Promise.race([
+      Promise.resolve(w.runPromise).catch(() => {}),
+      new Promise(r => setTimeout(r, 10000))
+    ])));
+    // A worker that was still launching may have opened its browser after the first close.
+    await Promise.all(list.map(w => browserReset.stopWorkerBrowser(w)));
+    workers.clear();
+    if (loginContext) {
+      await loginContext.close().catch(() => {});
+      loginContext = null;
+    }
+    list.forEach(w => broadcast('status', { workerId: w.id, status: 'stopped', currentStep: 'Stopped for browser reset' }));
+
+    const result = await browserReset.resetBrowserProfile(__dirname);
+    res.json({ success: true, stopped: list.length, removed: result.removed, path: result.path });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  } finally {
+    resetInProgress = false;
   }
 });
 
