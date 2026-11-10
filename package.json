@@ -3,11 +3,25 @@
   "version": "1.0.0",
   "description": "TSU MOOC & Course Automation Suite with Multi-Browser & Auto-Quiz",
   "main": "server.js",
+  "bin": "server.js",
   "scripts": {
     "start": "node server.js",
-    "build:exe": "npx @yao-pkg/pkg . --targets node18-win-x64 --output dist/TSU-BOT.exe"
+    "build:exe": "npx -y @yao-pkg/pkg . --targets node18-win-x64 --output dist/TSU-BOT.exe"
   },
-  "keywords": ["tsu", "mooc", "automation", "playwright", "bot"],
+  "pkg": {
+    "assets": [
+      "public/**/*",
+      "tsu_answers.json",
+      "tsu_answers.csv"
+    ]
+  },
+  "keywords": [
+    "tsu",
+    "mooc",
+    "automation",
+    "playwright",
+    "bot"
+  ],
   "author": "LatinR9",
   "license": "MIT",
   "dependencies": {
