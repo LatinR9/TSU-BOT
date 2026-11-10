@@ -1,7 +1,7 @@
-// Progress tab flow of the real AutomationWorker.start(): read Progress first, go straight into every
-// quiz that is 0/N or still has unsubmitted problems (never resubmitting answered ones), then re-check
-// Progress at the end with one bounded extra pass. Fixture: test/fixtures/course (not the live TSU site),
-// laid out like the TSU progress tab ("Introduction › Pre Test 0/30", "Quiz : Unit 1 : Chapter 3 17/19").
+// Fallback path of AutomationWorker.start() when the Course tab outline cannot be read (spec.noCourseOutline):
+// read Progress first, go straight into every quiz that is 0/N or still has unsubmitted problems (never
+// resubmitting answered ones), then re-check Progress at the end with one bounded extra pass.
+// Fixture: test/fixtures/course (not the live TSU site), laid out like the TSU progress tab.
 const { test, before, after } = require('node:test');
 const assert = require('node:assert');
 const fs = require('fs');
@@ -22,6 +22,7 @@ playwright.chromium.launchPersistentContext = (dir, opts) => realLaunch(fs.mkdte
 const course = ({ withUnanswerable }) => ({
   courseCode: 'TSUGE00152',
   courseName: 'ภาษาอังกฤษเพื่อการสื่อสาร 2',
+  noCourseOutline: true,
   outline: ['Introduction', 'Unit 1 : Entertainment', 'Unit 2 : Sport and health', 'Unit 5 : Food'],
   sequences: [
     { id: 'pre', title: 'Pre Test', chapter: 'Introduction' },
@@ -111,11 +112,12 @@ before(async () => {
 });
 after(() => { playwright.chromium.launchPersistentContext = realLaunch; });
 
-test('reads Progress first and lists 0-point / partial quizzes', () => {
+test('outline unreadable: falls back to Progress first and lists 0-point / partial quizzes', () => {
   const r = full;
   const ev = r.srv.state.events;
   const firstProgress = firstIdx(r, e => e.type === 'progress-view');
   const firstEnter = firstIdx(r, e => e.type === 'enter');
+  assert.ok(r.logs.some(l => l.includes('อ่านแท็บ Course ไม่ได้')), failMsg(r));
   assert.ok(firstProgress >= 0 && firstProgress < firstEnter, `Progress page was not opened before the first unit${failMsg(r)}`);
   const start = r.progress[0];
   assert.strictEqual(start.completion, Math.round((100 * 2) / 8), failMsg(r));

@@ -1,6 +1,6 @@
-// Course tab sweep of the real AutomationWorker.start(): when Progress is below 100% after the run, open
-// the Course tab, expand every section, open each subsection without the filled check (hollow grey
-// check-circle), work it, return and re-check until all are checked or the pass limit is hit.
+// Primary flow of AutomationWorker.start(): the Course tab outline (Expand all, filled vs hollow check)
+// decides what to work on. Unchecked items are opened (respecting the mode picker, never resubmitting),
+// the Course tab is re-checked in bounded passes, and Progress is opened only at the end to confirm 100%.
 // Fixture: test/fixtures/course (outline modeled on frontend-app-learning, not the live TSU site).
 const { test, before, after } = require('node:test');
 const assert = require('node:assert');
@@ -20,8 +20,8 @@ playwright.chromium.launchPersistentContext = (dir, opts) => realLaunch(fs.mkdte
 const U1 = 'Unit 1 : Entertainment';
 const U2 = 'Unit 2 : Sport and health';
 
-// The run is resumed at the last unit, so everything earlier is only reachable from Progress or the
-// Course tab. Every unfinished item sits in a section that starts collapsed (only the first is open).
+// The run is started on the last unit; the bot must still go to the Course tab first. Every unfinished
+// item sits in a section that starts collapsed (only the first is open).
 const resumed = {
   courseCode: 'TSUGE00152',
   courseName: 'ภาษาอังกฤษเพื่อการสื่อสาร 2',
@@ -105,6 +105,7 @@ async function run(spec, modes, startUnit) {
 }
 
 const failMsg = r => `\n--- worker log ---\n${r.logs.join('\n')}`;
+const firstIdx = (r, pred) => r.srv.state.events.findIndex(pred);
 const afterFirstOutline = r => {
   const i = r.srv.state.events.findIndex(e => e.type === 'outline-view');
   return i < 0 ? [] : r.srv.state.events.slice(i);
@@ -120,26 +121,38 @@ before(async () => {
 });
 after(() => { playwright.chromium.launchPersistentContext = realLaunch; });
 
-test('Progress below 100%: Course tab sweep opens every unchecked item and reaches 100%', () => {
+test('Course tab first: opens every unchecked item, Progress only at the end, reaches 100%', () => {
   const r = ok;
   assert.strictEqual(r.status, 'completed', failMsg(r));
   assert.deepStrictEqual(Object.entries(r.srv.state.complete).filter(([, v]) => !v).map(([k]) => k), [], failMsg(r));
   assert.strictEqual(r.final.completion, 100, failMsg(r));
-  assert.deepStrictEqual(r.progress.map(p => p.phase), ['ก่อนเริ่ม', 'หลังเรียนจบรอบ', 'หลังรอบเก็บตก'], failMsg(r));
-  assert.strictEqual(r.progress[r.progress.length - 1].completion, 100, failMsg(r));
+  assert.deepStrictEqual(r.progress.map(p => p.phase), ['ตรวจยืนยันตอนจบ'], failMsg(r));
+  assert.strictEqual(r.progress[0].completion, 100, failMsg(r));
   assert.ok(r.logs[r.logs.length - 1].includes('ครบ 100% แล้ว'), failMsg(r));
+  assert.ok(r.logs[r.logs.length - 1].includes('Course tab ยังไม่ติ๊ก 0 รายการ'), failMsg(r));
 
-  // First pass: every hollow item from the collapsed Unit 1 section, in outline order; the graded quiz
-  // was already finished from Progress and the checked items are left alone.
+  const firstOutline = firstIdx(r, e => e.type === 'outline-view');
+  const firstProgress = firstIdx(r, e => e.type === 'progress-view');
+  const lastOutlineLink = r.srv.state.events.map((e, i) => e.type === 'outline-link' ? i : -1).filter(i => i >= 0).pop();
+  assert.ok(firstOutline >= 0 && firstOutline < firstProgress, `Course tab was not opened before Progress${failMsg(r)}`);
+  assert.ok(lastOutlineLink < firstProgress, `Progress opened before the outline sweep finished${failMsg(r)}`);
+  assert.strictEqual(r.srv.state.events.filter(e => e.type === 'progress-link').length, 0, failMsg(r));
+
+  // First pass: every hollow item, including the graded quiz Progress used to pick up first.
   const first = r.outline[0];
   assert.deepStrictEqual(first.open.map(o => o.name), ['Movies Vocabulary', 'Sheet : Movies Vocabulary',
-    'Practice : Unit 1 : Chapter 1', 'Passive Voice (Present Simple and Past Simple) # 1'], failMsg(r));
+    'Quiz : Unit 1 : Chapter 1', 'Practice : Unit 1 : Chapter 1',
+    'Passive Voice (Present Simple and Past Simple) # 1'], failMsg(r));
   assert.ok(first.open.every(o => o.section === U1 && o.state === 'incomplete'), failMsg(r));
   assert.strictEqual(first.total, 8, `all 8 subsections read after Expand all${failMsg(r)}`);
-  ['intro', 'q11', 'sheet2', 'q21'].forEach(s => assert.strictEqual(seqOpens(r, s), 0, `${s} is checked and must not be reopened${failMsg(r)}`));
+  ['intro', 'sheet2', 'q21'].forEach(s => assert.strictEqual(seqOpens(r, s), 0, `${s} is checked and must not be reopened${failMsg(r)}`));
+  assert.strictEqual(seqOpens(r, 'q11'), 1, failMsg(r));
+  assert.ok(r.logs.some(l => l.includes('[ข้ามทันที]') && l.includes('ขึ้นติ๊กถูกแล้ว') && l.includes('Course introduction')
+    && l.includes('Sheet : Sport') && l.includes('Quiz : Unit 2 : Chapter 1')), failMsg(r));
+  assert.ok(r.outline[0].checked && r.outline[0].checked.map(c => c.name).includes('Quiz : Unit 2 : Chapter 1'), failMsg(r));
 
   // The video that needs a second viewing is retried on pass 2, then pass 3 finds everything checked.
-  assert.deepStrictEqual(r.outline.map(o => o.open.length), [4, 1, 0], failMsg(r));
+  assert.deepStrictEqual(r.outline.map(o => o.open.length), [5, 1, 0], failMsg(r));
   assert.strictEqual(seqOpens(r, 'pv1'), 2, failMsg(r));
   assert.strictEqual(seqOpens(r, 'vocab'), 1, failMsg(r));
   assert.ok(r.srv.state.events.some(e => e.type === 'complete-ignored' && e.unit === 'pv1video'), failMsg(r));
@@ -167,7 +180,12 @@ test('mode off and unfinishable items: bounded passes, each left item logged wit
   assert.ok(r.logs[head + 1].includes('Movies Vocabulary') && r.logs[head + 1].includes('ไม่ได้เลือกให้ทำวิดีโอ'), failMsg(r));
   assert.ok(r.logs[head + 2].includes('Sheet : Broken viewer') && r.logs[head + 2].includes('เปิดทำแล้ว 3 ครั้ง'), failMsg(r));
   assert.ok(r.logs[r.logs.length - 1].includes('ยังไม่ครบ 100%'), failMsg(r));
+  assert.ok(r.logs[r.logs.length - 1].includes('Course tab ยังไม่ติ๊ก 2 รายการ'), failMsg(r));
   assert.ok(r.logs.some(l => l.includes('ไม่ได้เลือกทำ วิดีโอ')), failMsg(r));
+  assert.deepStrictEqual(r.progress.map(p => p.phase), ['ตรวจยืนยันตอนจบ'], failMsg(r));
+  const firstOutline = firstIdx(r, e => e.type === 'outline-view');
+  const firstProgress = firstIdx(r, e => e.type === 'progress-view');
+  assert.ok(firstOutline >= 0 && firstOutline < firstProgress, failMsg(r));
 });
 
 test('outline parser: filled vs hollow check across icon markups', async () => {

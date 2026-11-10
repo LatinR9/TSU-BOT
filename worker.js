@@ -190,11 +190,17 @@ function parseProgressPage() {
 function parseCourseOutline() {
   const clean = s => String(s || '').replace(/[\u200b-\u200d\ufeff]/g, '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
   const strip = s => clean(s).replace(/,\s*(?:in)?complete(?:d)?(?:\s+(?:section|assignment))?\s*$/i, '').trim();
+  const waiting = !!document.querySelector('.spinner, [role="status"], .loading, [class*="skeleton"]');
   const roots = Array.from(document.querySelectorAll('#courseHome-outline, .course-outline, ol.outline-sections, [class*="course-outline"]'))
     .filter((r, i, all) => !all.some(o => o !== r && o.contains(r)));
-  const scope = roots.length ? roots : [document.querySelector('main, #main-content') || document.body];
-  let links = scope.flatMap(r => Array.from(r.querySelectorAll('a[href*="type@sequential"], a[href*="jump_to"]')));
-  if (!links.length) links = scope.flatMap(r => Array.from(r.querySelectorAll('a[href*="block-v1:"]')));
+  // Without a real outline container, do not scrape "Resume course" / random unit links — that is
+  // not the Course tab outline, and the Progress-driven fallback should take over.
+  if (!roots.length) {
+    return { items: [], rendered: false, waiting };
+  }
+  let links = roots.flatMap(r => Array.from(r.querySelectorAll('a[href*="type@sequential"], a[href*="jump_to"]')));
+  if (!links.length) links = roots.flatMap(r => Array.from(r.querySelectorAll('a[href*="block-v1:"]')));
+  links = links.filter(a => !/^(?:resume|start)\s*course$|^(?:เริ่มเรียน|เรียนต่อ)$/i.test(clean(a.innerText || a.textContent)));
 
   const iconState = icon => {
     const prefix = icon.getAttribute('data-prefix') || '';
@@ -243,7 +249,7 @@ function parseCourseOutline() {
       how: st ? st.how : 'no icon'
     });
   }
-  return { items, rendered: links.length > 0 || !!document.querySelector('#courseHome-outline, .course-outline') };
+  return { items, rendered: true, waiting };
 }
 
 // Runs in the courseware page: where the active unit sits inside the current sequence nav.
@@ -311,6 +317,8 @@ class AutomationWorker {
     this.progressOnly = !!options.progressOnly;
     this.courseId = '';
     this.progressFirstDone = false;
+    this.outlineFirstDone = false;
+    this.outlineUnreadable = false;
     this.mainPassAtCourseStart = null;
     this.leftIncomplete = new Set();
     this.workedProgressItems = new Set();
@@ -393,7 +401,13 @@ class AutomationWorker {
         this.setStatus(data ? 'completed' : 'error', 'Progress checked');
         return;
       }
-      if (this.courseIdFromUrl(this.page.url())) await this.progressFirst();
+      if (this.courseIdFromUrl(this.page.url())) {
+        if (await this.outlineFirst()) {
+          this.setStatus(this.shouldStop ? 'stopped' : 'completed', 'Course outline checked');
+          return;
+        }
+        await this.progressFirst();
+      }
 
       this.setStatus('running', 'Entering Course');
 
@@ -421,6 +435,12 @@ class AutomationWorker {
           }
         }
 
+        if (!this.outlineFirstDone && this.courseIdFromUrl(this.page.url())) {
+          if (await this.outlineFirst()) {
+            this.setStatus(this.shouldStop ? 'stopped' : 'completed', 'Course outline checked');
+            break;
+          }
+        }
         if (!this.progressFirstDone && this.courseIdFromUrl(this.page.url())) {
           await this.progressFirst();
           continue;
@@ -1443,7 +1463,8 @@ class AutomationWorker {
     }
   }
 
-  // Before the unit-by-unit pass: read Progress, then go straight into every unfinished quiz.
+  // Fallback only (Course tab unreadable). Before the unit-by-unit pass: read Progress, then go
+  // straight into every unfinished quiz.
   async progressFirst() {
     this.progressFirstDone = true;
     const returnUrl = this.page.url();
@@ -1460,7 +1481,7 @@ class AutomationWorker {
     await this.sleep(2000);
   }
 
-  // After the last unit: re-read Progress; if not 100% or quizzes are still 0 points, do one extra
+  // Fallback only. After the last unit: re-read Progress; if not 100% or quizzes are still 0 points, do one extra
   // pass: unfinished quizzes from Progress, then (still below 100%) the Course tab sweep over every
   // outline item without a filled check. Then read Progress again and log the final result.
   async finalProgressCheck() {
@@ -1473,7 +1494,9 @@ class AutomationWorker {
       this.log(`🔁 ยังไม่ครบ 100% หรือยังมีแบบฝึก 0 คะแนน — ทำรอบเก็บตกอีก 1 รอบ (ตามโหมดที่เลือก)`);
       if (data) await this.workOpenQuizzes(data);
       let sweep = null;
-      if (below100(data) && !this.shouldStop) sweep = await this.courseOutlineSweep(data);
+      if (below100(data) && !this.shouldStop) {
+        sweep = this.outlineUnreadable ? { readable: false, open: [] } : await this.courseOutlineSweep(data);
+      }
       if (sweep && !sweep.readable && !this.shouldStop) await this.legacyCatchUp(data);
       if (this.shouldStop) return;
       data = await this.openProgressPage();
@@ -1484,6 +1507,10 @@ class AutomationWorker {
       }
     }
     if (!data) return;
+    this.logFinalSummary(data, s);
+  }
+
+  logFinalSummary(data, s, outlineOpen = null) {
     const done = data.completion !== null && data.completion >= 100;
     const skippedModes = ['quiz', 'video', 'doc'].filter(m => !this.modes.has(m));
     if (!done && skippedModes.length) {
@@ -1496,7 +1523,37 @@ class AutomationWorker {
     } else if (this.modes.has('quiz')) {
       this.log(`✅ ไม่มีข้อที่ค้างไม่ได้ส่งในแบบฝึกที่เปิดไป`);
     }
-    this.log(`🏁 สรุป: ความคืบหน้า ${data.completion === null ? '?' : data.completion + '%'} | แบบฝึก 0 คะแนนเหลือ ${s.zero.length} รายการ${s.zero.length ? ` (${s.zero.map(r => r.name).join(', ')})` : ''} | ${done ? 'ครบ 100% แล้ว 🎉' : 'ยังไม่ครบ 100%'}`);
+    this.log(`🏁 สรุป: ความคืบหน้า ${data.completion === null ? '?' : data.completion + '%'}`
+      + ` | แบบฝึก 0 คะแนนเหลือ ${s.zero.length} รายการ${s.zero.length ? ` (${s.zero.map(r => r.name).join(', ')})` : ''}`
+      + `${outlineOpen === null ? '' : ` | Course tab ยังไม่ติ๊ก ${outlineOpen} รายการ`}`
+      + ` | ${done ? 'ครบ 100% แล้ว 🎉' : 'ยังไม่ครบ 100%'}`);
+  }
+
+  // Primary flow: the Course tab outline decides what to work on; Progress is opened only at the very
+  // end to confirm 100% and print the summary. Returns false when the outline cannot be read, so the
+  // caller falls back to the Progress-driven run.
+  async outlineFirst() {
+    this.outlineFirstDone = true;
+    const sweep = await this.courseOutlineSweep(null);
+    if (!sweep.readable) {
+      this.outlineUnreadable = true;
+      this.log(`↩️ อ่านแท็บ Course ไม่ได้ — ใช้วิธีเดิม (หน้า Progress + เรียนตามลำดับบทเรียน)`, 'warn');
+      return false;
+    }
+    if (this.shouldStop) return true;
+    this.log(`📊 ตรวจแท็บ Course ครบแล้ว เปิดหน้า Progress เพื่อตรวจยืนยัน 100%...`);
+    this.setStatus('running', 'Confirming Progress');
+    const data = await this.openProgressPage();
+    if (!data) {
+      this.log(`🏁 สรุป: อ่านหน้า Progress ไม่ได้ | Course tab ยังไม่ติ๊ก ${sweep.open.length} รายการ | ${sweep.open.length ? 'ยังไม่ครบ' : 'Course tab ติ๊กครบแล้ว (ยืนยัน % จาก Progress ไม่ได้)'}`, 'warn');
+      return true;
+    }
+    const s = this.summarizeProgress(data, ' - ตรวจยืนยันตอนจบ');
+    if (!sweep.open.length && (data.completion === null || data.completion < 100)) {
+      this.log(`ℹ️ Course tab ติ๊กครบทุกรายการแล้ว แต่ Progress ยังแสดง ${data.completion === null ? '?' : data.completion + '%'} (อาจมีเนื้อหาที่ยังไม่เปิดให้เรียน หรือ Progress ยังไม่อัปเดต)`, 'warn');
+    }
+    this.logFinalSummary(data, s, sweep.open.length);
+    return true;
   }
 
   // Used only when the Course tab outline cannot be read: revisit units left without a check, and
@@ -1547,6 +1604,8 @@ class AutomationWorker {
       await this.sleep(1000);
       data = await this.page.evaluate(parseCourseOutline).catch(() => null);
       if (data && data.items.length) break;
+      // Course tab loaded with no outline: stop waiting so the Progress-driven fallback can start.
+      if (i >= 2 && data && !data.rendered && !data.waiting) break;
     }
     if (!data || !data.items.length) return null;
 
@@ -1616,10 +1675,19 @@ class AutomationWorker {
         this.log(`⚠️ อ่านโครงสร้างรายวิชาในแท็บ Course ไม่ได้ (ไม่พบรายการบทเรียน) — ใช้วิธีเดิมแทน`, 'warn');
         return { readable: false, open: [] };
       }
+      // Filled check (done === true) = already complete → never open, skip immediately.
+      const checked = outline.items.filter(i => i.done === true);
       open = outline.items.filter(i => i.done !== true);
       const unknown = open.filter(i => i.done === null);
-      this.log(`📚 [Course tab ตรวจครั้งที่ ${pass}] ทั้งหมด ${outline.items.length} รายการ | ติ๊กแล้ว ${outline.items.length - open.length} | ยังไม่ติ๊ก ${open.length}${unknown.length ? ` (อ่านไอคอนไม่ได้ ${unknown.length})` : ''}`);
-      this.onOutline({ pass, total: outline.items.length, open: open.map(i => ({ section: i.section, name: i.name, href: i.href, state: i.done === null ? 'unknown' : 'incomplete' })) });
+      this.log(`📚 [Course tab ตรวจครั้งที่ ${pass}] ทั้งหมด ${outline.items.length} รายการ | ติ๊กแล้ว ${checked.length} | ยังไม่ติ๊ก ${open.length}${unknown.length ? ` (อ่านไอคอนไม่ได้ ${unknown.length})` : ''}`);
+      if (checked.length) {
+        this.log(`⏭️ [ข้ามทันที] ${checked.length} รายการขึ้นติ๊กถูกแล้ว — ไม่เปิดทำ: ${checked.map(label).join(', ')}`);
+      }
+      this.onOutline({
+        pass, total: outline.items.length,
+        checked: checked.map(i => ({ section: i.section, name: i.name, href: i.href })),
+        open: open.map(i => ({ section: i.section, name: i.name, href: i.href, state: i.done === null ? 'unknown' : 'incomplete' }))
+      });
       if (!open.length) {
         this.log(`✅ ทุกรายการในแท็บ Course ขึ้นติ๊กครบแล้ว`);
         return { readable: true, open };
@@ -1631,6 +1699,32 @@ class AutomationWorker {
       for (const item of todo) {
         if (this.shouldStop) break;
         const key = keyOf(item);
+        // Re-read this row's icon just before opening — if it filled since the last pass, skip.
+        const live = await this.page.evaluate((hrefAttr, href) => {
+          const a = hrefAttr
+            ? document.querySelector(`a[href="${hrefAttr.replace(/["\\]/g, '\\$&')}"]`)
+            : Array.from(document.querySelectorAll('a[href]')).find(x => x.href === href);
+          if (!a) return null;
+          const row = a.closest('li') || a.parentElement;
+          const sr = String(Array.from(row.querySelectorAll('.sr-only, .sr, .visually-hidden')).map(e => e.textContent).join(' ')).toLowerCase();
+          if (/incomplete|not completed|ยังไม่/.test(sr)) return false;
+          if (/complete|เสร็จ/.test(sr)) return true;
+          const icon = row.querySelector('svg[data-prefix], svg[data-icon], .fa-check-circle, [class*="fa-check"]');
+          if (!icon) return null;
+          const prefix = icon.getAttribute('data-prefix') || '';
+          const name = (icon.getAttribute('data-icon') || '') + ' ' + (icon.getAttribute('class') || '');
+          if (/incomplete|not completed/.test((icon.getAttribute('title') || '') + ' ' + (icon.querySelector('title') && icon.querySelector('title').textContent || ''))) return false;
+          if (prefix === 'fas' && /check/.test(name)) return true;
+          if (prefix === 'far' && /check/.test(name)) return false;
+          const cls = String((icon.getAttribute('class') || '') + ' ' + ((icon.parentElement && icon.parentElement.className) || '')).toLowerCase();
+          if (/text-success|complete/.test(cls)) return true;
+          if (/text-gray|text-muted|incomplete/.test(cls)) return false;
+          return null;
+        }, item.hrefAttr || '', item.href).catch(() => null);
+        if (live === true) {
+          this.log(`⏭️ [ข้ามทันที] ${label(item)} — ขึ้นติ๊กถูกแล้ว (ไม่เปิดทำ)`);
+          continue;
+        }
         const kind = this.outlineItemKind(item, progressData);
         if (kind && !this.modes.has(kind)) {
           givenUp.set(key, `ไม่ได้เลือกให้ทำ${NAMES[kind]}`);
