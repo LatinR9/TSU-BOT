@@ -1,9 +1,9 @@
 :root {
-  --bg-mist: #e8f2ef;
-  --bg-wash: #f4faf7;
-  --surface: rgba(255, 255, 255, 0.72);
+  --bg-mist: #d9ebe4;
+  --bg-wash: #eef7f2;
+  --surface: rgba(255, 255, 255, 0.62);
   --surface-strong: #ffffff;
-  --line: rgba(15, 61, 48, 0.12);
+  --line: rgba(15, 61, 48, 0.14);
   --text: #16352c;
   --text-muted: #5a7369;
   --brand: #0b5f4b;
@@ -41,9 +41,10 @@ body {
   font-family: var(--font-body);
   color: var(--text);
   background:
-    radial-gradient(1100px 520px at 8% -10%, rgba(36, 140, 112, 0.18), transparent 58%),
-    radial-gradient(900px 480px at 92% 0%, rgba(196, 122, 26, 0.12), transparent 55%),
-    linear-gradient(180deg, var(--bg-wash) 0%, var(--bg-mist) 55%, #dfece7 100%);
+    radial-gradient(980px 460px at 12% -8%, rgba(36, 140, 112, 0.28), transparent 60%),
+    radial-gradient(820px 420px at 88% 4%, rgba(196, 122, 26, 0.16), transparent 58%),
+    radial-gradient(700px 360px at 50% 100%, rgba(11, 95, 75, 0.12), transparent 65%),
+    linear-gradient(180deg, var(--bg-wash) 0%, var(--bg-mist) 52%, #cfe3db 100%);
   padding: clamp(20px, 4vw, 40px);
   line-height: 1.5;
   position: relative;
@@ -237,7 +238,16 @@ header {
   backdrop-filter: blur(10px);
 }
 
-.setup-panel,
+.setup-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: transparent;
+  border: none;
+  padding-inline: 4px;
+  backdrop-filter: none;
+}
+
 .launch-panel {
   display: flex;
   flex-direction: column;
@@ -615,13 +625,16 @@ input:focus {
     align-items: stretch;
   }
 
+  .panel-actions .btn,
   .launch-btn,
-  .btn {
+  header .btn {
     width: 100%;
   }
 
   .worker-actions .btn {
-    flex: 1 1 auto;
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
   }
 }
 
