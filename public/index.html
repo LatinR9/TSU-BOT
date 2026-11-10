@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TSU-BOT Pro — Multi-Browser Suite</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <h1>⚡ TSU-BOT Pro</h1>
+        <span class="badge" id="appVersion">v1.0.0</span>
+      </div>
+      <div>
+        <button class="btn btn-secondary" onclick="checkAppUpdate()">🔄 ตรวจสอบเวอร์ชัน</button>
+      </div>
+    </header>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <button class="btn btn-primary" onclick="openLoginBrowser()">🔐 เปิดหน้าต่างล็อกอินเว็บ TSU</button>
+      
+      <div class="control-group">
+        <label for="globalSpeed">ความเร็ว:</label>
+        <select id="globalSpeed">
+          <option value="turbo">⚡ สายฟ้า (Fast - ตัด 10s)</option>
+          <option value="normal" selected>⚖️ สมดุล (Normal - มาตรฐาน)</option>
+          <option value="safe">🛡️ ปลอดภัย (Human-like - หน่วงเวลา)</option>
+        </select>
+      </div>
+
+      <button class="btn btn-secondary" onclick="openAddCourseModal()">➕ เพิ่มวิชาใหม่</button>
+    </div>
+
+    <!-- Multi-Worker Launch Section -->
+    <div class="toolbar" style="background: #172554; border-color: #1e40af;">
+      <div class="control-group" style="flex: 1;">
+        <label for="selectCourse">เลือกวิชาที่จะทำ:</label>
+        <select id="selectCourse" style="width: 100%;">
+          <option value="">กำลังโหลดรายวิชา...</option>
+        </select>
+      </div>
+
+      <div class="control-group" style="flex: 1.5;">
+        <label for="customUrl">URL รายวิชา (เว้นว่างไว้เพื่อเริ่มจากหน้า Dashboard):</label>
+        <input type="text" id="customUrl" placeholder="https://apps.course.tsu.ac.th/learning/course/..." style="width: 100%;">
+      </div>
+
+      <button class="btn btn-success" onclick="createNewWorker()" style="align-self: flex-end; height: 38px;">
+        ▶️ เริ่มต้นบอทใหม่ (New Browser)
+      </button>
+    </div>
+
+    <!-- Active Multi-Workers Grid -->
+    <div class="workers-section">
+      <h2>🖥️ หน้าต่างบอทที่กำลังทำงาน (Multi-Browser Workers)</h2>
+      <div class="workers-grid" id="workersContainer">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Course Modal -->
+  <div class="modal-overlay" id="addCourseModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>➕ เพิ่มวิชาใหม่เข้าระบบ</h3>
+        <button class="btn btn-secondary" onclick="closeAddCourseModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>รหัสวิชา (Course Code เช่น TSUGE000111):</label>
+          <input type="text" id="newCourseCode" placeholder="TSUGE000111">
+        </div>
+        <div class="form-group">
+          <label>ชื่อวิชา (Course Name):</label>
+          <input type="text" id="newCourseName" placeholder="อัตลักษณ์ทักษิณและความเป็นพลเมือง">
+        </div>
+        <div class="form-group">
+          <label>ลิงก์วิชา (Course URL):</label>
+          <input type="text" id="newCourseUrl" placeholder="https://apps.course.tsu.ac.th/learning/course/...">
+        </div>
+        <button class="btn btn-primary" onclick="saveNewCourse()">💾 บันทึกวิชา</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Update Modal -->
+  <div class="modal-overlay" id="updateModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>📢 อัปเดตโปรแกรม</h3>
+        <button class="btn btn-secondary" onclick="closeUpdateModal()">✕</button>
+      </div>
+      <div class="modal-body" id="updateModalBody">
+        <!-- Injected via app.js -->
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
