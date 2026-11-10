@@ -1,0 +1,99 @@
+name: Windows exe build + smoke test
+
+on:
+  push:
+    branches: [ 'cursor/**' ]
+    paths: [ 'AppUI.cs', 'TSU-BOT-Pro.exe', 'dist/TSU-BOT-Pro.exe', 'version.json', '.github/workflows/exe-smoke.yml' ]
+  pull_request:
+    paths: [ 'AppUI.cs', 'TSU-BOT-Pro.exe', 'dist/TSU-BOT-Pro.exe', 'version.json', '.github/workflows/exe-smoke.yml' ]
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build with .NET Framework csc (same as build_desktop.bat)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Force cand, out | Out-Null
+          $csc = "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
+          $refs = '/reference:System.dll', '/reference:System.Drawing.dll', '/reference:System.Windows.Forms.dll', '/reference:System.Core.dll'
+          & $csc /nologo /target:winexe /optimize+ /platform:anycpu /out:out\TSU-BOT-Pro.exe @refs AppUI.cs
+          if ($LASTEXITCODE -ne 0) { throw 'csc failed' }
+          Copy-Item out\TSU-BOT-Pro.exe cand\csc-build.exe
+          Copy-Item TSU-BOT-Pro.exe cand\committed.exe
+
+          # Crash probe: same source with a forced throw during startup, to prove crash.log + dialog work.
+          (Get-Content -Raw -Encoding UTF8 AppUI.cs).Replace(
+            'LoadModeSettings();' + "`r`n" , 'LoadModeSettings(); throw new InvalidOperationException("crash-probe");' + "`r`n").Replace(
+            'LoadModeSettings();' + "`n" , 'LoadModeSettings(); throw new InvalidOperationException("crash-probe");' + "`n") |
+            Set-Content -Encoding UTF8 probe.cs
+          & $csc /nologo /target:winexe /platform:anycpu /out:cand\crash-probe.exe @refs probe.cs
+          if ($LASTEXITCODE -ne 0) { throw 'csc (probe) failed' }
+
+      - name: Verify committed exe matches version.json and dist/
+        shell: pwsh
+        run: |
+          $h = (Get-FileHash TSU-BOT-Pro.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          $d = (Get-FileHash dist\TSU-BOT-Pro.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          $v = (Get-Content -Raw -Encoding UTF8 version.json | ConvertFrom-Json)
+          Write-Host "committed=$h dist=$d version.json=$($v.sha256) version=$($v.version)"
+          if ($h -ne $v.sha256) { Write-Host "::error::version.json sha256 does not match TSU-BOT-Pro.exe"; exit 1 }
+          if ($h -ne $d) { Write-Host "::error::dist/TSU-BOT-Pro.exe differs from root TSU-BOT-Pro.exe"; exit 1 }
+
+      - name: Launch each exe
+        shell: pwsh
+        run: |
+          Add-Type -AssemblyName System.Windows.Forms, System.Drawing
+          New-Item -ItemType Directory -Force shots | Out-Null
+          $start = Get-Date
+          $bad = @()
+          foreach ($name in @('committed', 'csc-build', 'crash-probe')) {
+            $dir = Join-Path $PWD "run-$name"
+            New-Item -ItemType Directory -Force $dir | Out-Null
+            Copy-Item "cand\$name.exe" "$dir\TSU-BOT-Pro.exe"
+            foreach ($f in 'tsu_answers.json', 'tsu_missing.json', 'version.json') { if (Test-Path $f) { Copy-Item $f $dir } }
+            '{ "modes": "quiz,video" }' | Set-Content -Encoding UTF8 "$dir\desktop_settings.json"
+            Write-Host "===== $name ====="
+            $p = Start-Process -FilePath "$dir\TSU-BOT-Pro.exe" -WorkingDirectory $dir -PassThru
+            Start-Sleep -Seconds 20
+            $p.Refresh()
+            $bmp = New-Object System.Drawing.Bitmap ([System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Width), ([System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Height)
+            $g = [System.Drawing.Graphics]::FromImage($bmp)
+            $g.CopyFromScreen(0, 0, 0, 0, $bmp.Size)
+            $bmp.Save("shots\$name.png")
+            $g.Dispose(); $bmp.Dispose()
+            $alive = -not $p.HasExited
+            $title = if ($alive) { $p.MainWindowTitle } else { '' }
+            if ($alive) { Write-Host "RESULT $name : RUNNING title='$title'"; Stop-Process -Id $p.Id -Force }
+            else { Write-Host "RESULT $name : EXITED code=$($p.ExitCode)" }
+            $hasLog = Test-Path "$dir\crash.log"
+            if ($hasLog) { Write-Host "--- crash.log ---"; Get-Content "$dir\crash.log" }
+
+            if ($name -eq 'crash-probe') {
+              if (-not $hasLog) { $bad += "$name (no crash.log)" }
+            } else {
+              if (-not $alive) { $bad += "$name (exited)" }
+              if ($hasLog) { $bad += "$name (crash.log written)" }
+            }
+          }
+          Write-Host "===== Application event log ====="
+          Get-WinEvent -FilterHashtable @{ LogName = 'Application'; StartTime = $start } -ErrorAction SilentlyContinue |
+            Where-Object { $_.ProviderName -in @('.NET Runtime', 'Application Error') } |
+            ForEach-Object { "[$($_.TimeCreated)] $($_.ProviderName) id=$($_.Id)`n$($_.Message)`n" } | Out-String -Width 400
+          if ($bad.Count -gt 0) { Write-Host "::error::Smoke failures: $($bad -join ', ')"; exit 1 }
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tsu-bot-pro-exe
+          path: out/TSU-BOT-Pro.exe
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-screenshots
+          path: shots/

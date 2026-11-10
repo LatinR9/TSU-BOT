@@ -148,17 +148,59 @@ namespace TSUBotDesktop
         private string latestRemoteChangelog = "";
         private string latestRemoteSha256 = "";
         private bool updateInProgress = false;
-        private const string APP_VERSION = "1.0.7";
+        private const string APP_VERSION = "1.0.8";
         private const string GITHUB_REPO = "LatinR9/TSU-BOT";
         private const string EXE_NAME = "TSU-BOT-Pro.exe";
         private const string SETTINGS_FILE = "desktop_settings.json";
 
+        private const string CRASH_LOG = "crash.log";
+
         [STAThread]
         public static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainForm());
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+            Application.ThreadException += (s, e) => ReportCrash("UI thread", e.Exception, false);
+            AppDomain.CurrentDomain.UnhandledException += (s, e) => ReportCrash("background thread", e.ExceptionObject as Exception, true);
+
+            try
+            {
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                Application.Run(new MainForm());
+            }
+            catch (Exception ex)
+            {
+                ReportCrash("startup", ex, true);
+            }
+        }
+
+        // Must stay free of anything that could itself fail to JIT or throw: it is the last line of defence.
+        private static void ReportCrash(string where, Exception ex, bool fatal)
+        {
+            string logPath = CRASH_LOG;
+            try
+            {
+                logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, CRASH_LOG);
+                string entry = string.Format(
+                    "[{0}] TSU-BOT Pro v{1} — unhandled exception ({2}){3}OS: {4} | CLR: {5}{3}{6}{3}{3}",
+                    DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), APP_VERSION, where, Environment.NewLine,
+                    Environment.OSVersion, Environment.Version, ex != null ? ex.ToString() : "(no exception object)");
+                File.AppendAllText(logPath, entry, Encoding.UTF8);
+            }
+            catch { }
+
+            try
+            {
+                MessageBox.Show(
+                    "TSU-BOT Pro เกิดข้อผิดพลาดและ" + (fatal ? "ต้องปิดโปรแกรม" : "อาจทำงานไม่สมบูรณ์") + "\n\n" +
+                    (ex != null ? ex.GetType().Name + ": " + ex.Message : "") +
+                    "\n\nบันทึกรายละเอียดไว้ที่:\n" + logPath +
+                    "\n\nกรุณาส่งไฟล์ crash.log ให้ผู้พัฒนา",
+                    "TSU-BOT Pro — ข้อผิดพลาด",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            catch { }
         }
 
         public MainForm()
@@ -170,7 +212,7 @@ namespace TSUBotDesktop
             InitializeComponent();
             LoadCourses();
             LoadModeSettings();
-            CheckUpdateAsync(false);
+            this.Shown += (s, e) => CheckUpdateAsync(false);
         }
 
         private static void ConfigureTls()
@@ -178,11 +220,13 @@ namespace TSUBotDesktop
             try
             {
                 ServicePointManager.Expect100Continue = true;
-                ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072 | (SecurityProtocolType)12288 | SecurityProtocolType.Tls12;
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                 // Keep system TLS certificate validation enabled (never bypass).
                 ServicePointManager.ServerCertificateValidationCallback = null;
             }
             catch { }
+            // TLS 1.3 (12288) throws NotSupportedException on older Windows/.NET; add it separately so TLS 1.2 still sticks.
+            try { ServicePointManager.SecurityProtocol |= (SecurityProtocolType)12288; } catch { }
         }
 
         private void ResolveNodePath()
@@ -678,7 +722,7 @@ namespace TSUBotDesktop
         private static string DescribeModes(string modes)
         {
             List<string> names = new List<string>();
-            foreach (string m in modes.Split(','))
+            foreach (string m in modes.Split(new char[] { ',' }))
             {
                 if (m == "quiz") names.Add("แบบฝึก");
                 else if (m == "video") names.Add("วิดีโอ");
@@ -696,7 +740,7 @@ namespace TSUBotDesktop
                 string json = File.ReadAllText(path, Encoding.UTF8);
                 Match m = Regex.Match(json, "\"modes\"\\s*:\\s*\"([^\"]*)\"");
                 if (!m.Success) return;
-                string[] saved = m.Groups[1].Value.ToLowerInvariant().Split(',');
+                string[] saved = m.Groups[1].Value.ToLowerInvariant().Split(new char[] { ',' });
                 bool quiz = Array.IndexOf(saved, "quiz") >= 0;
                 bool video = Array.IndexOf(saved, "video") >= 0;
                 bool doc = Array.IndexOf(saved, "doc") >= 0;
@@ -960,7 +1004,7 @@ namespace TSUBotDesktop
             string courseCode = ci != null ? ci.Code : (comboCourse.SelectedItem != null ? comboCourse.SelectedItem.ToString() : "");
             if (courseCode.Contains(" - ")) courseCode = courseCode.Split(new string[] { " - " }, StringSplitOptions.None)[0];
 
-            string speed = comboSpeed.SelectedItem.ToString().Split(' ')[0];
+            string speed = comboSpeed.SelectedItem.ToString().Split(new char[] { ' ' })[0];
             string customUrl = txtUrl.Text.Trim();
             if (string.IsNullOrEmpty(customUrl) && ci != null && !string.IsNullOrEmpty(ci.Url))
             {
