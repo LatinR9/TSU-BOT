@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:;"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TSU Study Bot</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="hero">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">T</span>
+          <div>
+            <h1>TSU Study Bot</h1>
+            <p class="tagline">ช่วยเล่นวิดีโอบทเรียนและเปิดเอกสารให้ครบ — ทีละบท ตามลำดับ</p>
+          </div>
+        </div>
+        <div id="statusPill" class="status idle">พร้อมใช้งาน</div>
+      </header>
+
+      <main class="panel">
+        <section class="form" aria-label="ตั้งค่าเว็บไซต์">
+          <label>
+            <span>ลิงก์หน้ารายวิชา (หน้าที่มีรายการบทเรียน)</span>
+            <input id="courseUrl" type="url" placeholder="เช่น https://lms.example.ac.th/course/view.php?id=123" />
+          </label>
+          <p class="hint">คัดลอกลิงก์จากแถบที่อยู่ของเบราว์เซอร์ตอนเปิดหน้ารายวิชา แล้ววางที่นี่</p>
+
+          <details class="advanced">
+            <summary>ตั้งค่าเพิ่มเติม</summary>
+            <div class="advanced-body">
+              <label>
+                <span>ลิงก์หน้าเข้าสู่ระบบ (ไม่บังคับ — ว่างไว้ = เปิดหน้ารายวิชา)</span>
+                <input id="loginUrl" type="url" placeholder="https://lms.example.ac.th/login/index.php" />
+              </label>
+              <div class="row three">
+                <label>
+                  <span>เบราว์เซอร์</span>
+                  <select id="browserChannel">
+                    <option value="auto">อัตโนมัติ (แนะนำ: Edge)</option>
+                    <option value="msedge">Microsoft Edge</option>
+                    <option value="chrome">Google Chrome</option>
+                    <option value="chromium">Chromium ในตัวโปรแกรม</option>
+                  </select>
+                </label>
+                <label>
+                  <span>ความเร็ววิดีโอ</span>
+                  <select id="playbackRate">
+                    <option value="1">ปกติ (1x)</option>
+                    <option value="1.25">1.25x</option>
+                    <option value="1.5">1.5x</option>
+                    <option value="2">2x</option>
+                  </select>
+                </label>
+                <label>
+                  <span>เวลาอ่านเอกสาร (วินาที/ไฟล์)</span>
+                  <input id="docReadSeconds" type="number" min="3" max="600" step="1" value="20" />
+                </label>
+              </div>
+              <div class="row">
+                <label class="check">
+                  <input id="skipCompleted" type="checkbox" checked />
+                  <span>ข้ามบทที่ระบบขึ้นว่าเรียนจบแล้ว</span>
+                </label>
+                <label class="check">
+                  <input id="muteVideo" type="checkbox" />
+                  <span>ปิดเสียงวิดีโอ</span>
+                </label>
+              </div>
+              <label>
+                <span>ลิงก์บทเรียนเอง (ไม่บังคับ — 1 บรรทัดต่อ 1 ลิงก์ ใช้แทนการค้นหาอัตโนมัติ)</span>
+                <textarea id="lessonUrls" rows="3" placeholder="https://...&#10;https://..."></textarea>
+              </label>
+              <label class="narrow-field">
+                <span>เวลาสูงสุดต่อวิดีโอ (นาที)</span>
+                <input id="maxVideoMinutes" type="number" min="1" max="600" step="1" value="180" />
+              </label>
+            </div>
+          </details>
+        </section>
+
+        <section class="steps" aria-label="ขั้นตอน">
+          <button id="btnLogin" class="step" type="button">
+            <span class="step-no">1</span>
+            <span class="step-text"><strong>เข้าสู่ระบบ</strong><small>เปิดเว็บแล้วล็อกอินด้วยตัวเอง</small></span>
+          </button>
+          <button id="btnVideos" class="step" type="button">
+            <span class="step-no">2</span>
+            <span class="step-text"><strong>เล่นวิดีโอบทเรียน</strong><small>เล่นจนจบทีละคลิป ตามลำดับ</small></span>
+          </button>
+          <button id="btnDocuments" class="step" type="button">
+            <span class="step-no">3</span>
+            <span class="step-text"><strong>เปิดเอกสาร</strong><small>เปิดและเลื่อนอ่านทีละไฟล์</small></span>
+          </button>
+        </section>
+
+        <section class="actions" aria-label="ปุ่มควบคุม">
+          <button id="btnAll" class="btn primary" type="button">ทำทั้งหมดตามลำดับ (วิดีโอ + เอกสาร)</button>
+          <button id="btnStop" class="btn danger" type="button" disabled>หยุด</button>
+          <button id="btnCloseBrowser" class="btn ghost" type="button">ปิดเบราว์เซอร์</button>
+          <button id="btnDownloads" class="btn ghost" type="button">เปิดโฟลเดอร์ไฟล์ดาวน์โหลด</button>
+          <button id="btnSave" class="btn ghost" type="button">บันทึกค่า</button>
+        </section>
+
+        <p class="notice">
+          โปรแกรมนี้<strong>ไม่ทำแบบทดสอบ/ข้อสอบ/การบ้าน</strong> — ข้ามให้อัตโนมัติ · ไม่เก็บรหัสผ่าน (คุณล็อกอินเองในหน้าต่างเบราว์เซอร์)
+        </p>
+
+        <section class="log-wrap" aria-label="บันทึกการทำงาน">
+          <div class="log-head">
+            <h2>บันทึกการทำงาน</h2>
+            <button id="btnClearLog" class="btn ghost tiny" type="button">ล้าง</button>
+          </div>
+          <pre id="log" class="log" aria-live="polite"></pre>
+        </section>
+      </main>
+
+      <section class="update-panel" aria-label="อัปเดตโปรแกรม">
+        <div class="update-panel-main">
+          <div>
+            <div class="update-version">
+              เวอร์ชันปัจจุบัน: <strong id="appVersionLabel">…</strong>
+            </div>
+            <p id="updateStatusText" class="update-status">กดเช็กอัปเดตเพื่อดูว่ามีเวอร์ชันใหม่หรือไม่</p>
+            <div id="updateProgressWrap" class="update-progress" hidden>
+              <div id="updateProgressBar" class="update-progress-bar"></div>
+            </div>
+          </div>
+          <div class="update-actions">
+            <button id="btnCheckUpdate" class="btn secondary" type="button">เช็กอัปเดต</button>
+            <button id="btnUpdateNow" class="btn primary" type="button" disabled>อัปเดตตอนนี้</button>
+          </div>
+        </div>
+      </section>
+
+      <footer>ค่าที่ตั้งไว้บันทึกในเครื่องคุณเท่านั้น · หน้าต่างเบราว์เซอร์เดียวใช้ร่วมกันทุกขั้นตอน</footer>
+    </div>
+    <script src="renderer.js"></script>
+    <script src="update-panel.js"></script>
+  </body>
+</html>

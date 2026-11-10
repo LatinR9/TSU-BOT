@@ -1,0 +1,97 @@
+{
+  "name": "tsu-study-bot",
+  "version": "1.0.0",
+  "description": "TSU Study Bot — เล่นวิดีโอบทเรียนและเปิดเอกสารอัตโนมัติ (Electron + Playwright)",
+  "main": "electron/main.cjs",
+  "author": "TSU-BOT",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LatinR9/TSU-BOT.git"
+  },
+  "scripts": {
+    "postinstall": "node scripts/prepare-browsers.cjs",
+    "app": "electron .",
+    "test": "node --test --test-concurrency=1 test/signals.test.js test/e2e.test.js",
+    "prepare:browsers": "node scripts/prepare-browsers.cjs",
+    "pack:win": "npm run prepare:browsers && electron-builder --win --x64",
+    "dist": "npm run pack:win"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "lms",
+    "moodle",
+    "playwright",
+    "electron",
+    "bot"
+  ],
+  "dependencies": {
+    "electron-updater": "^6.8.11",
+    "playwright": "^1.50.1"
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.latinr9.tsustudybot",
+    "productName": "TSU Study Bot",
+    "copyright": "MIT",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "electron/**/*",
+      "src/**/*",
+      "package.json",
+      "node_modules/**/*"
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "**/node_modules/playwright/**",
+      "**/node_modules/playwright-core/**"
+    ],
+    "extraResources": [
+      {
+        "from": "ms-playwright",
+        "to": "ms-playwright",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "LatinR9",
+        "repo": "TSU-BOT",
+        "releaseType": "release"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "TSUStudyBot-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "TSU Study Bot",
+      "uninstallDisplayName": "TSU Study Bot",
+      "artifactName": "TSUStudyBot-Setup-${version}.${ext}"
+    }
+  }
+}
