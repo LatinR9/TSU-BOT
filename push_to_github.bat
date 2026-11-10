@@ -4,10 +4,6 @@ echo ========================================================
 echo   Pushing TSU-BOT Pro to https://github.com/LatinR9/TSU-BOT
 echo ========================================================
 echo.
-echo [1/2] Syncing with GitHub repository...
-git pull origin main --rebase --allow-unrelated-histories
-
-echo [2/2] Pushing all files...
 git push -u origin main --force
 
 echo.

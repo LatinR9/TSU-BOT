@@ -18,6 +18,10 @@ const USER_DATA_DIR = path.join(__dirname, 'user_profile');
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 // Multi-Worker Store
 const workers = new Map();
 let workerCounter = 1;

@@ -3,6 +3,8 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Net;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace TSUBotLauncher
@@ -19,19 +21,33 @@ namespace TSUBotLauncher
             Application.SetCompatibleTextRenderingDefault(false);
 
             string appDir = AppDomain.CurrentDomain.BaseDirectory;
-            // If running inside dist, check parent or current
             string serverScript = File.Exists(Path.Combine(appDir, "server.js")) 
                 ? Path.Combine(appDir, "server.js") 
                 : Path.Combine(appDir, "..", "server.js");
 
             string workingDir = Path.GetDirectoryName(Path.GetFullPath(serverScript));
 
+            // Find node.exe
+            string nodePath = "node.exe";
+            if (File.Exists(Path.Combine(appDir, "node.exe")))
+            {
+                nodePath = Path.Combine(appDir, "node.exe");
+            }
+            else if (File.Exists(Path.Combine(workingDir, "node.exe")))
+            {
+                nodePath = Path.Combine(workingDir, "node.exe");
+            }
+            else if (File.Exists(@"C:\Program Files\nodejs\node.exe"))
+            {
+                nodePath = @"C:\Program Files\nodejs\node.exe";
+            }
+
             // Start Node.js server
             try
             {
                 ProcessStartInfo psi = new ProcessStartInfo
                 {
-                    FileName = "node.exe",
+                    FileName = nodePath,
                     Arguments = "\"" + serverScript + "\"",
                     WorkingDirectory = workingDir,
                     CreateNoWindow = true,
@@ -41,12 +57,32 @@ namespace TSUBotLauncher
             }
             catch (Exception ex)
             {
-                MessageBox.Show("ไม่สามารถเริ่ม Node.js ได้: " + ex.Message + "\nกรุณาติดตั้ง Node.js หรือตรวจสอบโฟลเดอร์โปรแกรม", "TSU-BOT Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("ไม่สามารถเริ่ม Node.js ได้: " + ex.Message, "TSU-BOT Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
+            // Wait for server to become responsive
+            bool isReady = false;
+            for (int i = 0; i < 20; i++)
+            {
+                Thread.Sleep(300);
+                try
+                {
+                    HttpWebRequest request = (HttpWebRequest)WebRequest.Create("http://localhost:3000/");
+                    request.Timeout = 500;
+                    using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+                    {
+                        if (response.StatusCode == HttpStatusCode.OK)
+                        {
+                            isReady = true;
+                            break;
+                        }
+                    }
+                }
+                catch { }
+            }
+
             // Open dashboard in browser
-            System.Threading.Thread.Sleep(1200);
             try
             {
                 Process.Start(new ProcessStartInfo("http://localhost:3000") { UseShellExecute = true });
@@ -70,11 +106,11 @@ namespace TSUBotLauncher
             {
                 Icon = SystemIcons.Application,
                 ContextMenu = contextMenu,
-                Text = "TSU-BOT Pro (กำลังทำงานที่ :3000)",
+                Text = "TSU-BOT Pro (http://localhost:3000)",
                 Visible = true
             };
 
-            trayIcon.ShowBalloonTip(3000, "⚡ TSU-BOT Pro", "บอทพร้อมทำงานแล้วที่ http://localhost:3000\nคลิกขวาที่ไอคอนตรง Taskbar เพื่อเปิดเมนู", ToolTipIcon.Info);
+            trayIcon.ShowBalloonTip(3000, "⚡ TSU-BOT Pro", "บอทพร้อมทำงานแล้วที่ http://localhost:3000\nคลิกขวาที่ไอคอนตรง Taskbar เพื่อจัดการ", ToolTipIcon.Info);
 
             Application.ApplicationExit += (s, e) => Shutdown();
             Application.Run();
