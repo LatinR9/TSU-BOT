@@ -564,6 +564,15 @@ namespace TSUBotDesktop
                     {
                         wc.Headers.Add("User-Agent", "TSU-BOT-Desktop");
                         wc.Encoding = Encoding.UTF8;
+
+                        string tokenPath = Path.Combine(appDir, "github_token.txt");
+                        if (File.Exists(tokenPath))
+                        {
+                            string token = File.ReadAllText(tokenPath).Trim();
+                            if (!string.IsNullOrEmpty(token))
+                                wc.Headers.Add("Authorization", "token " + token);
+                        }
+
                         string rawUrl = string.Format("https://raw.githubusercontent.com/{0}/main/version.json", GITHUB_REPO);
                         string json = wc.DownloadString(rawUrl);
 
@@ -592,6 +601,21 @@ namespace TSUBotDesktop
                         }
                     }
                 }
+                catch (WebException wex)
+                {
+                    if (verbose)
+                    {
+                        HttpWebResponse resp = wex.Response as HttpWebResponse;
+                        if (resp != null && resp.StatusCode == HttpStatusCode.NotFound)
+                        {
+                            MessageBox.Show("ไม่สามารถเช็คอัปเดตได้ (Error 404):\n\nเกิดจาก Repository บน GitHub ของคุณถูกตั้งค่าเป็น 'Private' (ส่วนตัว) อยู่ครับ\n\nวิธีแก้ (เลือกวิธีใดวิธีหนึ่ง):\n1. ไปที่หน้า GitHub Repo -> Settings -> เลื่อนลงล่างสุด -> เปลี่ยนเป็น 'Public'\nหรือ\n2. นำ GitHub Token มาใส่ในไฟล์ github_token.txt ในโฟลเดอร์โปรแกรมครับ", "Repository เป็นแบบ Private", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                        else
+                        {
+                            MessageBox.Show("ไม่สามารถเชื่อมต่อเพื่อเช็คอัปเดตได้: " + wex.Message, "เตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        }
+                    }
+                }
                 catch (Exception ex)
                 {
                     if (verbose)
@@ -614,6 +638,14 @@ namespace TSUBotDesktop
                 {
                     wc.Headers.Add("User-Agent", "TSU-BOT-Desktop");
                     wc.Encoding = Encoding.UTF8;
+
+                    string tokenPath = Path.Combine(appDir, "github_token.txt");
+                    if (File.Exists(tokenPath))
+                    {
+                        string token = File.ReadAllText(tokenPath).Trim();
+                        if (!string.IsNullOrEmpty(token))
+                            wc.Headers.Add("Authorization", "token " + token);
+                    }
 
                     string baseRaw = string.Format("https://raw.githubusercontent.com/{0}/main/", GITHUB_REPO);
                     wc.DownloadFile(baseRaw + "tsu_answers.json", Path.Combine(appDir, "tsu_answers.json"));
