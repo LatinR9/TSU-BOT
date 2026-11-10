@@ -49,7 +49,7 @@ namespace TSUBotDesktop
         private int workerCounter = 1;
         private string appDir;
         private string nodePath;
-        private const string APP_VERSION = "1.0.3";
+        private const string APP_VERSION = "1.0.4";
         private const string GITHUB_REPO = "LatinR9/TSU-BOT";
 
         [STAThread]

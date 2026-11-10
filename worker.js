@@ -177,10 +177,13 @@ class AutomationWorker {
   async processCurrentUnit() {
     if (!this.page || this.page.isClosed()) return;
 
-    // Check if the current unit is already completed with a green checkmark
+    // Wait a brief moment for dynamic React / Open edX MFE DOM to settle
+    await this.sleep(1500);
+
+    // 1. Comprehensive check: Is the current unit already completed (Green Checkmark / Full Marks)?
     const isCompleted = await this.isCurrentUnitCompleted();
     if (isCompleted) {
-      this.log(`⏭️ [ข้าม] หน่วยนี้ขึ้นติ๊กเขียวแล้ว (Completed) ข้ามไปหน่วยถัดไปทันทีตามเกณฑ์ TSU...`);
+      this.log(`⏭️ [ข้ามทันที] หน่วยนี้ขึ้นติ๊กถูกสีเขียว/ได้คะแนนเต็มแล้ว (Completed) ข้ามไปหน่วยถัดไปทันทีตามเกณฑ์ TSU...`);
       return;
     }
 
@@ -189,7 +192,7 @@ class AutomationWorker {
     let videoFrame = null;
     let quizFrame = null;
 
-    // Poll for up to 6 seconds to allow React / edX MFE to render components
+    // Poll for up to 6 seconds to allow React / edX MFE components to render
     for (let attempt = 0; attempt < 6; attempt++) {
       if (this.shouldStop) return;
 
@@ -237,42 +240,273 @@ class AutomationWorker {
 
   async isCurrentUnitCompleted() {
     try {
-      return await this.page.evaluate(() => {
-        // Find active unit tab/button in Open edX sequence navigation
-        const activeNav = document.querySelector('nav[aria-label="Unit"] button[aria-current="true"], nav[aria-label="Unit"] ol li.active button, .tab-item.active, button.seq_video.active, nav[aria-label="Unit"] button.active, [aria-current="page"]');
-        if (!activeNav) return false;
+      // Check multiple quick polls (total ~2 seconds) to account for React / MFE render latency
+      for (let attempt = 0; attempt < 4; attempt++) {
+        const completed = await this.page.evaluate(() => {
+          // --- A. Check Sequence Navigation Bar (Unit tabs between Previous and Next) ---
+          const seqNavSelectors = [
+            'nav[aria-label*="unit" i]',
+            'nav[aria-label*="sequence" i]',
+            'nav[aria-label*="navigation" i]',
+            '.sequence-navigation',
+            '.unit-navigation',
+            '.sequence-nav',
+            'ol.sequence-nav-list'
+          ];
 
-        const parentLi = activeNav.closest('li') || activeNav;
+          let activeNav = null;
 
-        // 1. Explicit green checkmark icon inside active button or parent li
-        const hasCheckIcon = !!(
-          activeNav.querySelector('.fa-check, [data-icon="check-circle"], [data-icon="check"], .check-circle, svg.text-success, svg[class*="success"]') ||
-          parentLi.querySelector('.fa-check, [data-icon="check-circle"], [data-icon="check"], .check-circle, svg.text-success, svg[class*="success"]')
-        );
-        if (hasCheckIcon) return true;
+          const activeSelectors = [
+            'button[aria-current="true"]',
+            'button[aria-current="step"]',
+            'button[aria-current="page"]',
+            'button[aria-current="location"]',
+            '[aria-current="true"]',
+            '[aria-current="step"]',
+            '[aria-current="page"]',
+            'button[aria-selected="true"]',
+            '[aria-selected="true"]',
+            'button.active',
+            'li.active button',
+            'a.active',
+            '.tab-item.active',
+            'button.seq_video.active',
+            'button.seq_problem.active',
+            'button.seq_other.active'
+          ];
 
-        // 2. Check aria-label carefully (must NOT match incomplete)
-        const ariaLabel = ((activeNav.getAttribute('aria-label') || '') + ' ' + (parentLi.getAttribute('aria-label') || '')).toLowerCase();
-        if (ariaLabel.includes('incomplete') || ariaLabel.includes('not completed') || ariaLabel.includes('uncompleted')) {
+          for (const navSel of seqNavSelectors) {
+            const navEl = document.querySelector(navSel);
+            if (navEl) {
+              for (const actSel of activeSelectors) {
+                const found = navEl.querySelector(actSel);
+                if (found) {
+                  activeNav = found;
+                  break;
+                }
+              }
+              if (activeNav) break;
+            }
+          }
+
+          // Fallback: look globally for active unit button/tab outside main site header
+          if (!activeNav) {
+            for (const actSel of activeSelectors) {
+              const found = document.querySelector(actSel);
+              if (found && !found.closest('header') && !found.closest('.nav-tabs')) {
+                activeNav = found;
+                break;
+              }
+            }
+          }
+
+          // Fallback 2: Check buttons sitting between Previous and Next buttons
+          if (!activeNav) {
+            const prevBtn = document.querySelector('button[aria-label*="Previous" i], button:has-text("Previous"), button:has-text("ก่อนหน้า")');
+            const nextBtn = document.querySelector('button[aria-label*="Next" i], button:has-text("Next"), button:has-text("ถัดไป")');
+            if (prevBtn && nextBtn && prevBtn.parentElement) {
+              const siblings = Array.from(prevBtn.parentElement.querySelectorAll('button, a')).filter(
+                b => b !== prevBtn && b !== nextBtn && !b.innerText.includes('Previous') && !b.innerText.includes('Next') && !b.innerText.includes('ก่อนหน้า') && !b.innerText.includes('ถัดไป')
+              );
+              if (siblings.length === 1) {
+                activeNav = siblings[0];
+              } else if (siblings.length > 1) {
+                activeNav = siblings.find(b => b.classList.contains('active') || b.getAttribute('aria-current') || b.getAttribute('aria-selected') === 'true') || siblings[0];
+              }
+            }
+          }
+
+          if (activeNav) {
+            const parentLi = activeNav.closest('li') || activeNav;
+
+            // 1. Icon check inside active button or parent li
+            const checkIcons = [
+              '.fa-check',
+              '.fa-check-circle',
+              '[data-icon="check-circle"]',
+              '[data-icon="check"]',
+              '[data-icon*="check"]',
+              '.check-circle',
+              '[data-testid*="check" i]',
+              '[data-testid*="complete" i]',
+              'svg.text-success',
+              'svg[class*="success"]',
+              'svg[class*="check"]',
+              '.text-success',
+              '.success',
+              '.complete',
+              '.completed',
+              '.is-complete'
+            ];
+
+            for (const sel of checkIcons) {
+              if (activeNav.querySelector(sel) || parentLi.querySelector(sel)) {
+                return true;
+              }
+            }
+
+            // 2. Computed green color check on child SVGs/icons
+            const iconElements = [...activeNav.querySelectorAll('svg, i, span'), ...parentLi.querySelectorAll('svg, i, span')];
+            for (const el of iconElements) {
+              try {
+                const style = window.getComputedStyle(el);
+                const color = (style.color || '').toLowerCase();
+                const fill = (style.fill || '').toLowerCase();
+                const stroke = (style.stroke || '').toLowerCase();
+                const isGreen = (c) => c.includes('rgb(40, 167, 69)') || c.includes('rgb(0, 129, 68)') || c.includes('rgb(25, 135, 84)') || c.includes('#28a745') || c.includes('#008144') || c.includes('#22c55e') || c.includes('rgb(34, 197, 94)');
+                if (isGreen(color) || isGreen(fill) || isGreen(stroke)) {
+                  return true;
+                }
+              } catch (e) {}
+            }
+
+            // 3. Text content check for checkmark symbols ✓ ✔
+            const combinedText = (activeNav.innerText || '') + ' ' + (parentLi.innerText || '');
+            if (combinedText.includes('✓') || combinedText.includes('✔')) {
+              return true;
+            }
+
+            // 4. aria-label / title check
+            const ariaLabel = ((activeNav.getAttribute('aria-label') || '') + ' ' + (parentLi.getAttribute('aria-label') || '') + ' ' + (activeNav.getAttribute('title') || '')).toLowerCase();
+            if (!ariaLabel.includes('incomplete') && !ariaLabel.includes('not completed') && !ariaLabel.includes('uncompleted')) {
+              if (ariaLabel.includes('completed') || ariaLabel.includes('complete') || ariaLabel.includes('ผ่าน') || ariaLabel.includes('เสร็จสิ้น') || ariaLabel.includes('สมบูรณ์')) {
+                return true;
+              }
+            }
+
+            // 5. CSS class strings check
+            const classStr = ((activeNav.className || '') + ' ' + (parentLi.className || '')).toLowerCase();
+            if (!classStr.includes('incomplete')) {
+              if (classStr.includes('is-complete') || classStr.includes('completed') || (classStr.includes('complete') && !classStr.includes('incomplete')) || classStr.includes('success')) {
+                return true;
+              }
+            }
+          }
+
+          // --- B. Check Unit Problem Contents on Main Page (Scores & Full Marks) ---
+          const problems = document.querySelectorAll('.problem, .xblock-student_view[data-block-type="problem"], div[data-block-type="problem"], form.problem-form, .wrapper-problem-response, .que');
+          if (problems.length > 0) {
+            let allProblemsDone = true;
+            for (const prob of problems) {
+              const pText = prob.innerText || '';
+
+              // Check full points e.g. "1/1 point", "1 of 1 point", "1.0/1.0 point", "คะแนน 1/1"
+              const scoreMatch = pText.match(/(\d+(?:\.\d+)?)\s*(?:\/|of|เต็ม|จาก)\s*(\d+(?:\.\d+)?)\s*point/i);
+              const hasFullPoints = scoreMatch && parseFloat(scoreMatch[1]) >= parseFloat(scoreMatch[2]) && parseFloat(scoreMatch[2]) > 0;
+              const has1of1 = /1\s*\/\s*1\s*point/i.test(pText) || /คะแนน\s*1\s*\/\s*1/i.test(pText);
+
+              // Check checkmark or correct icon inside problem
+              const hasCorrect = !!prob.querySelector('.correct, .status.correct, .message.correct, [data-icon="check-circle"], .fa-check, svg.text-success, svg[class*="success"]');
+
+              // Check if submitted and submit button is disabled
+              const submitBtn = prob.querySelector('button.submit, button[data-value="Submit"]');
+              const isSubmitDisabled = submitBtn && (submitBtn.disabled || submitBtn.getAttribute('aria-disabled') === 'true');
+              const isSubmitted = pText.includes('Your Answer has been receive') || pText.includes('Your answer has been received') || pText.includes('คำตอบของคุณถูกบันทึกแล้ว');
+              const attemptsUsedMatch = pText.match(/used\s*(\d+)\s*of\s*(\d+)\s*attempts/i);
+              const attemptsExhausted = attemptsUsedMatch && attemptsUsedMatch[1] === attemptsUsedMatch[2];
+
+              if (hasFullPoints || has1of1 || hasCorrect || (isSubmitted && isSubmitDisabled) || attemptsExhausted) {
+                // Done
+              } else {
+                allProblemsDone = false;
+                break;
+              }
+            }
+
+            if (allProblemsDone) {
+              return true;
+            }
+          }
+
           return false;
-        }
-        if (ariaLabel.includes('completed') || (ariaLabel.includes('complete') && !ariaLabel.includes('incomplete'))) {
-          return true;
+        }).catch(() => false);
+
+        if (completed) return true;
+
+        // Check inside child iframes as well
+        const allFrames = this.page.frames();
+        for (const frame of allFrames) {
+          if (frame === this.page.mainFrame()) continue;
+          const frameCompleted = await frame.evaluate(() => {
+            const problems = document.querySelectorAll('.problem, .xblock-student_view[data-block-type="problem"], div[data-block-type="problem"], form.problem-form, .wrapper-problem-response, .que');
+            if (problems.length > 0) {
+              let allProblemsDone = true;
+              for (const prob of problems) {
+                const pText = prob.innerText || '';
+                const scoreMatch = pText.match(/(\d+(?:\.\d+)?)\s*(?:\/|of|เต็ม|จาก)\s*(\d+(?:\.\d+)?)\s*point/i);
+                const hasFullPoints = scoreMatch && parseFloat(scoreMatch[1]) >= parseFloat(scoreMatch[2]) && parseFloat(scoreMatch[2]) > 0;
+                const has1of1 = /1\s*\/\s*1\s*point/i.test(pText) || /คะแนน\s*1\s*\/\s*1/i.test(pText);
+                const hasCorrect = !!prob.querySelector('.correct, .status.correct, .message.correct, [data-icon="check-circle"], .fa-check, svg.text-success, svg[class*="success"]');
+                const submitBtn = prob.querySelector('button.submit, button[data-value="Submit"]');
+                const isSubmitDisabled = submitBtn && (submitBtn.disabled || submitBtn.getAttribute('aria-disabled') === 'true');
+                const isSubmitted = pText.includes('Your Answer has been receive') || pText.includes('Your answer has been received');
+                const attemptsUsedMatch = pText.match(/used\s*(\d+)\s*of\s*(\d+)\s*attempts/i);
+                const attemptsExhausted = attemptsUsedMatch && attemptsUsedMatch[1] === attemptsUsedMatch[2];
+
+                if (hasFullPoints || has1of1 || hasCorrect || (isSubmitted && isSubmitDisabled) || attemptsExhausted) {
+                  // Done
+                } else {
+                  allProblemsDone = false;
+                  break;
+                }
+              }
+              if (allProblemsDone) return true;
+            }
+            return false;
+          }).catch(() => false);
+
+          if (frameCompleted) return true;
         }
 
-        // 3. Check classes (must NOT match incomplete)
-        const classStr = ((activeNav.className || '') + ' ' + (parentLi.className || '')).toLowerCase();
-        if (classStr.includes('incomplete')) {
-          return false;
+        if (attempt < 3) {
+          await this.sleep(500);
         }
-        if (classStr.includes('is-complete') || (classStr.includes('complete') && !classStr.includes('incomplete')) || classStr.includes('success')) {
-          return true;
-        }
+      }
 
-        return false;
-      });
+      return false;
     } catch (e) {
       return false;
+    }
+  }
+
+  async isProblemCompleted(qEl) {
+    try {
+      return await qEl.evaluate(el => {
+        const text = el.innerText || '';
+
+        // 1. Check score: "1/1 point", "1 of 1 point", "1.0/1.0 point", "คะแนน 1/1", etc.
+        const scoreMatch = text.match(/(\d+(?:\.\d+)?)\s*(?:\/|of|เต็ม|จาก)\s*(\d+(?:\.\d+)?)\s*point/i);
+        if (scoreMatch && parseFloat(scoreMatch[1]) >= parseFloat(scoreMatch[2]) && parseFloat(scoreMatch[2]) > 0) {
+          return { completed: true, reason: `ได้คะแนนเต็มแล้ว (${scoreMatch[0]})` };
+        }
+        if (/1\s*\/\s*1\s*point/i.test(text) || /คะแนน\s*1\s*\/\s*1/i.test(text)) {
+          return { completed: true, reason: 'ได้คะแนน 1/1 point เรียบร้อยแล้ว' };
+        }
+
+        // 2. Open edX correct indicators
+        const hasCorrect = !!el.querySelector('.correct, .status.correct, .message.correct, [data-icon="check-circle"], .fa-check, svg.text-success, svg[class*="success"]');
+        if (hasCorrect) {
+          return { completed: true, reason: 'มีเครื่องหมายถูกต้อง (Correct / ติ๊กเขียว)' };
+        }
+
+        // 3. Submitted and disabled submit button or attempts exhausted
+        const submitBtn = el.querySelector('button.submit, button[data-value="Submit"]');
+        const isSubmitDisabled = submitBtn && (submitBtn.disabled || submitBtn.getAttribute('aria-disabled') === 'true');
+        const isSubmitted = text.includes('Your Answer has been receive') || text.includes('Your answer has been received') || text.includes('คำตอบของคุณถูกบันทึกแล้ว');
+        const attemptsUsedMatch = text.match(/used\s*(\d+)\s*of\s*(\d+)\s*attempts/i);
+        const attemptsExhausted = attemptsUsedMatch && attemptsUsedMatch[1] === attemptsUsedMatch[2];
+
+        if (attemptsExhausted) {
+          return { completed: true, reason: `ใช้โควตาส่งคำตอบครบแล้ว (${attemptsUsedMatch[0]})` };
+        }
+        if (isSubmitted && isSubmitDisabled) {
+          return { completed: true, reason: 'ส่งคำตอบเรียบร้อยแล้ว (ปุ่ม Submit ปิดใช้งาน)' };
+        }
+
+        return { completed: false };
+      });
+    } catch (e) {
+      return { completed: false };
     }
   }
 
@@ -299,7 +533,25 @@ class AutomationWorker {
 
   async handleVideo(frame) {
     this.setStatus('running', 'Watching Video');
-    this.log(`🎬 ตรวจพบคลิปวิดีโอ กำลังเริ่มเล่น...`);
+    this.log(`🎬 ตรวจพบคลิปวิดีโอ กำลังตรวจสอบสถานะการเล่น...`);
+
+    // Check if video is already finished
+    const isVideoDone = await frame.evaluate(() => {
+      const v = document.querySelector('video');
+      const vContainer = document.querySelector('.video, .video-player, div[data-component-type="video"], .xblock-student_view[data-block-type="video"]');
+      if (vContainer && (vContainer.classList.contains('is-complete') || vContainer.classList.contains('completed') || vContainer.getAttribute('data-status') === 'complete')) {
+        return true;
+      }
+      if (v && v.duration > 0 && v.currentTime >= v.duration - 2) {
+        return true;
+      }
+      return false;
+    }).catch(() => false);
+
+    if (isVideoDone) {
+      this.log(`⏭️ [ข้ามวิดีโอ] วิดีโอนี้ดูจบแล้ว (Completed) ข้ามไปหน่วยถัดไปทันที...`);
+      return;
+    }
 
     const allFrames = [this.page.mainFrame(), ...this.page.frames()];
     const playSelectors = [
@@ -483,10 +735,38 @@ class AutomationWorker {
 
     this.log(`📝 พบจำนวนข้อสอบทั้งหมด ${questions.length} ข้อ`);
 
+    if (questions.length === 0) return;
+
+    // Pre-check: If ALL questions in this quiz are already completed, skip immediately!
+    let allCompleted = true;
+    for (const qEl of questions) {
+      const chk = await this.isProblemCompleted(qEl);
+      if (!chk.completed) {
+        allCompleted = false;
+        break;
+      }
+    }
+
+    if (allCompleted) {
+      this.log(`⏭️ [ข้ามทั้งแบบทดสอบ] แบบทดสอบทุกข้อในหน้านี้ได้คะแนนเต็ม/ทำเสร็จแล้ว (ติ๊กเขียว) ข้ามไปหน่วยถัดไปทันที...`);
+      return;
+    }
+
     let qIndex = 1;
+    let anyAnswered = false;
+
     for (const qEl of questions) {
       if (this.shouldStop) return;
+
       try {
+        // Individual question completion check
+        const checkResult = await this.isProblemCompleted(qEl);
+        if (checkResult.completed) {
+          this.log(`⏭️ [ข้ามข้อนี้] ข้อ ${qIndex}: ${checkResult.reason} ข้ามไปข้อถัดไป ไม่แตะต้องคำตอบเดิม`);
+          qIndex++;
+          continue;
+        }
+
         // 1. Extract full raw text of the question block
         const fullText = await qEl.innerText().catch(() => '');
 
@@ -513,20 +793,22 @@ class AutomationWorker {
         const textInputs = await qEl.$$('input.input[type="text"], input[type="text"], textarea');
 
         if (isPretest) {
-          // README_TH.md policy: Pre-test must be random
+          // Pre-test: random choice allowed per policy
           if (choiceLabels.length > 0) {
             const randIdx = Math.floor(Math.random() * choiceLabels.length);
             await choiceLabels[randIdx].click().catch(() => {});
             this.log(`🎲 [Pre-test] ข้อ ${qIndex}: สุ่มเลือกตัวเลือกอัตโนมัติ`);
+            anyAnswered = true;
           }
         } else {
-          // Post-test / Chapter quiz: lookup answer from database
+          // Graded post-test / Chapter quiz
           let answered = false;
 
           // Special case for TSUGE07272: ข้อ มานี มี 5 ปี สองอัน อันแรกผิด อันที่สองถูก
           if (this.courseCode === 'TSUGE07272' && fullText.includes('มานี') && choiceLabels.length >= 2) {
             await choiceLabels[1].click().catch(() => {});
             answered = true;
+            anyAnswered = true;
             this.log(`🎯 ข้อ ${qIndex}: [TSUGE07272 กฎพิเศษ] เลือก 5 ปี อันที่สอง`);
           }
 
@@ -548,33 +830,19 @@ class AutomationWorker {
             ansData = dbManager.findAnswer(this.courseCode, fullText, sectionHint, qIndex - 1);
           }
 
-          // Check for unconfirmed / missing items to report to user
+          // Check for unconfirmed / missing items in tsu_missing.json
           const missingInfo = dbManager.findMissingItem(this.courseCode, sentenceLine) ||
                               dbManager.findMissingItem(this.courseCode, fullText);
-
-          if (missingInfo) {
-            this.log(`📢 [รายงานข้อไม่มีเฉลยยืนยัน] ข้อ ${qIndex}: "${missingInfo.question}"`, 'warn');
-            if (missingInfo.hint) {
-              this.log(`   💡 คำแนะนำ: ${missingInfo.hint}`, 'warn');
-            }
-            if (missingInfo.wrong_answers && missingInfo.wrong_answers.length > 0) {
-              this.log(`   🚫 ตัดตัวเลือกที่เคยผิด: ${missingInfo.wrong_answers.join(' | ')}`, 'warn');
-            }
-          } else if (!ansData || ansData.status !== 'confirmed') {
-            this.log(`📢 [รายงานข้อสอบไม่มีในฐานข้อมูล] ข้อ ${qIndex}: "${(sentenceLine || fullText).substring(0, 80)}"`, 'warn');
-            this.log(`   ⚠️ ไม่พบคำตอบในฐานข้อมูล กรุณาตรวจสอบหรือส่งคำตอบด้วยตนเองหากต้องการคะแนนเต็ม`, 'warn');
-          }
 
           if (ansData && ansData.status === 'confirmed' && ansData.correct_answer) {
             let targetAns = ansData.correct_answer.trim();
 
-            // Special rule for TSUGE00152 Unit 4 Chapter 3 (reported speech):
-            // Straight apostrophe ' must be used per README_TH.md
+            // Straight apostrophe rule for TSUGE00152 Unit 4 Chapter 3
             if (this.courseCode === 'TSUGE00152' && sectionHint.includes('Unit 4 Chapter 3')) {
               targetAns = targetAns.replace(/[‘’]/g, "'");
             }
 
-            // Case 1: Text input field (e.g. TSUGE00152 passive / reported speech)
+            // Case 1: Text input field
             if (textInputs.length > 0) {
               for (const tInput of textInputs) {
                 await tInput.click().catch(() => {});
@@ -584,6 +852,7 @@ class AutomationWorker {
                 await tInput.dispatchEvent('change').catch(() => {});
                 await tInput.press('Tab').catch(() => {});
                 answered = true;
+                anyAnswered = true;
                 this.log(`🎯 ข้อ ${qIndex}: พิมพ์คำตอบ "${targetAns}" (ความตรงกัน: ${Math.round((ansData.score || 1) * 100)}%)`);
               }
             }
@@ -595,6 +864,7 @@ class AutomationWorker {
                 if (labelText.toLowerCase().includes(targetAns.toLowerCase()) || targetAns.toLowerCase().includes(labelText.toLowerCase())) {
                   await ch.click().catch(() => {});
                   answered = true;
+                  anyAnswered = true;
                   this.log(`🎯 ข้อ ${qIndex}: กาคำตอบ "${targetAns}" (ความตรงกัน: ${Math.round((ansData.score || 1) * 100)}%)`);
                   break;
                 }
@@ -602,11 +872,10 @@ class AutomationWorker {
             }
           }
 
-          // Case 3: Missing or unconfirmed with hint suggestions
-          if (!answered && missingInfo) {
+          // Case 3: Missing items with specific high-confidence hints
+          if (!answered && missingInfo && missingInfo.hint) {
             const combinedWrong = [...(ansData?.known_wrong_answers || []), ...(missingInfo.wrong_answers || [])];
 
-            // If text input and hint has a clear suggested phrase
             if (textInputs.length > 0) {
               let suggestedText = '';
               const h = missingInfo.hint;
@@ -624,12 +893,12 @@ class AutomationWorker {
                   await tInput.dispatchEvent('change').catch(() => {});
                   await tInput.press('Tab').catch(() => {});
                   answered = true;
+                  anyAnswered = true;
                   this.log(`🎯 ข้อ ${qIndex}: พิมพ์คำตอบตามคำแนะนำวิเคราะห์ "${suggestedText}"`);
                 }
               }
             }
 
-            // If choice and hint suggests an option
             if (!answered && choiceLabels.length > 0) {
               const h = missingInfo.hint;
               for (const ch of choiceLabels) {
@@ -647,6 +916,7 @@ class AutomationWorker {
                 if (matchesHint) {
                   await ch.click().catch(() => {});
                   answered = true;
+                  anyAnswered = true;
                   this.log(`🎯 ข้อ ${qIndex}: เลือกตัวเลือกตามคำแนะนำวิเคราะห์ "${labelText}"`);
                   break;
                 }
@@ -654,28 +924,23 @@ class AutomationWorker {
             }
           }
 
-          // Case 4: Unconfirmed or unknown choice — avoid known_wrong_answers per README_TH.md
-          if (!answered && choiceLabels.length > 0) {
-            const wrongList = [...(ansData?.known_wrong_answers || []), ...(missingInfo?.wrong_answers || [])];
-            let picked = false;
-            for (const ch of choiceLabels) {
-              const t = await ch.innerText().catch(() => '');
-              if (!wrongList.some(w => t.includes(w) || (w && w.length > 3 && t.toLowerCase().includes(w.toLowerCase())))) {
-                await ch.click().catch(() => {});
-                picked = true;
-                this.log(`💡 ข้อ ${qIndex}: เลือกตัวเลือกที่ไม่อยู่ในรายการที่เคยผิด ("${t.trim()}")`);
-                break;
-              }
+          // Case 4: No confirmed answer found -> NEVER GUESS OR SUBMIT ON GRADED TESTS!
+          if (!answered) {
+            const qDesc = (sentenceLine || candidateLines[0] || fullText).substring(0, 80).replace(/\s+/g, ' ');
+            this.log(`📢 [รายงานข้อสอบไม่มีเฉลยยืนยัน] ข้อ ${qIndex}: "${qDesc}"`, 'warn');
+            if (missingInfo && missingInfo.hint) {
+              this.log(`   💡 คำแนะนำ: ${missingInfo.hint}`, 'warn');
             }
-            if (!picked) {
-              await choiceLabels[0].click().catch(() => {});
-              this.log(`💡 ข้อ ${qIndex}: สุ่มเลือกตัวเลือกแรก`);
+            if (missingInfo && missingInfo.wrong_answers && missingInfo.wrong_answers.length > 0) {
+              this.log(`   🚫 ตัวเลือกที่เคยผิด (ห้ามกา): ${missingInfo.wrong_answers.join(' | ')}`, 'warn');
             }
-            answered = true;
+            this.log(`   🛑 ข้ามข้อนี้ ไม่สุ่มตอบและไม่ส่ง เพื่อป้องกันการตอบผิด/เสียคะแนน`, 'warn');
+            qIndex++;
+            continue; // Move to next question WITHOUT clicking submit!
           }
         }
 
-        // Submit this specific question if it has its own Submit button
+        // Submit this specific question ONLY IF we actively answered it
         const qSubmitBtn = await qEl.$('button.submit, button[data-value="Submit"], button:has-text("Submit"), button:has-text("ส่งคำตอบ"), button:has-text("ส่ง"), button:has-text("ตรวจคำตอบ")');
         if (qSubmitBtn) {
           let isEn = false;
@@ -684,9 +949,11 @@ class AutomationWorker {
             if (isEn) break;
             await this.sleep(400);
           }
-          await qSubmitBtn.click({ force: true }).catch(() => {});
-          this.log(`📤 [ข้อ ${qIndex}] กดปุ่ม Submit เรียบร้อย`);
-          await this.sleep(800);
+          if (isEn) {
+            await qSubmitBtn.click({ force: true }).catch(() => {});
+            this.log(`📤 [ข้อ ${qIndex}] กดปุ่ม Submit เรียบร้อย`);
+            await this.sleep(800);
+          }
         }
       } catch (e) {
         this.log(`⚠️ ข้อ ${qIndex} เกิดข้อผิดพลาดเล็กน้อย: ${e.message}`, 'warn');
@@ -694,16 +961,18 @@ class AutomationWorker {
       qIndex++;
     }
 
-    // Global submit attempt (if the quiz has an overall submit at page or frame bottom)
-    const globalSubmit = (await frame.$('button.submit, button[data-value="Submit"], button:has-text("Submit"), button:has-text("ส่งคำตอบ")'))
-                      || (await this.page.$('button.submit, button[data-value="Submit"], button:has-text("Submit"), button:has-text("ส่งคำตอบ")'));
+    // Global submit attempt (ONLY IF at least one question was answered in this pass)
+    if (anyAnswered) {
+      const globalSubmit = (await frame.$('button.submit, button[data-value="Submit"], button:has-text("Submit"), button:has-text("ส่งคำตอบ")'))
+                        || (await this.page.$('button.submit, button[data-value="Submit"], button:has-text("Submit"), button:has-text("ส่งคำตอบ")'));
 
-    if (globalSubmit) {
-      const isEn = await globalSubmit.isEnabled().catch(() => false);
-      if (isEn) {
-        this.log(`📤 กำลังกดส่งคำตอบรวม (Global Submit)...`);
-        await globalSubmit.click().catch(() => {});
-        await this.sleep(2500);
+      if (globalSubmit) {
+        const isEn = await globalSubmit.isEnabled().catch(() => false);
+        if (isEn) {
+          this.log(`📤 กำลังกดส่งคำตอบรวม (Global Submit)...`);
+          await globalSubmit.click().catch(() => {});
+          await this.sleep(2500);
+        }
       }
     }
   }
@@ -746,7 +1015,7 @@ class AutomationWorker {
 
     // Secondary approach: Click the next unit bubble in the top sequence nav
     try {
-      const activeNavTab = await this.page.$('nav[aria-label="Unit"] ol li button[aria-current="true"], nav[aria-label="Unit"] ol li.active button, .tab-item.active, button.seq_video.active');
+      const activeNavTab = await this.page.$('nav[aria-label*="unit" i] ol li button[aria-current], nav[aria-label*="sequence" i] ol li button[aria-current], nav[aria-label*="unit" i] ol li.active button, .tab-item.active, button.seq_video.active, button[aria-current="step"], button[aria-current="true"]');
       if (activeNavTab) {
         const nextNavTab = await this.page.evaluateHandle(el => {
           const li = el.closest('li');
