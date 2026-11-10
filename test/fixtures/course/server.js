@@ -356,6 +356,11 @@ ${tabs('Progress')}
   }
 
   function homePage() {
+    // spec.noCourseOutline: a course home whose outline the bot cannot read (fallback path).
+    if (spec.noCourseOutline) {
+      return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(spec.courseName)} | Home</title></head><body>
+        ${tabs('Course')}<h1>${esc(spec.courseName)}</h1><a class="btn btn-primary" href="${unitUrl(units[0])}">Resume course</a></body></html>`;
+    }
     return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Course | ${esc(spec.courseName)} | TSU COURSE</title>
 <style>.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)} .text-success{color:#15376d} .text-gray-400{color:#adadad}
 .collapsible-card-lg{border:1px solid #eee;margin:8px 0;padding:12px} #courseHome-outline li{min-height:48px}</style></head>
