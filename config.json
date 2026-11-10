@@ -1,0 +1,11 @@
+{
+  "target_url": "https://example-learning-platform.com/login",
+  "headless": false,
+  "browser_type": "chromium",
+  "video_playback_rate": 1.0,
+  "auto_skip_checkpoints": true,
+  "document_scroll_step_delay_sec": 1.5,
+  "quiz_mode": "ai_or_bank",
+  "gemini_api_key": "",
+  "answer_bank_file": "answer_bank.json"
+}

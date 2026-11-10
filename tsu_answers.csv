@@ -1,0 +1,625 @@
+﻿course_code,section,question,correct_answer,known_wrong_answers,status,notes
+TSUGE00152,Unit 1 Chapter 1,A cartoon-like film using drawings and not real people,animated,,confirmed,genre/vocab item
+TSUGE00152,Unit 1 Chapter 1,A second film made to continue the story started in the first,sequel,,confirmed,genre/vocab item
+TSUGE00152,Unit 1 Chapter 1,The most important/famous actor or actress in a film,star,,confirmed,genre/vocab item
+TSUGE00152,Unit 1 Chapter 1,A dangerous/risky piece of action in a film usually carried out by a professional,stuntman,,confirmed,genre/vocab item
+TSUGE00152,Unit 1 Chapter 1,A shot or series of shots in a movie constituting a unit of continuous related action,scene,,confirmed,genre/vocab item
+TSUGE00152,Unit 1 Chapter 1,"A performer hired to play a minor part, as in a crowd scene",extra,,confirmed,genre/vocab item
+TSUGE00152,Unit 1 Chapter 1,"This movie focuses on lighthearted, humorous plot lines... true love surmounts...",romantic comedy,,confirmed,genre/vocab item
+TSUGE00152,Unit 1 Chapter 1,"""What's your favourite ...?"" ""I absolutely love The Sound of Music.""",musical,,confirmed,genre/vocab item
+TSUGE00152,Unit 1 Chapter 1,I don't want to watch another ...! always the same old story of a man and woman who fall in love,romantic comedy,,confirmed,genre/vocab item
+TSUGE00152,Unit 1 Chapter 1,Frozen is one of the most popular ... of all time,animations,,confirmed,genre/vocab item
+TSUGE00152,Unit 1 Chapter 1,That ... was too much for me. When the ghost started killing everyone...,horror,,confirmed,genre/vocab item
+TSUGE00152,Unit 1 Chapter 1,"In a modern ... like ""Star Wars"", it's difficult to tell which stunts are real",science fiction,,confirmed,genre/vocab item
+TSUGE00152,Unit 1 Chapter 2,Part 1 item 1 — complete the sentence with the verb in brackets (present simple passive; sentence text not captured),are sent,,confirmed,sentence text was not captured; answers are in listed order
+TSUGE00152,Unit 1 Chapter 2,Part 1 item 2 — complete the sentence with the verb in brackets (present simple passive; sentence text not captured),are bought,,confirmed,sentence text was not captured; answers are in listed order
+TSUGE00152,Unit 1 Chapter 2,Part 1 item 3 — complete the sentence with the verb in brackets (present simple passive; sentence text not captured),is used,,confirmed,sentence text was not captured; answers are in listed order
+TSUGE00152,Unit 1 Chapter 2,Part 1 item 4 — complete the sentence with the verb in brackets (present simple passive; sentence text not captured),are booked,,confirmed,sentence text was not captured; answers are in listed order
+TSUGE00152,Unit 1 Chapter 2,Part 1 item 5 — complete the sentence with the verb in brackets (present simple passive; sentence text not captured),is searched,,confirmed,sentence text was not captured; answers are in listed order
+TSUGE00152,Unit 1 Chapter 2,Part 1 item 6 — complete the sentence with the verb in brackets (present simple passive; sentence text not captured),are read,,confirmed,sentence text was not captured; answers are in listed order
+TSUGE00152,Unit 1 Chapter 2,Part 1 item 7 — complete the sentence with the verb in brackets (present simple passive; sentence text not captured),are seen,,confirmed,sentence text was not captured; answers are in listed order
+TSUGE00152,Unit 1 Chapter 2,Part 1 item 8 — complete the sentence with the verb in brackets (present simple passive; sentence text not captured),are carried out,,confirmed,sentence text was not captured; answers are in listed order
+TSUGE00152,Unit 1 Chapter 2,Part 1 item 9 — complete the sentence with the verb in brackets (present simple passive; sentence text not captured),are received,,confirmed,sentence text was not captured; answers are in listed order
+TSUGE00152,Unit 1 Chapter 2,Part 1 item 10 — complete the sentence with the verb in brackets (present simple passive; sentence text not captured),are made,,confirmed,sentence text was not captured; answers are in listed order
+TSUGE00152,Unit 1 Chapter 2,This problem .... by your brother yesterday.,was solved,,confirmed,
+TSUGE00152,Unit 1 Chapter 2,This clock ...... in 1750.,was made,,confirmed,
+TSUGE00152,Unit 1 Chapter 2,My father wrote this book. It ..... by my father.,was written,,confirmed,
+TSUGE00152,Unit 1 Chapter 2,This mansion ...... in 1750.,was built,,confirmed,
+TSUGE00152,Unit 1 Chapter 2,Someone wrote this report last week. This report ...... last week.,was written,,confirmed,
+TSUGE00152,Unit 1 Chapter 2,The computer store in our neighborhood ___________ last night.,was promoted,,confirmed,
+TSUGE00152,Unit 1 Chapter 2,Some of the hamburgers on the table _______ by my children while we were watching TV.,were eaten,,confirmed,
+TSUGE00152,Unit 1 Chapter 2,This problem .... by your brother yesterday. (repeat),was solved,,confirmed,
+TSUGE00152,Unit 1 Chapter 2,"Choose the correct passive form: ""His father didn't send him any money to buy his own car.""",He wasn't sent any money to buy his own car.,,confirmed,
+TSUGE00152,Unit 1 Chapter 3,The cat is tearing the new book.,The new book is being torn by the cat.,,confirmed,"present continuous passive; grader often wants pronouns (by him/her/them), not names"
+TSUGE00152,Unit 1 Chapter 3,We are collecting the donations at the moment.,The donations are being collected by us at the moment.,,confirmed,"present continuous passive; grader often wants pronouns (by him/her/them), not names"
+TSUGE00152,Unit 1 Chapter 3,GPS is calculating the route to your destination.,The route to your destination is being calculated by GPS.,,confirmed,"present continuous passive; grader often wants pronouns (by him/her/them), not names"
+TSUGE00152,Unit 1 Chapter 3,They are washing my car now.,My car is being washed by them now.,,confirmed,"present continuous passive; grader often wants pronouns (by him/her/them), not names"
+TSUGE00152,Unit 1 Chapter 3,Mr. Barber is handing out the exam papers.,The exam papers are being handed out by him.,,confirmed,"present continuous passive; grader often wants pronouns (by him/her/them), not names"
+TSUGE00152,Unit 1 Chapter 3,Is the agent chasing the criminal?,Is the criminal being chased by the agent?,,confirmed,"present continuous passive; grader often wants pronouns (by him/her/them), not names"
+TSUGE00152,Unit 1 Chapter 3,They are repairing the car (...),,The car is being repaired by them. | The car is being repaired by them,unconfirmed,Submitted 'The car is being repaired by them.' was wrong (2026-11-07). Try without 'by them' (untried). Prefer pronouns in other passive items.
+TSUGE00152,Unit 1 Chapter 3,She is washing the dishes.,The dishes are being washed by her.,,confirmed,"present continuous passive; grader often wants pronouns (by him/her/them), not names"
+TSUGE00152,Unit 1 Chapter 3,Are the police investigating the incident?,,Is the incident being investigated by them,unconfirmed,"present continuous passive; grader often wants pronouns (by him/her/them), not names submitted answer was marked incorrect; correct answer unknown"
+TSUGE00152,Unit 1 Chapter 3,They have opened a new shop.,A new shop has been opened by them.,,confirmed,"present perfect passive; grader often wants pronouns (by him/her/them), not names"
+TSUGE00152,Unit 1 Chapter 3,Rick has interviewed the lady.,The lady has been interviewed by him.,,confirmed,"present perfect passive; grader often wants pronouns (by him/her/them), not names"
+TSUGE00152,Unit 1 Chapter 3,I have bought the tickets.,The tickets have been bought by me.,,confirmed,"present perfect passive; grader often wants pronouns (by him/her/them), not names"
+TSUGE00152,Unit 1 Chapter 3,Tim has forgotten the sandwiches.,The sandwiches have been forgotten by him.,,confirmed,"present perfect passive; grader often wants pronouns (by him/her/them), not names"
+TSUGE00152,Unit 1 Chapter 3,He has not cleaned the kitchen.,The kitchen has not been cleaned by him.,,confirmed,"present perfect passive; grader often wants pronouns (by him/her/them), not names"
+TSUGE00152,Unit 1 Chapter 3,We have not sold the bike.,The bike has not been sold by us.,,confirmed,"present perfect passive; grader often wants pronouns (by him/her/them), not names"
+TSUGE00152,Unit 1 Chapter 3,Have they found the keys?,Have the keys been found by them?,,confirmed,"present perfect passive; grader often wants pronouns (by him/her/them), not names"
+TSUGE00152,Unit 1 Chapter 3,Joe and Gerry have never played rugby...,Rugby has never been played by them.,,confirmed,"present perfect passive; grader often wants pronouns (by him/her/them), not names"
+TSUGE00152,Unit 1 Chapter 3,Somebody has stolen Peter's car.,Peter's car has been stolen by somebody.,,confirmed,"present perfect passive; grader often wants pronouns (by him/her/them), not names"
+TSUGE00152,Unit 1 Chapter 3,She has not used the tablet for days.,The tablet has not been used by her for days.,,confirmed,"present perfect passive; grader often wants pronouns (by him/her/them), not names"
+TSUGE00152,Unit 1 Chapter 4,Ann will buy a new computer.,A new computer will be bought by her.,,confirmed,future passive; use pronouns; prefer full forms (will not)
+TSUGE00152,Unit 1 Chapter 4,Her boyfriend will install it.,It will be installed by her boyfriend.,,confirmed,future passive; use pronouns; prefer full forms (will not)
+TSUGE00152,Unit 1 Chapter 4,Our boss will sign the contract.,The contract will be signed by our boss.,,confirmed,future passive; use pronouns; prefer full forms (will not)
+TSUGE00152,Unit 1 Chapter 4,You will not do it.,It will not be done by you.,,confirmed,future passive; use pronouns; prefer full forms (will not)
+TSUGE00152,Unit 1 Chapter 4,They will not show the new film.,The new film will not be shown by them.,,confirmed,future passive; use pronouns; prefer full forms (will not)
+TSUGE00152,Unit 1 Chapter 4,He won't see Rose.,Rose will not be seen by him.,,confirmed,future passive; use pronouns; prefer full forms (will not)
+TSUGE00152,Unit 1 Chapter 4,They will not ask him.,He will not be asked by them.,,confirmed,future passive; use pronouns; prefer full forms (will not)
+TSUGE00152,Unit 1 Chapter 4,Will the company employ a new labor?,Will a new labor be employed by the company?,,confirmed,future passive; use pronouns; prefer full forms (will not)
+TSUGE00152,Unit 1 Chapter 4,Will the plumber repair the shower?,Will the shower be repaired by the plumber?,,confirmed,future passive; use pronouns; prefer full forms (will not)
+TSUGE00152,Unit 1 Chapter 5,I _______ give you a lift to the station. My car broke down yesterday.,can't,,confirmed,
+TSUGE00152,Unit 1 Chapter 5,My dog _______ jump very high when he was younger.,could,,confirmed,
+TSUGE00152,Unit 1 Chapter 5,Anyone _______ make a mistake.,can,,confirmed,
+TSUGE00152,Unit 1 Chapter 5,"I wanted to talk to Jim yesterday, but I _______ find him.",couldn't,,confirmed,
+TSUGE00152,Unit 1 Chapter 5,I don't believe it. It _______ be true.,can't,,confirmed,
+TSUGE00152,Unit 1 Chapter 5,I have never _______ speak Spanish as well as my brother.,been able to,,confirmed,
+TSUGE00152,Unit 1 Chapter 5,"After 6 hours climbing, we _______ reach the top of the mountain.",were able to,,confirmed,
+TSUGE00152,Unit 1 Chapter 5,If you follow the instructions you should ______ set up the computer without a problem.,be able to,,confirmed,
+TSUGE00152,Unit 1 Chapter 5,(same prompt repeated),be able to,,confirmed,
+TSUGE00152,Unit 2 Chapter 1,"Match word to picture, item 1 (picture not captured)",goggles,,confirmed,picture was not captured; answers are in listed order
+TSUGE00152,Unit 2 Chapter 1,"Match word to picture, item 2 (picture not captured)",helmet,,confirmed,picture was not captured; answers are in listed order
+TSUGE00152,Unit 2 Chapter 1,"Match word to picture, item 3 (picture not captured)",skis and poles,,confirmed,picture was not captured; answers are in listed order
+TSUGE00152,Unit 2 Chapter 1,"Match word to picture, item 4 (picture not captured)",racquet,,confirmed,picture was not captured; answers are in listed order
+TSUGE00152,Unit 2 Chapter 1,"Match word to picture, item 5 (picture not captured)",bat,,confirmed,picture was not captured; answers are in listed order
+TSUGE00152,Unit 2 Chapter 1,"Match word to picture, item 6 (picture not captured)",net,,confirmed,picture was not captured; answers are in listed order
+TSUGE00152,Unit 2 Chapter 1,"Match word to picture, item 7 (picture not captured)",golf club,,confirmed,picture was not captured; answers are in listed order
+TSUGE00152,Unit 2 Chapter 1,"Match word to picture, item 8 (picture not captured)",football kit,,confirmed,picture was not captured; answers are in listed order
+TSUGE00152,Unit 2 Chapter 1,"Match word to picture, item 9 (picture not captured)",pads,,confirmed,picture was not captured; answers are in listed order
+TSUGE00152,Unit 2 Chapter 1,"Match word to picture, item 10 (picture not captured)",hockey stick,,confirmed,picture was not captured; answers are in listed order
+TSUGE00152,Unit 2 Chapter 1,"Match word to picture, item 11 (picture not captured)",oars,,confirmed,picture was not captured; answers are in listed order
+TSUGE00152,Unit 2 Chapter 1,"Match word to picture, item 12 (picture not captured)",football,,confirmed,picture was not captured; answers are in listed order
+TSUGE00152,Unit 2 Chapter 2,Anna is from M... (question tag; sentence text truncated in bank),isn't she?,,confirmed,"question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+TSUGE00152,Unit 2 Chapter 2,We are late fo... (question tag; sentence text truncated in bank),,We aren't,unconfirmed,"question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you). submitted answer was marked incorrect; correct answer unknown"
+TSUGE00152,Unit 2 Chapter 2,James isn't a... (question tag; sentence text truncated in bank),is he,,confirmed,"question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+TSUGE00152,Unit 2 Chapter 2,I was wrong ab... (question tag; sentence text truncated in bank),wasn't I,,confirmed,"question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+TSUGE00152,Unit 2 Chapter 2,Andrew was pre... (question tag; sentence text truncated in bank),wasn't he,,confirmed,"question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+TSUGE00152,Unit 2 Chapter 2,You have done... (question tag; sentence text truncated in bank),haven't you,,confirmed,"question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+TSUGE00152,Unit 2 Chapter 2,You would never t... (question tag; sentence text truncated in bank),wouldn't you,,confirmed,"question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+TSUGE00152,Unit 2 Chapter 2,You like choco... (question tag; sentence text truncated in bank),Don't you,,confirmed,"question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+TSUGE00152,Unit 2 Chapter 2,Sheena won't m... (question tag; sentence text truncated in bank),will she,,confirmed,"question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+TSUGE00152,Unit 2 Chapter 2,Your little A... (question tag; sentence text truncated in bank),can she,,confirmed,"question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+TSUGE00152,Unit 2 Chapter 2,Patrick will... (question tag; sentence text truncated in bank),won't he,,confirmed,"question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+TSUGE00152,Unit 2 Chapter 2,Rita never ac... (question tag; sentence text truncated in bank),does she,,confirmed,"question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+TSUGE00152,Unit 2 Chapter 2,I'm not inter... (question tag; sentence text truncated in bank),am I,,confirmed,"question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+TSUGE00152,Unit 2 Chapter 2,You haven't w... (question tag; sentence text truncated in bank),have you,,confirmed,"question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+TSUGE00152,Unit 2 Chapter 2,Tom couldn't... (question tag; sentence text truncated in bank),could he,,confirmed,"question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+TSUGE00152,Unit 2 Chapter 2,Let's go surf... (question tag; sentence text truncated in bank),shall we,,confirmed,"question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+TSUGE00152,Unit 2 Chapter 2,The children a... (question tag; sentence text truncated in bank),aren't they,,confirmed,"question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+TSUGE00152,Unit 2 Chapter 2,The pan is hot... (question tag; sentence text truncated in bank),isn't it,,confirmed,"question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+TSUGE00152,Unit 2 Chapter 2,Amy doesn't l... (question tag; sentence text truncated in bank),does she,,confirmed,"question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+TSUGE00152,Unit 2 Chapter 2,You are from... (question tag; sentence text truncated in bank),aren't you,,confirmed,"question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+TSUGE00152,Unit 2 Chapter 2,I like eating... (question tag; sentence text truncated in bank),don't I,,confirmed,"question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+TSUGE00152,Unit 2 Chapter 2,You have comp... (question tag; sentence text truncated in bank),haven't you,,confirmed,"question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+TSUGE00152,Unit 2 Chapter 2,You don't live... (question tag; sentence text truncated in bank),do you,,confirmed,"question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+TSUGE00152,Unit 2 Chapter 2,The children a... (question tag; sentence text truncated in bank),aren't they,,confirmed,"question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+TSUGE00152,Unit 2 Chapter 2,We often go o... (question tag; sentence text truncated in bank),don't we,,confirmed,"question tag; sentence text truncated. General tip: curly apostrophe is often preferred in tags, and capitalization sometimes matters (e.g. Don't you)."
+TSUGE00152,Unit 2 Chapter 3,You ______ be an expert to use the basic functions of program.,don't have to,,confirmed,
+TSUGE00152,Unit 2 Chapter 3,You ______ visit them.,,can,unconfirmed,submitted answer was marked incorrect; correct answer unknown
+TSUGE00152,Unit 2 Chapter 3,We ______ clean our room every day.,have to,,confirmed,
+TSUGE00152,Unit 2 Chapter 3,I hate big multinational companies. I think they ______ pay more taxes.,should,,confirmed,
+TSUGE00152,Unit 2 Chapter 3,We ______ wear a tie at work. I hate it!,have to,,confirmed,
+TSUGE00152,Unit 2 Chapter 3,"I ______ wear glasses, I still can see perfectly well.",don't have to,,confirmed,
+TSUGE00152,Unit 2 Chapter 3,"I'm not working tomorrow, so I ______ get up early.",don't have to,,confirmed,
+TSUGE00152,Unit 2 Chapter 3,I ______ get up early tomorrow; I want to go running very early.,must,,confirmed,
+TSUGE00152,Unit 2 Chapter 3,"This is a non-smoking area, you ______ smoke here.",mustn't,,confirmed,
+TSUGE00152,Unit 2 Chapter 3,You ______ eat so many sweets. They are bad for you,shouldn't,,confirmed,
+TSUGE00152,Unit 3 Chapter 1.1,Jim grows my own _____ in my garden.,carrots,,confirmed,
+TSUGE00152,Unit 3 Chapter 1.1,I love the smell of freshly- _____ bread.,baked,,confirmed,
+TSUGE00152,Unit 3 Chapter 1.1,We eat fish twice a week. My favorite type is _____.,salmon,,confirmed,
+TSUGE00152,Unit 3 Chapter 1.1,I made a lovely salad with fresh green _____.,spinach,,confirmed,
+TSUGE00152,Unit 3 Chapter 1.1,Ann rarely eats red meat these days; just some _____ from time to time.,,crab,unconfirmed,submitted answer was marked incorrect; correct answer unknown
+TSUGE00152,Unit 3 Chapter 1.1,I had slices of tasty red _____ with my breakfast this morning.,watermelon,,confirmed,
+TSUGE00152,Unit 3 Chapter 1.1,"Last Monday, we had beef, which had been _____ in the oven.",roasted,,confirmed,
+TSUGE00152,Unit 3 Chapter 1.1,"I grow _____ in our garden, which we then make into wine.",grapes,,confirmed,
+TSUGE00152,Unit 3 Chapter 1.1,_____ food is very healthy because it is cooked in vapour instead of oil.,Steamed,,confirmed,
+TSUGE00152,Unit 3 Chapter 1.1,I think _____ meat is much tastier than meat from other birds,duck,,confirmed,
+TSUGE00152,Unit 3 Chapter 1.2,A: What ___? B: It's very spicy and strong,is curry like,,confirmed,
+TSUGE00152,Unit 3 Chapter 1.2,"A: I ___. B: Yes you do, you could be twins!",look like my sister,,confirmed,
+TSUGE00152,Unit 3 Chapter 1.2,A: What ___? B: She's very friendly and sweet.,is she like,,confirmed,
+TSUGE00152,Unit 3 Chapter 1.2,A: What ___? B: It's beautiful in summer and there are a lot of famous beaches.,is Rio like,,confirmed,
+TSUGE00152,Unit 3 Chapter 1.2,A: What ___? B: I like English. It's an amazing language.,language do you like,,confirmed,
+TSUGE00152,Unit 3 Chapter 1.2,A: ___? B: Yes please.,Would you like some coffee,,confirmed,
+TSUGE00152,Unit 3 Chapter 1.2,A: What ___ tomorrow? B: I think it's going to be rainy and cold.,will the weather be like,,confirmed,
+TSUGE00152,Unit 3 Chapter 1.2,A: What ___? B: He's tall and a little fat. I think he's handsome.,does your husband look like,,confirmed,
+TSUGE00152,Unit 3 Chapter 1.2,A: I ___. B: Yes me too. I also like them.,like Ferraris,,confirmed,
+TSUGE00152,Unit 3 Chapter 1.2,A: What ___? B: It was amazing! I want to go back.,was your holiday like,,confirmed,
+TSUGE00152,Unit 3 Chapter 1.2,What is he like?,He's really friendly.,,confirmed,
+TSUGE00152,Unit 3 Chapter 1.2,What does he look like?,He's tall with dark hair.,,confirmed,
+TSUGE00152,Unit 3 Chapter 1.2,What does he like doing?,He likes playing football.,,confirmed,
+TSUGE00152,Unit 3 Chapter 2,"Match word to picture, item 1 (picture not captured)",chef,,confirmed,picture was not captured; answers are in listed order
+TSUGE00152,Unit 3 Chapter 2,"Match word to picture, item 2 (picture not captured)",waiter,,confirmed,picture was not captured; answers are in listed order
+TSUGE00152,Unit 3 Chapter 2,"Match word to picture, item 3 (picture not captured)",waitress,,confirmed,picture was not captured; answers are in listed order
+TSUGE00152,Unit 3 Chapter 2,"Match word to picture, item 4 (picture not captured)",menu,,confirmed,picture was not captured; answers are in listed order
+TSUGE00152,Unit 3 Chapter 2,"Match word to picture, item 5 (picture not captured)",fork,,confirmed,picture was not captured; answers are in listed order
+TSUGE00152,Unit 3 Chapter 2,"Match word to picture, item 6 (picture not captured)",meal,,confirmed,picture was not captured; answers are in listed order
+TSUGE00152,Unit 3 Chapter 2,"Match word to picture, item 7 (picture not captured)",plate,,confirmed,picture was not captured; answers are in listed order
+TSUGE00152,Unit 3 Chapter 2,"Match word to picture, item 8 (picture not captured)",bill,,confirmed,picture was not captured; answers are in listed order
+TSUGE00152,Unit 3 Chapter 2,"Match word to picture, item 9 (picture not captured)",cup,,confirmed,picture was not captured; answers are in listed order
+TSUGE00152,Unit 3 Chapter 2,"Match word to picture, item 10 (picture not captured)",glass,,confirmed,picture was not captured; answers are in listed order
+TSUGE00152,Unit 3 Chapter 2,What is the definition of Menu?,A booklet or printed list of all the food that can be ordered.,,confirmed,
+TSUGE00152,Unit 3 Chapter 2,What is the definition of Server?,A person who brings your food and drinks at a restaurant; a waiter or waitress.,,confirmed,
+TSUGE00152,Unit 3 Chapter 2,What is the definition of Buffet?,Self-serve tables of food that are set out for the customers to pick and choose from.,,confirmed,
+TSUGE00152,Unit 3 Chapter 2,What is the definition of Waitress?,A person who serves food or drinks to people in a restaurant.,,confirmed,
+TSUGE00152,Unit 3 Chapter 2,What is the definition of Cutlery?,"Tools for eating with (fork, knife, spoon).",,confirmed,
+TSUGE00152,Unit 3 Chapter 3,You'd better _______. We are late!,hurry up,,confirmed,gerund / infinitive
+TSUGE00152,Unit 3 Chapter 3,"Sorry, but I can't help _______.",laughing,,confirmed,gerund / infinitive
+TSUGE00152,Unit 3 Chapter 3,Would you mind _______ the window?,opening,,confirmed,gerund / infinitive
+TSUGE00152,Unit 3 Chapter 3,I'd like you to stop _______ that.,doing,,confirmed,gerund / infinitive
+TSUGE00152,Unit 3 Chapter 3,He recommends _______ some money before we arrive.,changing,,confirmed,gerund / infinitive
+TSUGE00152,Unit 3 Chapter 3,I forgot _______ you yesterday. I'm sorry.,to call,,confirmed,gerund / infinitive
+TSUGE00152,Unit 3 Chapter 3,"Sammy didn't want to eat, but she made him _______ the sandwich.",finish,,confirmed,gerund / infinitive
+TSUGE00152,Unit 3 Chapter 3,We are looking forward _______ you.,seeing,,confirmed,gerund / infinitive
+TSUGE00152,Unit 3 Chapter 3,I'd rather _______ here if you don't mind.,,stay,unconfirmed,gerund / infinitive submitted answer was marked incorrect; correct answer unknown
+TSUGE00152,Unit 3 Chapter 3,She pretended _______ interested.,to be,,confirmed,gerund / infinitive
+TSUGE00152,Unit 3 Chapter 3,He spent three hours _______TV.,watching,,confirmed,gerund / infinitive
+TSUGE00152,Unit 3 Chapter 3,We managed _______ up the hill.,to climb,,confirmed,gerund / infinitive
+TSUGE00152,Unit 3 Chapter 3,He denied _______ the window.,breaking,,confirmed,gerund / infinitive
+TSUGE00152,Unit 3 Chapter 3,He offered _______ me to the airport.,to take,,confirmed,gerund / infinitive
+TSUGE00152,Unit 3 Chapter 3,They seem _______ in a good mood.,to be,,confirmed,gerund / infinitive
+TSUGE00152,Unit 4 Chapter 1,Three men attacked a jogger and sto... (match sentence to crime; sentence truncated),Mugging,,confirmed,
+TSUGE00152,Unit 4 Chapter 1,"The money, $30,000 was taken from t... (match sentence to crime; sentence truncated)",,Robbery,unconfirmed,submitted answer was marked incorrect; correct answer unknown
+TSUGE00152,Unit 4 Chapter 1,A dentist killed his wife using poi... (match sentence to crime; sentence truncated),Murder,,confirmed,
+TSUGE00152,Unit 4 Chapter 1,The men were discovered in their ho... (match sentence to crime; sentence truncated),Forgery,,confirmed,
+TSUGE00152,Unit 4 Chapter 1,"The young lady, age 15 from Paris,... (match sentence to crime; sentence truncated)",Shoplifting,,confirmed,
+TSUGE00152,Unit 4 Chapter 1,The pilot was knocked unconscious a... (match sentence to crime; sentence truncated),Hijacking,,confirmed,
+TSUGE00152,Unit 4 Chapter 1,A woman was caught trying to buy a... (match sentence to crime; sentence truncated),Fraud,,confirmed,
+TSUGE00152,Unit 4 Chapter 1,A student set fire to his school af... (match sentence to crime; sentence truncated),Arson,,confirmed,
+TSUGE00152,Unit 4 Chapter 1,The upstairs bedroom window was sma... (match sentence to crime; sentence truncated),Burglary,,confirmed,
+TSUGE00152,Unit 4 Chapter 1,Two men forced the president's son... (match sentence to crime; sentence truncated),Kidnapping,,confirmed,
+TSUGE00152,Unit 4 Chapter 2,"Noun from verb ""intend"" (""Her _____ was..."")",intention,,confirmed,
+TSUGE00152,Unit 4 Chapter 2,"Noun from ""deliver""",delivery,,confirmed,
+TSUGE00152,Unit 4 Chapter 2,"Noun from ""omit""",omission,,confirmed,
+TSUGE00152,Unit 4 Chapter 2,"Noun from ""lie"" (""Tom is a consi..."")",liar,,confirmed,
+TSUGE00152,Unit 4 Chapter 2,"Noun from ""refuse""",refusal,,confirmed,
+TSUGE00152,Unit 4 Chapter 2,"Noun from ""produce"" (""As a result..."")",,produceion,unconfirmed,submitted answer was marked incorrect; correct answer unknown
+TSUGE00152,Unit 4 Chapter 2,"Noun from ""appoint""",appointment,,confirmed,
+TSUGE00152,Unit 4 Chapter 2,"Noun from ""decide""",decision,,confirmed,
+TSUGE00152,Unit 4 Chapter 2,"Noun from ""choose""",choice,,confirmed,
+TSUGE00152,Unit 4 Chapter 2,"Noun from ""dismiss""",dismissal,,confirmed,
+TSUGE00152,Unit 4 Chapter 2,"""He slipped on the peel of a banana..."" peel is a noun; choose sentence where it is a verb",Monkeys peel bananas very easily.,,confirmed,
+TSUGE00152,Unit 4 Chapter 2,"""Light is able to travel in a vaccum."" vaccum noun; choose verb sentence",The maid had to vacuum the house twice to clean the house thoroughly.,,confirmed,
+TSUGE00152,Unit 4 Chapter 2,"""The present I gave her for her birthday..."" present is noun; choose verb sentence",I will present her with a board game on her birthday.,,confirmed,
+TSUGE00152,Unit 4 Chapter 2,"""I had to park the car a mile away"" park is verb; choose noun sentence",The biological park was close to the venue.,,confirmed,
+TSUGE00152,Unit 4 Chapter 2,"""Plant the seed in a pot..."" Plant is verb; choose noun sentence",The thief wanted to steal the plant.,,confirmed,
+TSUGE00152,Unit 4 Chapter 3,"""I don't speak Italian,"" she said.",she didn't speak Italian.,,confirmed,"Accepted 2026-11-09 with a STRAIGHT apostrophe in didn't, plus a final period. Curly apostrophe and the full form 'did not' were marked wrong."
+TSUGE00152,Unit 4 Chapter 3,"""The film began at seven o'clock,"" ...",the film had begun at seven o'clock,,confirmed,Accepted 2026-11-09 with a STRAIGHT apostrophe in o'clock and NO final period.
+TSUGE00152,Unit 4 Chapter 3,"""Don't play on the grass, boys,"" ...",not to play on the grass,,confirmed,reported speech. For this chapter the grader wants a STRAIGHT apostrophe. Q2 was accepted without a final period.
+TSUGE00152,Unit 4 Chapter 3,"""Does she know Robert?"" he wanted to know.",if she knew Robert,,confirmed,reported speech. For this chapter the grader wants a STRAIGHT apostrophe. Q2 was accepted without a final period.
+TSUGE00152,Unit 4 Chapter 3,"He said, ""I like the song.""",he liked the song,,confirmed,reported speech. For this chapter the grader wants a STRAIGHT apostrophe. Q2 was accepted without a final period.
+TSUGE00152,Unit 4 Chapter 3,"Q: ""I can swim really fast,"" he said.",He said that he could swim really fast.,,confirmed,reported speech. For this chapter the grader wants a STRAIGHT apostrophe. Q2 was accepted without a final period.
+TSUGE00152,Unit 4 Chapter 3,"Q: ""There was an accident outside the store,"" he said.",He said there had been an accident outside the store.,,confirmed,reported speech. For this chapter the grader wants a STRAIGHT apostrophe. Q2 was accepted without a final period.
+TSUGE00152,Unit 4 Chapter 3,"Q: ""I get up every morning at seven o'clock"", Peter said.",Peter said he got up every morning at seven o'clock.,,confirmed,reported speech. For this chapter the grader wants a STRAIGHT apostrophe. Q2 was accepted without a final period.
+TSUGE00152,Unit 4 Chapter 3,"Q: Tina said, ""Mary's dad has worked in New York.""",Tina said that Mary's dad had worked in New York.,,confirmed,reported speech. For this chapter the grader wants a STRAIGHT apostrophe. Q2 was accepted without a final period.
+TSUGE00152,Unit 4 Chapter 3,Q: Ana said she would help me with my homework. (direct speech),"Ana said, ""I will help you with your homework""..",,confirmed,reported speech. For this chapter the grader wants a STRAIGHT apostrophe. Q2 was accepted without a final period.
+TSUGE00152,Unit 4 Chapter 3,"Q: Jessie said, ""Polly is learning her script upstairs.""",Jessie said that Polly was learning her script upstairs.,,confirmed,reported speech. For this chapter the grader wants a STRAIGHT apostrophe. Q2 was accepted without a final period.
+TSUGE00152,Unit 4 Chapter 3,Q: Milly said that she had played basketball in college. (direct),"Milly said, ""I played basketball in college"".",,confirmed,reported speech. For this chapter the grader wants a STRAIGHT apostrophe. Q2 was accepted without a final period.
+TSUGE00152,Unit 4 Chapter 3,Q: Sam said he was going to Europe after graduation. (direct),"Sam said, ""I am going to Europe after graduation"".","Sam said, ""I was going to Europe after graduation"".",confirmed,Corrected 2026-11-09. The quoted clause must be 'I am going...' not 'I was going...'. Keep straight apostrophes and the punctuation style of neighbouring items.
+TSUGE00152,Unit 4 Chapter 3,Q: Sharon told me that she would be entering the talent show. (direct),"Sharon told me, ""I will be entering the talent show"".",,confirmed,reported speech. For this chapter the grader wants a STRAIGHT apostrophe. Q2 was accepted without a final period.
+TSUGE00152,Unit 4 Chapter 3,"Q: They said, ""We've lived here for a long time"".",They said they had lived there for a long time.,,confirmed,reported speech. For this chapter the grader wants a STRAIGHT apostrophe. Q2 was accepted without a final period.
+TSUGE00152,Unit 4 Chapter 4,They ___ (not go) back... (second conditional; two blanks),wouldn't go ; paid,,confirmed,two blanks; answers separated by ' ; ' as in the bank
+TSUGE00152,Unit 4 Chapter 4,"If I ___ (have) a dog, he ___ ... (second conditional; two blanks)",had ; would carry,,confirmed,two blanks; answers separated by ' ; ' as in the bank
+TSUGE00152,Unit 4 Chapter 4,Your pencils ___ (break)... (second conditional; two blanks),wouldn't break ; packed,,confirmed,two blanks; answers separated by ' ; ' as in the bank
+TSUGE00152,Unit 4 Chapter 4,If Alex ___ (sell) his ... (second conditional; two blanks),sold ; would buy,,confirmed,two blanks; answers separated by ' ; ' as in the bank
+TSUGE00152,Unit 4 Chapter 4,We ___ (come) to the party... (second conditional; two blanks),would come ; started,,confirmed,two blanks; answers separated by ' ; ' as in the bank
+TSUGE00152,Unit 4 Chapter 4,If you ___ (change) you... (second conditional; two blanks),changed ; would save,,confirmed,two blanks; answers separated by ' ; ' as in the bank
+TSUGE00152,Unit 4 Chapter 4,If you ___ (not click)... (second conditional; two blanks),didn't click ; wouldn't cancel,,confirmed,two blanks; answers separated by ' ; ' as in the bank
+TSUGE00152,Unit 4 Chapter 4,If the students ___ (keep)... (second conditional; two blanks),kept ; wouldn't forget,,confirmed,two blanks; answers separated by ' ; ' as in the bank
+TSUGE00152,Unit 4 Chapter 4,"If he ___ (be) younger, he... (second conditional; two blanks)",were ; would travel,,confirmed,two blanks; answers separated by ' ; ' as in the bank
+TSUGE00152,Unit 4 Chapter 4,(repeat of 9) (second conditional; two blanks),were ; would travel,,confirmed,two blanks; answers separated by ' ; ' as in the bank
+TSUGE00152,Unit 4 Chapter 4,If she ___ (not be) al... (second conditional; two blanks),weren't ; would be,,confirmed,two blanks; answers separated by ' ; ' as in the bank
+TSUGE00152,Unit 4 Chapter 4,"If I ______ you, I wouldn't trust him.",were,,confirmed,second conditional
+TSUGE00152,Unit 4 Chapter 4,"If we didn't take precautions, we ______ hurt.",might get,,confirmed,second conditional
+TSUGE00152,Unit 4 Chapter 4,"If the weather ________ better, we ________ to the park.",were / would go,,confirmed,second conditional
+TSUGE00152,Unit 4 Chapter 4,"If her hair were black, she ________ completely different.",would look,,confirmed,second conditional
+TSUGE00152,Unit 4 Chapter 4,"If smoking were allowed, I ________ a cigarette.",would have,,confirmed,second conditional
+TSUGE00152,Unit 4 Chapter 4,Would you mind if I ______ the window?,opened,,confirmed,second conditional
+TSUGE00152,Unit 4 Chapter 4,If we sold the house we ______ much right now.,wouldn't get,,confirmed,second conditional
+TSUGE00152,Unit 4 Chapter 4,You ______ healthier if you ______ a bit of weight.,would feel / lost,,confirmed,second conditional
+TSUGE00152,Unit 4 Chapter 4,"If Paul __________ television so often, he would have more time for his homework.",didn't watch,,confirmed,second conditional
+TSUGE00152,Unit 4 Chapter 4,We would be able to swim better if we __________ swimming more often.,went,,confirmed,second conditional
+TSUGE00152,Unit 5 Chapter 1 #1,Jason's family is staying... (complete with word from box; sentence truncated),coast,,confirmed,
+TSUGE00152,Unit 5 Chapter 1 #1,The Amazon Rainforest is... (complete with word from box; sentence truncated),jungle,,confirmed,
+TSUGE00152,Unit 5 Chapter 1 #1,Mount Vesuvius is an act... (complete with word from box; sentence truncated),volcano,,confirmed,
+TSUGE00152,Unit 5 Chapter 1 #1,Many of the trees in thi... (complete with word from box; sentence truncated),forest,,confirmed,
+TSUGE00152,Unit 5 Chapter 1 #1,The world's largest hot___ (complete with word from box; sentence truncated),desert,,confirmed,
+TSUGE00152,Unit 5 Chapter 1 #1,If all of the world's___ (complete with word from box; sentence truncated),glaciers,,confirmed,
+TSUGE00152,Unit 5 Chapter 1 #1,Mario kept the horse in... (complete with word from box; sentence truncated),field,,confirmed,
+TSUGE00152,Unit 5 Chapter 1 #1,The massive______ that h... (complete with word from box; sentence truncated),storm,,confirmed,
+TSUGE00152,Unit 5 Chapter 1 #2,When the ground began to... (sentence truncated),earthquake,,confirmed,
+TSUGE00152,Unit 5 Chapter 1 #2,The banks of the local r... (sentence truncated),flood,,confirmed,
+TSUGE00152,Unit 5 Chapter 1 #2,They initially believed... (sentence truncated),hail,,confirmed,
+TSUGE00152,Unit 5 Chapter 1 #2,Let's go up the______ to... (sentence truncated),hill,,confirmed,
+TSUGE00152,Unit 5 Chapter 1 #2,The______ lasted over tw... (sentence truncated),hurricane,,confirmed,
+TSUGE00152,Unit 5 Chapter 1 #2,Melting_______ in these... (sentence truncated),iceberge,,confirmed,
+TSUGE00152,Unit 5 Chapter 1 #2,Look at the amazing ____... (sentence truncated),rainbow,,confirmed,
+TSUGE00152,Unit 5 Chapter 1 #2,Do they favor the______... (sentence truncated),sea,,confirmed,
+TSUGE00152,Unit 5 Chapter 1 #2,He was there during the_... (sentence truncated),monsoon,,confirmed,
+TSUGE00152,Unit 5 Chapter 1 #2,The_______ was approach... (sentence truncated),tornado,,confirmed,
+TSUGE00152,Unit 5 Chapter 2,My best friend Kistina really makes me laugh - she's ...,hilarious,,confirmed,
+TSUGE00152,Unit 5 Chapter 2,Lucas hated living on his own. It made him really ...,miserable,,confirmed,
+TSUGE00152,Unit 5 Chapter 2,What a big house - it's ...,enormous,,confirmed,
+TSUGE00152,Unit 5 Chapter 2,Turn the heat down - it's ...,boiling,,confirmed,
+TSUGE00152,Unit 5 Chapter 2,Their vacation couldn't have been better - it was ...,fantastic,,confirmed,
+TSUGE00152,Unit 5 Chapter 2,Jane was ___ because Tom had been rude to her.,furious,,confirmed,
+TSUGE00152,Unit 5 Chapter 3,Complete shopping list with a/an: orange,an,,confirmed,fill with a or an
+TSUGE00152,Unit 5 Chapter 3,Complete shopping list with a/an: bottle of..,a,,confirmed,fill with a or an
+TSUGE00152,Unit 5 Chapter 3,Complete shopping list with a/an: carton of..,a,,confirmed,fill with a or an
+TSUGE00152,Unit 5 Chapter 3,Complete shopping list with a/an: ice-cream,an,,confirmed,fill with a or an
+TSUGE00152,Unit 5 Chapter 3,Complete shopping list with a/an: banana,a,,confirmed,fill with a or an
+TSUGE00152,Unit 5 Chapter 3,Complete shopping list with a/an: small melon,a,,confirmed,fill with a or an
+TSUGE00152,Unit 5 Chapter 3,Complete shopping list with a/an: hamburger,a,,confirmed,fill with a or an
+TSUGE00152,Unit 5 Chapter 3,Complete shopping list with a/an: piece of h..,a,,confirmed,fill with a or an
+TSUGE00152,Unit 5 Chapter 3,Complete shopping list with a/an: pizza,a,,confirmed,fill with a or an
+TSUGE00152,Unit 5 Chapter 3,Complete shopping list with a/an: apple,an,,confirmed,fill with a or an
+TSUGE00152,Unit 5 Chapter 3,Complete shopping list with a/an: school un..,a,,confirmed,fill with a or an
+TSUGE00152,Unit 5 Chapter 3,Complete shopping list with a/an: hour,an,,confirmed,fill with a or an
+TSUGE00152,Unit 5 Chapter 3,Complete shopping list with a/an: accident,an,,confirmed,fill with a or an
+TSUGE00152,Unit 5 Chapter 3,Complete shopping list with a/an: white egg,a,,confirmed,fill with a or an
+TSUGE00152,Unit 5 Chapter 3,Complete shopping list with a/an: English u..,an,,confirmed,fill with a or an
+TSUGE00152,Unit 5 Chapter 3,Complete shopping list with a/an: green app..,a,,confirmed,fill with a or an
+TSUGE00152,Unit 5 Chapter 3,Complete shopping list with a/an: European,a,,confirmed,fill with a or an
+TSUGE00152,Unit 5 Chapter 3,Complete shopping list with a/an: house,a,,confirmed,fill with a or an
+TSUGE00152,Unit 5 Chapter 3,Complete shopping list with a/an: umbrella,an,,confirmed,fill with a or an
+TSUGE00152,Unit 5 Chapter 3,Complete shopping list with a/an: airport,an,,confirmed,fill with a or an
+TSUGE00152,Unit 5 Chapter 4,Christ need to be... (fill gap with 'the' or no article '-'),the,,confirmed,use the literal string 'the' or '-'
+TSUGE00152,Unit 5 Chapter 4,Blast! I forgot to... (fill gap with 'the' or no article '-'),the,,confirmed,use the literal string 'the' or '-'
+TSUGE00152,Unit 5 Chapter 4,She's tired. She's... (fill gap with 'the' or no article '-'),-,,confirmed,use the literal string 'the' or '-'
+TSUGE00152,Unit 5 Chapter 4,My children always... (fill gap with 'the' or no article '-'),the,,confirmed,use the literal string 'the' or '-'
+TSUGE00152,Unit 5 Chapter 4,What time do they... (fill gap with 'the' or no article '-'),-,,confirmed,use the literal string 'the' or '-'
+TSUGE00152,Unit 5 Chapter 4,Susan loves ____ch... (fill gap with 'the' or no article '-'),-,,confirmed,use the literal string 'the' or '-'
+TSUGE00152,Unit 5 Chapter 4,Have you seen ____... (fill gap with 'the' or no article '-'),the,,confirmed,use the literal string 'the' or '-'
+TSUGE00152,Unit 5 Chapter 4,____Chinese pra... (fill gap with 'the' or no article '-'),the,,confirmed,use the literal string 'the' or '-'
+TSUGE00152,Unit 5 Chapter 4,"Sadly, Martin does... (fill gap with 'the' or no article '-')",-,,confirmed,use the literal string 'the' or '-'
+TSUGE00152,Unit 5 Chapter 4,Suzanne works at... (fill gap with 'the' or no article '-'),the,,confirmed,use the literal string 'the' or '-'
+TSUGE00152,Unit 5 Chapter 5,Third conditional item 1 (two blanks; full sentence not captured),hadn't been ; wouldn't have missed,,confirmed,two blanks; answers separated by ' ; ' as in the bank
+TSUGE00152,Unit 5 Chapter 5,Third conditional item 2 (two blanks; full sentence not captured),had studied ; would have passed,,confirmed,two blanks; answers separated by ' ; ' as in the bank
+TSUGE00152,Unit 5 Chapter 5,Third conditional item 3 (two blanks; full sentence not captured),had arrived ; would have seen,,confirmed,two blanks; answers separated by ' ; ' as in the bank
+TSUGE00152,Unit 5 Chapter 5,Third conditional item 4 (two blanks; full sentence not captured),had gone ; wouldn't have woken,,confirmed,two blanks; answers separated by ' ; ' as in the bank
+TSUGE00152,Unit 5 Chapter 5,Third conditional item 5 (two blanks; full sentence not captured),had become ; would have recorded,,confirmed,two blanks; answers separated by ' ; ' as in the bank
+TSUGE00152,Unit 5 Chapter 5,If she had gone...,would have become,,confirmed,third conditional; sentence truncated
+TSUGE00152,Unit 5 Chapter 5,If Emma _______...,had been,,confirmed,third conditional; sentence truncated
+TSUGE00152,Unit 5 Chapter 5,If Sophai had g...,would have studied,,confirmed,third conditional; sentence truncated
+TSUGE00152,Unit 5 Chapter 5,If they _______...,hadn't gone,,confirmed,third conditional; sentence truncated
+TSUGE00152,Unit 5 Chapter 5,They wouldn't...,hadn't gone,,confirmed,third conditional; sentence truncated
+TSUGE00152,Unit 6 Chapter 1,Match meaning of 'get' in sentence 1 with options a-e (sentence text and option labels not captured),b,,confirmed,sentence text and the meaning of options a-e were not captured; answers are in listed order
+TSUGE00152,Unit 6 Chapter 1,Match meaning of 'get' in sentence 2 with options a-e (sentence text and option labels not captured),e,,confirmed,sentence text and the meaning of options a-e were not captured; answers are in listed order
+TSUGE00152,Unit 6 Chapter 1,Match meaning of 'get' in sentence 3 with options a-e (sentence text and option labels not captured),a,,confirmed,sentence text and the meaning of options a-e were not captured; answers are in listed order
+TSUGE00152,Unit 6 Chapter 1,Match meaning of 'get' in sentence 4 with options a-e (sentence text and option labels not captured),d,,confirmed,sentence text and the meaning of options a-e were not captured; answers are in listed order
+TSUGE00152,Unit 6 Chapter 1,Match meaning of 'get' in sentence 5 with options a-e (sentence text and option labels not captured),c,,confirmed,sentence text and the meaning of options a-e were not captured; answers are in listed order
+TSUGE00152,Unit 6 Chapter 1,Match meaning of 'get' in sentence 6 with options a-e (sentence text and option labels not captured),b,,confirmed,sentence text and the meaning of options a-e were not captured; answers are in listed order
+TSUGE00152,Unit 6 Chapter 1,Match meaning of 'get' in sentence 7 with options a-e (sentence text and option labels not captured),a,,confirmed,sentence text and the meaning of options a-e were not captured; answers are in listed order
+TSUGE00152,Unit 6 Chapter 1,Match meaning of 'get' in sentence 8 with options a-e (sentence text and option labels not captured),c,,confirmed,sentence text and the meaning of options a-e were not captured; answers are in listed order
+TSUGE00152,Unit 6 Chapter 2 #1,"Choose the word below the picture, item 1 (picture not captured)",Boarding Pass,,confirmed,picture not captured; answers are in listed order
+TSUGE00152,Unit 6 Chapter 2 #1,"Choose the word below the picture, item 2 (picture not captured)",Checked bag,,confirmed,picture not captured; answers are in listed order
+TSUGE00152,Unit 6 Chapter 2 #1,"Choose the word below the picture, item 3 (picture not captured)",Departures board,,confirmed,picture not captured; answers are in listed order
+TSUGE00152,Unit 6 Chapter 2 #1,"Choose the word below the picture, item 4 (picture not captured)",Seatbelt,,confirmed,picture not captured; answers are in listed order
+TSUGE00152,Unit 6 Chapter 2 #1,"Choose the word below the picture, item 5 (picture not captured)",Gate,Duty free | Baggage | Airport,confirmed,"Corrected 2026-11-05. Duty free, Baggage, and Airport were all wrong. Picture not captured; this is item 5 in listed order."
+TSUGE00152,Unit 6 Chapter 2 #2,They searched our bag at the...,security checkpoint,,confirmed,sentence truncated in bank
+TSUGE00152,Unit 6 Chapter 2 #2,Despite the terrible w...,land,,confirmed,sentence truncated in bank
+TSUGE00152,Unit 6 Chapter 2 #2,Everyone had to switch...,taking off,,confirmed,sentence truncated in bank
+TSUGE00152,Unit 6 Chapter 2 #2,The flight attendant t...,seatbelt,,confirmed,sentence truncated in bank
+TSUGE00152,Unit 6 Chapter 2 #2,Logan didn't have much...,carry-on bag,,confirmed,sentence truncated in bank
+TSUGE00152,Unit 6 Chapter 2 #2,While waiting for his...,departure lounge,,confirmed,sentence truncated in bank
+TSUGE00152,Unit 6 Chapter 2 #2,Luke queued up at the...,boarding gate,,confirmed,sentence truncated in bank
+TSUGE00152,Unit 6 Chapter 2 #2,Stella felt nausea dur...,airsickness bag,,confirmed,sentence truncated in bank
+TSUGE00152,Unit 6 Chapter 3,"Person A: ""I'm terrible at math."" B: ""____! Numbers just conf...""",So am I.,Neither am I.,confirmed,Corrected 2026-11-05. Old answer 'Neither am I.' was wrong. Keep the period.
+TSUGE00152,Unit 6 Chapter 3,"A: ""I prefer sunny weather over rainy days."" B: ____",So do I,,confirmed,"So / Neither answers need the full phrase plus a period, e.g. 'So do I.'"
+TSUGE00152,Unit 6 Chapter 3,"A: ""I'm not a fan of horror movies."" B: ____",Neither am I.,,confirmed,"So / Neither answers need the full phrase plus a period, e.g. 'So do I.'"
+TSUGE00152,Unit 6 Chapter 3,"A: ""I enjoy spending time outdoors."" B: ____",So do I,,confirmed,"So / Neither answers need the full phrase plus a period, e.g. 'So do I.'"
+TSUGE00152,Unit 6 Chapter 3,"A: ""I find it hard to wake up early on weekends."" B: ____",So do I,,confirmed,"So / Neither answers need the full phrase plus a period, e.g. 'So do I.'"
+TSUGE00152,Unit 6 Chapter 3,"Conversation with Bella, item 6 (prompts not captured)",So do I.,,confirmed,Bella conversation; prompt text not captured; answers in listed order. Keep the period.
+TSUGE00152,Unit 6 Chapter 3,"Conversation with Bella, item 7 (prompts not captured)",Neither can I.,,confirmed,Bella conversation; prompt text not captured; answers in listed order. Keep the period.
+TSUGE00152,Unit 6 Chapter 3,"Conversation with Bella, item 8 (prompts not captured)",So am I.,,confirmed,Bella conversation; prompt text not captured; answers in listed order. Keep the period.
+TSUGE00152,Unit 6 Chapter 3,"Conversation with Bella, item 9 (prompts not captured)",Neither am I.,,confirmed,Bella conversation; prompt text not captured; answers in listed order. Keep the period.
+TSUGE00152,Unit 6 Chapter 3,"Conversation with Bella, item 10 (prompts not captured)",So will I.,,confirmed,Bella conversation; prompt text not captured; answers in listed order. Keep the period.
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),"The people who act in a film are called ""_______"".",main characters,,confirmed,
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),Words which are written at the bottom of the screen.,subtitles,,confirmed,
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),"The spoken words of the film are called ""_______"".",scripts,,confirmed,
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),These new books _______ in Thailand several years ago.,were produced,,confirmed,
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),English _______ to communicate with each other for ages.,has been used,,confirmed,
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),Which sport is the most popular all over the world?,football,,confirmed,
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),_______ is a team sport in which two teams of six players are separated by a net.,Volleyball,,confirmed,
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),"_______ is the self-propulsion and gliding of a person across an ice surface, using ice skates.",Ice skating,,confirmed,
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),"Let me tell you about the whole story, _______?",will you,shall we,confirmed,Corrected 2026-11-05. Old answer 'shall we' was wrong.
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),"You _______ check out of the hotel where you stay by noon, or else you will be fined.",need to,,confirmed,
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),The ________ of this whole place is informal and conductive to have a rest.,atmosphere,,confirmed,
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),Joe had slices of tasty red _____ with my breakfast this morning.,watermelon,,confirmed,
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),"Last Sunday, we had beef, which had been _____ in the oven.",roasted,,confirmed,
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),Do you feel like ________ out tonight?,going,,confirmed,
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),Do you feel like ________ out tonight? (second item),seeing,,confirmed,"Marked incorrect on one Pre-Test run, but accepted on Post-Test (2026-11-05)."
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),A couple of criminals have just been _______ by the police...,arrested,,confirmed,
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),"______ is the crime of attempting to take anything of value by force, threat of force...",Robbery,,confirmed,
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),________ is the system of rules which a particular country or community recognizes...,Law,,confirmed,
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),"Reported speech: She said, ""I have seen this film several times.""",She said that she had seen that film several times.,,confirmed,
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),"Reported speech: My mother said to my father, ""I want to travel around the world with you.""",My mother told my father that she wanted to travel around the world with him.,,confirmed,
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),"After hiking for hours without a break, we were all feeling completely ________.",exhausted,,confirmed,
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),The small village was devastated by a sudden ________ that left many homes underwater.,flood,,confirmed,
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),"After playing in the mud all afternoon, the children were absolutely ________.",filthy,,confirmed,
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),She goes to ________ school every day by ________ bus.,- / -,,confirmed,
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),"If it ________ yesterday, we ________ the picnic.",had rained / would have canceled,,confirmed,
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),I think that I will go ________ a walk in the garden tonight.,for,,confirmed,
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),"If you ________ in advance, you can get a cheaper flight to your destination.",book a flight,,confirmed,
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),"Generally, you have to ________ at immigration.",show your passport,,confirmed,
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),A: I can't speak Italian. B: __________________,Neither can I.,,confirmed,
+TSUGE00152,แบบทดสอบหลังเรียน (Post-Test),A: I don't know the man who is talking to your mother. B: __________________,Neither do I.,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 1,ข้อใด ถูกต้อง เกี่ยวกับประโยชน์ ของ SWOT analysis,ได้ทบทวนและทำความเข้าใจกับธุรกิจอีกครั้ง,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 1,ผู้ประกอบการในปัจจุบัน ควรมีรู้เท่าทันเรื่องใด,การรู้เท่าทันสื่อและข้อมูลสารสนเทศ,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 1,การเป็นผู้ประกอบการ จำเป็นต้องศึกษาตนเองก่อนเริ่มดำเนินการ เพราะอะไร,รู้จุดแข็ง จุดอ่อน และแผนกระบวนการในการประกอบการ,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 1,เด็กชายปองพลมักเลือกเล่นเกมที่มีความยากที่สูงขึ้นเมื่อชนะในเกมแรก เพื่อเรียนรู้และหาไม่สามารถชนะได้ ก็จะวิเคราะห์บทเรียนจากความผิดพลาดที่เกิดขึ้น ถือได้ว่าเด็กชายปองพลมีกระบวนการความคิดแบบใด,กระบวนการความคิดแบบเติบโต,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 1,ข้อใด ไม่สอดคล้อง กับความหมายของผู้ประกอบการตามพจนานุกรมฉบับราชบัณฑิตสถาน,เป็นบุคคลที่จดทะเบียนภาษีมูลค่าเพิ่มเรียบร้อยแล้วเท่านั้น,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 1,ข้อใดจัดเป็นการวิเคราะห์ปัจจัยภายนอก,แนวโน้มเศรษฐกิจ,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 1,การดำเนินการในข้อใดช่วยให้ธุรกิจมีทิศทางในการดำเนินงานให้บรรลุเป้าหมายมากที่สุด,การวางแผนธุรกิจ,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 1,ข้อใด ไม่ได้เป็นความจริงเกี่ยวกับผู้ประกอบการ,ผู้ประกอบการต้องดำเนินการในธุรกิจ Startups เท่านั้น,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 1,ผู้ประกอบการที่ชอบความท้าทายและชอบเรียนรู้ทุกสิ่งในโลกใบนี้ จัดอยู่ในกลุ่มผู้ประกอบการแบบใด,แบบ Growth Mindset,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 1,ข้อใด ไม่ถูกต้อง เกี่ยวกับการวิเคราะห์ SWOT analysis,การช่วยเหลือด้านการดำเนินกิจการ,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 2,ผู้ประกอบการที่คิดว่าการเปลี่ยนแปลงถือเป็นโอกาสสำคัญในการเริ่มต้นของสิ่งใหม่ และใช้ประโยชน์จากการเปลี่ยนแปลงนั้น ตรงกับคุณสมบัติข้อใดของการเป็นผู้ประกอบการมากที่สุด,มองการเปลี่ยนแปลงคือโอกาส,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 2,การดำเนินการในข้อใดช่วยให้ธุรกิจมีทิศทางในการดำเนินงานให้บรรลุเป้าหมายมากที่สุด,การวางแผนธุรกิจ,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 2,ข้อใดเป็นการใช้ประโยชน์จากโอกาสที่เกิดขึ้นของผู้ประกอบการ,,การลดต้นทุนจากเทคโนโลยีใหม่,unconfirmed,"Submitted 'การลดต้นทุนจากเทคโนโลยีใหม่' was wrong. Options seen: การจัดรูปแบบองค์กรใหม่; ถูกทุกข้อ; การหาตลาดใหม่; การลดต้นทุนจากเทคโนโลยีใหม่; มีความคิดสร้างสรรค์. Note: a near-identical question starting with 'ข้อใดถือเป็น...' is confirmed as 'การนำเสนอสินค้าและบริการใหม่', and the Post-Test item 'ข้อใดเป็นการใช้ประโยชน์...' is confirmed as 'ถูกทุกข้อ'. Match by exact stem and by section."
+TSUGE000271,แบบทดสอบ : บทที่ 2,ข้อใดถือเป็นการใช้ประโยชน์จากโอกาสที่เกิดขึ้นของผู้ประกอบการ,การนำเสนอสินค้าและบริการใหม่,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 2,เมื่อเกิดการเปลี่ยนแปลงอย่างฉับพลันด้วยดิจิตอลทำให้ธุรกิจปรับตัวไม่ทันธุรกิจจึงถูกแทนด้วยธุรกิจใหม่ เรียกว่าอย่างไร?,Digital Disruption,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 2,ผู้ประกอบการที่คิดว่าการเปลี่ยนแปลงถือเป็นโอกาสสำคัญในการเริ่มต้นของสิ่งใหม่ และใช้ประโยชน์จากการเปลี่ยนแปลงนั้น ตรงกับคุณสมบัติข้อใดของการเป็นผู้ประกอบการมากที่สุด,มองการเปลี่ยนแปลงคือโอกาส,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 2,ผู้ประกอบการในปัจจุบัน ควรมีรู้เท่าทันเรื่องใด,การรู้เท่าทันสื่อและข้อมูลสารสนเทศ,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 2,ลักษณะสำคัญของธุรกิจในยุค Digital Disruption ข้อใดถูกต้อง,การเกิดสิ่งใหม่ ๆ จากพฤติกรรมของผู้บริโภคที่ไม่เคยได้รับการแก้ไขมาก่อน,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 2,ผู้ประกอบการยุค Digital Disruption ไม่ควร มีลักษณะแบบใด,คิดและทำแบบเดียวกับครั้งที่เคยประสบความสำเร็จมาทุกครั้ง,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 2,โอกาสทางธุรกิจเกิดขึ้นได้อย่างไร,การคาดการณ์สถานการณ์ในอนาคต,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 3,ผู้ประกอบการที่ดี ควรมีลักษณะอย่างไร,ทำสิ่งที่ต้องทำก่อนเสมอ,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 3,ข้อใด ไม่ใช่ ทักษะการคิดสร้างสรรค์ของผู้ประกอบการ,การเข้าใจอารมณ์ความรู้สึกของผู้อื่น,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 3,ข้อใด ถูกต้อง เดี่ยวกับการทำงานของผู้ประกอบการร,ยืดหยุ่นปรับตัว,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 3,ในการดำเนินธุรกิจของผู้ประกอบการมักมีแรงบันดาลใจ (Passion) ซึ่งก่อให้เกิดการสร้างความสำเร็จของผู้ประกอบการ ข้อใด ไม่ใช่ ตัวอย่างของผลกระทบเชิงบวกที่เกิดจากแรงบันดาลใจ,ความเหนื่อยล้า (Tired),,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 3,เพราะเหตุใด การประกอบธุรกิจจึงควรรู้สถานการณ์การแข่งขันและคู่แข่ง,เพื่อเป็นข้อมูลในการพัฒนาสินค้าและบริการของตนเองให้เป็นที่นิยมของลูกค้า,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 3,ผู้ประกอบการในปัจจุบัน ควรมีรู้เท่าทันเรื่องใด,,การรู้เท่าทันความต้องการของทุกคน,unconfirmed,Submitted 'การรู้เท่าทันความต้องการของทุกคน' was wrong. In chapter 1 / Post-Test the same question accepts 'การรู้เท่าทันสื่อและข้อมูลสารสนเทศ'. Chapter 3 option wording may be 'การรู้เท่าทันสื่อและสารสนเทศ' (without the word ข้อมูล). Other options seen: ถูกทุกข้อ; การรู้เท่าทันของอุปกรณ์สื่อสาร; การรู้เท่าทันการเติบโตของประชาการ.
+TSUGE000271,แบบทดสอบ : บทที่ 3,กระบวนการทางความคิดที่ดีของผู้ประกอบการประกอบไปด้วยองค์ประกอบใดบ้าง,ถูกทุกข้อ,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 3,แผนธุรกิจที่ดีมีประโยชน์อย่างไรต่อผู้ประกอบการ,เพื่อใช้ทรัพยากรให้คุ้มค่าที่สุดตามที่กำหนดไว้ในแผนธุรกิจ,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 3,การเป็นผู้ประกอบการ จำเป็นต้องศึกษาตนเองก่อนเริ่มดำเนินการ เพราะอะไร,รู้จุดแข็ง จุดอ่อน และแผนกระบวนการในการประกอบการ,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 3,ข้อใด ผิด เกี่ยวกับทักษะที่ต่างกันในการเป็นผู้ประกอบการเมื่อกก่อนกับปัจจุบัน,นำนวัตกรรมธุรกิจอื่นมาปรับใช้,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 4,ข้อใด ถูกต้อง เกี่ยวกับองค์ประกอบนวัตกรรม,,ถูกทุกข้อ | สิ่งใหม่ที่พัฒนาจากสิ่งที่มีอยู่แล้ว,unconfirmed,Still unconfirmed. Remaining untried: สิ่งใหม่ที่ไม่เป็นประโยชน์เชิงเศรษฐกิจ; สิ่งใหม่ที่ถูกพัฒนาขึ้นมาโดยอาจจะเป็นสิ่งใหม่ของผลิตภัณฑ์
+TSUGE000271,แบบทดสอบ : บทที่ 4,ประโยชน์ของนวัตกรรมสังคม คือ ข้อใด,ช่วยให้สังคมสามารถแก้ปัญหาต่างๆ ได้ดีขึ้น,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 4,กระบวนการสร้างนวัตกรรมธุรกิจดิจิทัลมีทั้งหมด กี่ขั้นตอน,5 ขั้นตอน,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 4,Product innovation หมายถึง อะไร,,การพัฒนาผลิตภัณฑ์หรือบริการใหม่ ๆ ที่ตอบสนองความต้องการของลูกค้า | การใช้กระบวนการใหม่หรือปรับปรุงกระบวนการเดิมให้มีประสิทธิภาพมากขึ้น,unconfirmed,Still unconfirmed. Remaining untried: การใช้กลยุทธ์การตลาดใหม่หรือปรับปรุงกลยุทธ์การตลาดเดิมให้มีประสิทธิภาพมากขึ้น; การพัฒนาผลิตภัณฑ์ใหม่หรือปรับปรุงผลิตภัณฑ์เดิมให้ดีขึ้น (the latter is the more likely of the two)
+TSUGE000271,แบบทดสอบ : บทที่ 4,ข้อใด ไม่ใช่ ตัวอย่างของนวัตกรรมกับธุรกิจดิจิตอล,คอมพิวเตอร์,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 4,ข้อใด ไม่ใช่ข้อดีของนวัตกรรมธุรกิจดิจิทัล,ตลาดผู้บริโภคไม่พึงประสงค์,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 4,นวัตกรรมธุรกิจดิจิตอลที่เป็นความต้องการของลูกค้า ข้อใด ถูก,บริการขนส่งพัสดุและเอกสารผ่านเคอรี่ (Kerry),,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 4,ข้อใด ไม่ใช่ การเปลี่ยนแปลงโดยไม่จำเป็นต้องพัฒนาเทคโนโลยีขึ้นมาใช้เอง?,,บริการสั่งอาหารออนไลน์ | ช่องทางการจ่ายเงินออนไลน์,unconfirmed,Still unconfirmed after 2025 and 2026_T1. Remaining untried: การสร้างสื่อออนไลน์; เพิ่มช่องทางการตลาดออนไลน์
+TSUGE000271,แบบทดสอบ : บทที่ 4,ข้อใด ไม่ใช่ ลักษณะของนวัตกรรม,ลอกเลียนแบบ,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 4,ความสำคัญของนวัตกรรมกับการประกอบการ คือ อะไร ?,ช่วยให้องค์กรสามารถแข่งขันในตลาดได้อย่างมีประสิทธิภาพ,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 4,ข้อใดถูกต้องเกี่ยวกับนวัตกรรมสังคม,โครงการพัฒนาแอปพลิเคชันเพื่ออำนวยความสะดวกให้กับคนพิการ,,confirmed,Newly confirmed in 2026_T1. Match by question meaning; spacing in 'ข้อใดถูกต้อง' may vary.
+TSUGE000271,แบบทดสอบ : บทที่ 5,ขั้นตอนแรกของแนวคิด Design Thinking เริ่มต้นด้วย,เข้าใจลูกค้าและปัญหาที่จะแก้ไข,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 5,ในการคิดเชิงออกแบบที่ดี ควรให้ความสำคัญกับมุมมองใดบ้าง,กลุ่มผู้บริโภคที่ต้องการซื้อ,ถูกทุกข้อ,confirmed,ถูกทุกข้อ was wrong in 2025 chapter 5. Confirmed via Post-Test (2025) and used successfully in 2026_T1 chapter 5.
+TSUGE000271,แบบทดสอบ : บทที่ 5,ตัวเลือกใดคือสิ่งที่ควรเกิดขึ้นหลังจากจบ ขั้นตอนการทดสอบ (TEST),รวบรวมข้อมูลที่ได้ และสร้างการเรียนรู้เพื่อนำไปปรับปรุงการทดสอบครั้งถัดไป,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 5,วิธีการใดเหมาะสมที่สุดในทำความเข้าใจลูกค้า,สังเกตและสัมภาษณ์กลุ่มลูกค้าเป้าหมาย,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 5,ตัวเลือกใดต่อไปนี้ควรเป็นขั้นตอนแรกในการเริ่มต้นธุรกิจ,ทำความเข้าใจลูกค้า,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 5,ข้อใดตรงกับกระบวนการ Design Thinking มากที่สุด,กระบวนการคิดเชิงออกแบบสําหรับพัฒนานวัตกรรมที่ผสมผสานการคิดสร้างสรรค์ (Creative thinking) และการคิดเชิงธุรกิจ,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 5,ในกระบวนการ Design Thinking ควรใช้เวลากับขั้นตอนไหนมากที่สุด,การเก็บข้อมูลจากลูกค้า,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 5,ข้อใดต่อไปนี้กล่าวถึงขั้นตอน Prototype ได้ถูกต้อง,ต้นแบบของสินค้าที่ทำมาเพื่อทดสอบกับลูกค้าก่อนผลิตจริง,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 5,ข้อใดต่อไปนี้ ไม่ควร เกิดขึ้นในขั้นตอน Ideate,ถามเพื่อนบ่อยๆ ว่าจะทำได้จริงหรือไม่,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 5,เจนกำลังสร้าง Persona หรือตัวอย่างของคนที่อาจจะเป็นลูกค้ามีทั้งอายุ เพศ และอาชีพ เจนกำลังอยู่ในขั้นตอนใดของ Design Thinking,,Empathize เพราะเจนกำลังทำความเข้าใจลูกค้า,unconfirmed,Wrong in the chapter 5 quiz in both 2025_T1 and 2026_T1. Try next: 'Define เพราะเจนกำลังหาว่าลูกค้ามีปัญหาอะไร'. Warning: the 2025 Post-Test marked 'Empathize เพราะเจนกำลังทำความเข้าใจลูกค้า' as correct — treat chapter quiz and post-test separately.
+TSUGE000271,แบบทดสอบ : บทที่ 6,การได้เห็นลูกค้าที่ยอมต่อคิวเพื่อให้ได้สินค้าเป็นคนแรก ยอมแลกสิ่งที่มากกว่าเงิน ซึ่งก็คือเวลา สิ่งนี้เกิดขึ้นเพราะอะไร,เพราะลูกค้าเห็นถึงคุณค่าอะไรบางอย่างของสินค้านั้น ๆ,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 6,โครงสร้างต้นทุน (Cost structure) แบบเน้นต้นทุนมีลักษณะอย่างไร,ให้ความสำคัญกับการลดต้นทุนทุกครั้งที่มีโอกาส,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 6,ข้อใด ไม่เกี่ยวข้อง กับ Business model canvas,การวิเคราะห์จุดแข็ง จุดอ่อน ของธุรกิจ (SWOT analysis),,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 6,ข้อใดกล่าว ไม่ถูกต้อง เกี่ยวกับหลักการดำเนินธุรกิจโดยใช้ Business model canvas,เชื่อใจในลูกค้าในการมาบริโภคสินค้าเรา,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 6,ข้อใด ไม่ถูกต้อง เกี่ยวกับการเลือกกลุ่มลูกค้าเป้าหมาย (Customer Segment),กลุ่มลูกค้าเป้าหมายควรระบุกว้างๆ ไว้ก่อน เพื่อเข้าถึงลูกค้าจำนวนมาก,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 6,ข้อใด ไม่ใช่ องค์ประกอบของเครื่องมือ Business model canvas,ระยะเวลา,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 6,ที่ปรึกษาทางธุรกิจ จัดอยู่ในกระบวนการใดของเครื่องมือ Business model canvas,ทรัพยากรหลัก,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 6,ทำไมต้องให้ความสำคัญกับการสร้าง Business Model,พฤติกรรมของลูกค้าที่เปลี่ยนแปลง,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 6,ทรัพยากรหลัก ( Key resources) ข้อใด ไม่ถูกต้อง,การแก้ปัญหา,,confirmed,
+TSUGE000271,แบบทดสอบ : บทที่ 6,ข้อใดคือความแตกต่างระหว่าง คุณค่า และ มูลค่า,ราคาเป็นสิ่งที่คุณจ่าย คุณค่าเป็นสิ่งที่คุณได้รับมา,,confirmed,
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),ข้อใดตรงกับกระบวนการ Design Thinking มากที่สุด,กระบวนการคิดเชิงออกแบบสําหรับพัฒนานวัตกรรมที่ผสมผสานการคิดสร้างสรรค์ (Creative thinking) และการคิดเชิงธุรกิจ,,confirmed,
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),นายสิงห์ พยายามความเข้าใจปัญหาที่เราพยายามแก้ไข สังเกตุและปตั้งสมมติฐานได้เหมาะสมกับบริบทและสภาพแวดล้อมนั้น ๆ คือขั้นตอนใกของกระบวนการออกแบบ design thinking,ทำความเข้าใจ (Empathize),,confirmed,
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),ข้อใดเป็นการใช้ประโยชน์จากโอกาสที่เกิดขึ้นของผู้ประกอบการ,ถูกทุกข้อ,,confirmed,
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),ผู้ประกอบการในปัจจุบัน ควรมีรู้เท่าทันเรื่องใด,การรู้เท่าทันสื่อและข้อมูลสารสนเทศ,,confirmed,
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),ผู้ประกอบการในปัจจุบัน ควรมีรู้เท่าทันเรื่องใด,การรู้เท่าทันสื่อและข้อมูลสารสนเทศ,,confirmed,
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),ข้อใดถือเป็นการใช้ประโยชน์จากโอกาสที่เกิดขึ้นของผู้ประกอบการ,การนำเสนอสินค้าและบริการใหม่,,confirmed,
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),ในการคิดเชิงออกแบบที่ดี ควรให้ความสำคัญกับมุมมองใดบ้าง,กลุ่มผู้บริโภคที่ต้องการซื้อ,,confirmed,
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),ผู้ประกอบการยุค Digital Disruption ไม่ควร มีลักษณะแบบใด,คิดและทำแบบเดียวกับครั้งที่เคยประสบความสำเร็จมาทุกครั้ง,,confirmed,
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),ข้อใดคือ Disruptive Technology,มานิตย์ชอบทานนมปั่นของตู้เต่าบิน,,confirmed,
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),ข้อใด ไม่ได้ เป็นความจริงเกี่ยวกับผู้ประกอบการ,ผู้ประกอบการต้องดำเนินการในธุรกิจ Startups เท่านั้น,,confirmed,
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),ข้อใดต่อไปนี้ ไม่ควร เกิดขึ้นในขั้นตอน Ideate,ถามเพื่อนบ่อย ๆ ว่าจะทำได้จริงหรือไม่,,confirmed,
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),ตัวเลือกใดต่อไปนี้ควรเป็นขั้นตอนแรกในการเริ่มต้นธุรกิจ,ทำความเข้าใจลูกค้า,,confirmed,
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),ลักษณะสำคัญของธุรกิจในยุค Digital Disruption ข้อใดถูกต้อง,การเกิดสิ่งใหม่ๆจากพฤติกรรมของผู้บริโภคที่ไม่เคยได้รับการแก้ไขมาก่อน,,confirmed,
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),เด็กชายปองพลมักเลือกเล่นเกมที่มีความยากที่สูงขึ้นเมื่อชนะในเกมแรก เพื่อเรียนรู้และหาไม่สามารถชนะได้ ก็จะวิเคราะห์บทเรียนจากความผิดพลาดที่เกิดขึ้น ถือได้ว่าเด็กชายปองพลมีกระบวนการความคิดแบบใด,กระบวนการความคิดแบบเติบโต,,confirmed,2026_T1 Post-Test missed this only because the bank file was truncated in that run; 'กระบวนการความคิดแบบเติบโต' remains the confirmed 2025 answer.
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),ข้อใดต่อไปนี้กล่าวถึงขั้นตอน Prototype ได้ถูกต้อง,ต้นแบบของสินค้าที่ทำมาเพื่อทดสอบกับลูกค้าก่อนผลิตจริง,,confirmed,
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),การเป็นผู้ประกอบการ จำเป็นต้องศึกษาตนเองก่อนเริ่มดำเนินการ เพราะอะไร,รู้จุดแข็ง จุดอ่อน และแผนกระบวนการในการประกอบการ,,confirmed,
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),ผู้ประกอบการที่ชอบความท้าทายและชอบเรียนรู้ทุกสิ่งในโลกใบนี้ จัดอยู่ในกลุ่มผู้ประกอบการแบบใด,แบบ Growth Mindset,,confirmed,
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),เมื่อเกิดการเปลี่ยนแปลงอย่างฉับพลันด้วยดิจิตอลทำให้ธุรกิจปรับตัวไม่ทันธุรกิจจึงถูกแทนด้วยธุรกิจใหม่ เรียกว่าอย่างไร?,Digital Disruption,,confirmed,
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),ข้อใด ไม่สอดคล้อง กับความหมายของผู้ประกอบการตามพจนานุกรมฉบับราชบัณฑิตสถาน,เป็นบุคคลที่จดทะเบียนภาษีมูลค่าเพิ่มเรียบร้อยแล้วเท่านั้น,,confirmed,
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),วิธีการใดเหมาะสมที่สุดในทำความเข้าใจลูกค้า,สังเกตและสัมภาษณ์กลุ่มลูกค้าเป้าหมาย,,confirmed,
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),เจนกำลังสร้าง Persona หรือตัวอย่างของคนที่อาจจะเป็นลูกค้ามีทั้งอายุ เพศ และอาชีพ เจนกำลังอยู่ในขั้นตอนใดของ Design Thinking,Empathize เพราะเจนกำลังทำความเข้าใจลูกค้า,,confirmed,Confirmed on the 2025 Post-Test. Conflict: the same answer was marked wrong in the chapter 5 quiz (2025 and 2026). Match by section; do not assume the chapter-5 and post-test keys are identical.
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),ข้อใด ไม่เกี่ยวข้อง กับนวัตกรรม,ดีอยู่แล้ว,,confirmed,
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),ผู้ประกอบการที่คิดว่าการเปลี่ยนแปลงถือเป็นโอกาสสำคัญในการเริ่มต้นของสิ่งใหม่ และใช้ประโยชน์จากการเปลี่ยนแปลงนั้น ตรงกับคุณสมบัติข้อใดของการเป็นผู้ประกอบการมากที่สุด,มองการเปลี่ยนแปลงคือโอกาส,,confirmed,
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),การทำ Design Thinking ควรให้ความสำคัญ และใช้ในการบวนการใด,การเข้าใจลูกค้า,,confirmed,2026_T1 Post-Test missed this only because the bank file was truncated in that run; 'การเข้าใจลูกค้า' remains the confirmed 2025 answer.
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),ขั้นตอนแรกของแนวคิด Design Thinking เริ่มต้นด้วย,เข้าใจลูกค้าและปัญหาที่จะแก้ไข,,confirmed,
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),ผู้ประกอบการที่คิดว่าการเปลี่ยนแปลงถือเป็นโอกาสสำคัญในการเริ่มต้นของสิ่งใหม่ และใช้ประโยชน์จากการเปลี่ยนแปลงนั้น ตรงกับคุณสมบัติข้อใดของการเป็นผู้ประกอบการมากที่สุด,มองการเปลี่ยนแปลงคือโอกาส,,confirmed,
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),ตัวเลือกใดคือสิ่งที่ควรเกิดขึ้นหลังจากจบ ขั้นตอนการทดสอบ (TEST),รวบรวมข้อมูลที่ได้ และสร้างการเรียนรู้เพื่อนำไปปรับปรุงการทดสอบครั้งถัดไป,,confirmed,
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),ข้อใด ไม่ใช่ ประโยชน์ของการคิดเชิงออกแบบ,เพิ่มเวลางาน,,confirmed,
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),ในกระบวนการ Design Thinking ควรใช้เวลากับขั้นตอนไหนมากที่สุด,การเก็บข้อมูลจากลูกค้า,,confirmed,
+TSUGE000271,แบบทดสอบหลังเรียน (Post-Test),ทัศนคติสำคัญของการทดสอบ (Test) คือข้อใด,อธิบายเหตุผล หากลูกค้าไม่เข้าใจ,,confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 1,ข้อไหนถือว่าเป็นแนวคิดของผู้ประกอบการ,สิ่งใหม่ที่นำมาใช้ในผลิตภัณฑ์และการบริการเพื่อหากำไร,ถูกทุกข้อ | กำไรที่เกิดจากการจดลิขสิทธิ์,confirmed,Untried options: การหากำไรจากการซื้อมาถูกขายแพง
+TSUGE07272,แบบทดสอบ : บทที่ 1,ข้อไหนถือว่าเป็นการพัฒนาแนวคิดของผู้ประกอบการ,รู้ความต้องการของผู้บริโภคโดยใช้เทคโนโลยี่ของตนผลิตสินค้า,ถูกทุกข้อ | รู้ความต้องการตลาดโดยใช้เครือข่ายการค้าเข้าถึงลูกค้า | รู้ต้นทุนการผลิตเพื่อจำหน่ายโดยใช้เทคโนโลยี่ของตน,confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 1,ธนาคารความคิดมีความสำคัญอย่างไร,ถูกทุกข้อ,,confirmed,Untried options: ฐานข้อมูลทางธุรกิจงานวิจัยและโครงการลงทุน; การใช้ข้อมูลเพื่อการสร้างผลิตภัณฑ์สินค้า; เรียนรู้ประสบการณ์ด้านอารมณ์ความรู้สึกที่สร้างแรงบันดาลใจ
+TSUGE07272,แบบทดสอบ : บทที่ 1,ข้อไหนถือว่าเป็นแหล่งที่มาทางความคิดของผู้ประกอบการ,ถูกทุกข้อ,,confirmed,Untried options: การขยายจำนวนประชากร; การนำเข้าสินค้าจากต่างประเทศ; มีการพัฒนาเทคโนยี่ในพื้นที่
+TSUGE07272,แบบทดสอบ : บทที่ 1,ข้อไหนถือว่าเป็นวิธีการระดมความคิดแบบย้อนกลับ,ปัญหาที่คาดว่าจะเกิดขึ้นและแนวทางการแก้ปัญหาจากเพื่อนร่วมอาชีพ,ถูกทุกข้อ | จัดระดมคนมุ่งเจาะจงปัญหา | ค้นหาห่วงโซ่ของการเพิ่มมูลค่าผลิตภัณฑ์,confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 1,ข้อไหนถือว่าเป็นวิธีการฮิวริสติกส์,การใช้ประสบการณ์ของผู้ประกอบการในการพัฒนาธุรกิจ,ถูกทุกข้อ,confirmed,Untried options: การวิเคราะห์ต้นทุนและผลตอบแทนที่คุ้มค่า; การใช้แนวทางใหม่ในการตั้งคำถามเพื่อหาธุรกิจ
+TSUGE07272,แบบทดสอบ : บทที่ 1,ตัวกลั่นกรองของความคิดผู้ประกอบการประกอบด้วย,ความต้องการในตลาด,ถูกทุกข้อ,confirmed,Untried options: การวิเคราะห์ต้นทุนและผลตอบแทนที่คุ้มค่า; เทคโนโลยี่ในการแข่งขัน
+TSUGE07272,แบบทดสอบ : บทที่ 1,ข้อไหนถือว่าเป็นแผนผังของกิจกรรมผู้ประกอบการ,การประเมินทรัพยากร เทคโนโลยี่และความสามารถของตน,ถูกทุกข้อ | การค้นหามูลค้าเพิ่มของกิจกรรมที่สนใจ | การปรึกษากับผู้เชี่ยวชาญด้านธุรกิจ,confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 1,ข้อไหนคือการประเมินแนวคิดไปสู่ปฎิบัติโดยผู้เชี่ยวชาญร,ถูกทุกข้อ,,confirmed,Untried options: มีความสัมพันธ์กับหน่วยงานภาครัฐ; ไม่มีปัญหาในการซื้อวัตถุดิบจ้างคนงาน; มีแหล่งเงินทุนให้กู้ยืม
+TSUGE07272,แบบทดสอบ : บทที่ 1,.ข้อไหนถือว่าเป็นเกณฑ์การคัดเลือกแนวคิดดำเนินการธุรกิจ,ความไม่เป็นอันตรายทางเศรษฐกิจ,ถูกทุกข้อ | ความสามารถในการใช้เทคโนโลยี่ของตน,confirmed,Untried options: การจัดการห่วงโซ่อุปทานในตลาด
+TSUGE07272,แบบทดสอบ : บทที่ 1,ข้อไหนคือการเริ่มต้นไปสู่กิจการของผู้ประกอบการ,ถูกทุกข้อ,,confirmed,Untried options: เรียนรู้ความผิดพลาดของผู้อื่น; เริ่มต้นทำเล็กที่ตนเองสนใจ; หาคนที่สามารถช่วยเหลืองาน
+TSUGE07272,แบบทดสอบ : บทที่ 1,หากมีทุนที่จำกัดจะต้องทำอย่างไร,หาช่องโหว่ของผู้ค้าในตลาด,ถูกทุกข้อ | ค้นหาผู้ที่สนใจร่วมทุน | ร่วมมือกันทำงานและจัดสรรประโยชน์ร่วมกัน,confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 1,ข้อไหนถือว่าเป็นสภาพแวดล้อมและการจัดตั้งสถาบัน,ถูกทุกข้อ,,confirmed,Untried options: บริษัทขนส่ง; สำนักงานมาตรฐานสินค้า; สำนักงานประกันภัย
+TSUGE07272,แบบทดสอบ : บทที่ 1,ข้อไหนคือการเริ่มต้นหาแนวคิด,ถูกทุกข้อ,,confirmed,Untried options: การซื้อเฟรนไชส์; สการฝึกอบรมจากที่ปรึกษาทางธุรกิจา; ดูแนวโน้มของการเปลี่ยนแปลงนวัตกรรม
+TSUGE07272,แบบทดสอบ : บทที่ 1,ข้อไหนไม่ถือว่าเป็นสภาพแวดล้อมภายในของผู้ประกอบการ,ภาวะวิบัติและภัยฉุกเฉิน,การเลือกชนิดกิจการของสถานประกอบการ,confirmed,Untried options: การเลือกหุ้นส่วนและทีมงาน; การปฎิบัติตามกฎหมายอย่างเคร่งครัด
+TSUGE07272,แบบทดสอบ : บทที่ 1,สภาพแวดล้อมทางเศรษฐกิจประกอบด้วย,การเลือกชนิดกิจการของสถานประกอบการ,,confirmed,Untried options: อัตราดอกเบี้ย อัตราเงินกู้; ภาระหนี้สินของครัวเรือน; การแข่งขันอย่างเสรี
+TSUGE07272,แบบทดสอบ : บทที่ 2,ข้อใดต่อไปนี้หมายถึงสภาพแวดล้อมทางธุรกิจ (Business Environment),ปัจจัยที่ส่งผลหรือมีอิทธิพลต่อการดำเนินกิจกรรมขององค์การ,ความคุ้มค่า การป้องกันภัย การแก้ไขปัญหา และการขจัดความสูญเปล่า | สภาพต้นทุนค่าใช้จ่ายในการดำเนินกิจกรรมในองค์กร,confirmed,Untried options: ความรุนแรง โอกาส อุปสรรค จุดด้อย; โอกาสที่จะเกิดความผิดพลาด ความคุ้มค่า ความเสียหาย และความสูญเสีย
+TSUGE07272,แบบทดสอบ : บทที่ 2,ปัจจัยสภาพแวดล้อมภายใน (Internal Business Environment) สามารถวิเคราะห์เพื่อระบุในข้อใดมากที่สุด ?,เป็นจุดแข็ง หรือจุดอ่อนขององค์การ,ปัจจัยที่มีผลหรือมีอิทธิพลต่อการดำเนินกิจกรรมองค์กร | เป็นการวิเคราะห์เพื่อหาโอกาส และข้อจำกัด | การไม่ปฏิบัติตามหลักจริยธรรมจนทำให้มีผลกระทบระยะยาวทำให้องค์กรเสียโอกาส,confirmed,Untried options: จุดแข็ง จุดอ่อน โอกาส และอุปสรรค
+TSUGE07272,แบบทดสอบ : บทที่ 2,การวิเคราะห์ปัจจัยสภาพแวดล้อม (Business Environment Analysis) ทำให้องค์กรรู้หรือบอกได้ว่า องค์กรตกอยู่ในสภาพการใดต่อไปนี้ ?,จุดแข็ง จุดอ่อน โอกาส และอุปสรรค,สภาพการณ์ภายในองค์การที่มีส่นทำให้องค์กรเกิดความเสียหาย | เป็นการวิเคราะห์เพื่อหาโอกาส และข้อจำกัด | การไม่ปฏิบัติตามหลักจริยธรรมจนทำให้มีผลกระทบระยะยาวทำให้องค์กรเสียโอกาส | เป็นจุดแข็ง หรือจุดอ่อนขององค์การ,confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 2,ปัจจัยสภาพแวดล้อมในข้อใดที่องค์กรโดยทั่วไปสามารถควบคุมได้ตรงกับข้อใดมากที่สุด ?,ปัจจัยสภาพแวดล้อมภายในทั่วไป,,confirmed,Untried options: ถูกทุกข้อ; ปัจจัยสภาพแวดล้อมภายนอก; ปัจจัยสภาพแวดล้อมภายนอกเพื่อการแข่งขัน; ปัจจัยสภาพแวดล้อมทั่วไป
+TSUGE07272,แบบทดสอบ : บทที่ 2,การวิเคราะห์ปัจจัยสภาพแวดล้อม (Business Environment) ตรงกับข้อใดต่อไปนี้ ?,จุดแข็ง จุดอ่อน โอกาส และอุปสรรค,ปัจจัยที่มีผลหรือมีอิทธิพลต่อองค์การในเชิงบวก | สภาพการณ์ที่เกิดขึ้นกับองค์การเป็นข้อจำกัด เป็นอุปสรรค หรือเป็นโอกาส | ปัจจัยที่มีอิทธิพลต่อองค์การโดยทำให้เกิดจุดแข็งหรือจุดอ่อนก็ได้ | ภัยคุกคามหรือโอกาสก็ได้ที่มีผลหรือมีอิทธิพลต่อการดำเนินงานขององค์การ,confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 2,“ผู้ประกอบการหรือนักบริหารส่วนใหญ่ไม่สามารถควบคุมหรือควบคุมปัจจัยสภาพแวดล้อมได้ยากมาก” ข้อความดังกล่าวตรงกับข้อใดมากที่สุด?,ปัจจัยสภาพแวดล้อมภายนอกองค์กร,,confirmed,Untried options: ถูกทุกข้อ; การปรับ Organizational Structure ขององค์กร; การทำ Job Design and Job Description ในทุกงานและทุกตำแหน่งงาน; ปัจจัยสภาพแวดล้อมภายในองค์กร
+TSUGE07272,แบบทดสอบ : บทที่ 2,การวิเคราะห์สภาพแวดล้อมโดยใช้เครื่องมือที่เรียกว่า PESTEL เพื่อให้ได้ในเรื่องใดต่อไปนี้มากที่สุด?,เพื่อระบุให้ได้ว่าปัจจัยใดเป็นโอกาส ข้อจำกัดหรืออุปสรรค,เพื่อให้ได้เครื่องมือที่ใช้ในการวิเคราะห์สภาพแวดล้อมภายนอก ร | ถูกทุกข้อ,confirmed,Untried options: เพื่อเป็นการเฝ้าระวังพร้อมคอยตรวจตราถึงเหตุการณ์ว่าอยู่ในระดับมากหรือน้อย; เพื่อให้ได้การเมือง เศรษฐกิจ สังคม เทคโนโลยี สภาพแวดล้อม และกฎหมาย
+TSUGE07272,แบบทดสอบ : บทที่ 2,ตัวอย่างในข้อใดหมายถึงสภาพแวดล้อมภายในองค์การ,2. การตลาด การเงิน ผู้บริหาร พนักงาน,1. การเมือง เศรษฐกิจ สังคม เทคโนโลยี และกฎหมายบ้านเมือง,confirmed,"Untried options: 3. บุคลากร กฎหมายบ้านเมือง เทคโนโลยี สินค้าและบริการ; 4. ข้อ 1, ข้อ 2 และ ข้อ3 ถูก; ถูกทุกข้อ"
+TSUGE07272,แบบทดสอบ : บทที่ 2,ข้อใดต่อไปนี้หมายถึงเครื่องมือในการวิเคราะห์ปัจจัยสภาพแวดล้อมภายใน (Internal Environment Tools) [x2 duplicate items],2. McKinsey 7-s,1. Value Chain (ลูกโซ่แห่งคุณค่า),confirmed,"Recorded as a duplicate item in the source bank. Untried options: 3. PESTEL; 4. ข้อ 1 และข้อ 2 ถูก; 5. ข้อ 1, 2 และ 3 ถูกต้องมากที่สุด"
+TSUGE07272,แบบทดสอบ : บทที่ 2,ข้อใดต่อไปนี้หมายถึงเครื่องมือในการวิเคราะห์ปัจจัยสภาพแวดล้อมภายใน (Internal Environment Tools) [dup],2. McKinsey 7-s,1. Value Chain (ลูกโซ่แห่งคุณค่า),confirmed,"Recorded as a duplicate item in the source bank. Untried options: 3. PESTEL; 4. ข้อ 1 และข้อ 2 ถูก; 5. ข้อ 1, 2 และ 3 ถูกต้องมากที่สุด"
+TSUGE07272,แบบทดสอบ : บทที่ 2,ข้อไหนคือการเริ่มต้นไปสู่กิจการของผู้ประกอบการ,ถูกทุกข้อ,,confirmed,Untried options: เรียนรู้ความผิดพลาดของผู้อื่น; เริ่มต้นทำเล็กที่ตนเองสนใจ; หาคนที่สามารถช่วยเหลืองาน
+TSUGE07272,แบบทดสอบ : บทที่ 2,หากมีทุนที่จำกัดจะต้องทำอย่างไร,หาช่องโหว่ของผู้ค้าในตลาด,ถูกทุกข้อ | ค้นหาผู้ที่สนใจร่วมทุน | ร่วมมือกันทำงานและจัดสรรประโยชน์ร่วมกัน,confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 2,ข้อไหนถือว่าเป็นสภาพแวดล้อมและการจัดตั้งสถาบัน,ถูกทุกข้อ,,confirmed,Untried options: บริษัทขนส่ง; สำนักงานมาตรฐานสินค้า; สำนักงานประกันภัย
+TSUGE07272,แบบทดสอบ : บทที่ 2,ข้อไหนคือการเริ่มต้นหาแนวคิด,ถูกทุกข้อ,,confirmed,Untried options: การซื้อเฟรนไชส์; สการฝึกอบรมจากที่ปรึกษาทางธุรกิจา; ดูแนวโน้มของการเปลี่ยนแปลงนวัตกรรม
+TSUGE07272,แบบทดสอบ : บทที่ 2,ข้อไหนไม่ถือว่าเป็นสภาพแวดล้อมภายในของผู้ประกอบการ,ภาวะวิบัติและภัยฉุกเฉิน,การเลือกชนิดกิจการของสถานประกอบการ,confirmed,Untried options: การเลือกหุ้นส่วนและทีมงาน; การปฎิบัติตามกฎหมายอย่างเคร่งครัด
+TSUGE07272,แบบทดสอบ : บทที่ 2,สภาพแวดล้อมทางเศรษฐกิจประกอบด้วย,การเลือกชนิดกิจการของสถานประกอบการ,,confirmed,Untried options: อัตราดอกเบี้ย อัตราเงินกู้; ภาระหนี้สินของครัวเรือน; การแข่งขันอย่างเสรี
+TSUGE07272,แบบทดสอบ : บทที่ 3,ธุรกิจใดต่อไปนี้นำแนวคิด Design thinking มาในการพัฒนาผลิตภัณฑ์และบริการ,ถูกทุกข้อ,,confirmed,Untried options: Airbnb; Apple Inc.; Uber Eats
+TSUGE07272,แบบทดสอบ : บทที่ 3,ข้อใดกล่าวไม่ถูกต้องเกี่ยวกับ Design thinking,การแก้ปัญหา/การสร้างนวัตกรรม ด้วยกระบวนการแบบเป็นเส้นตรงประกอบไปด้วย 5 ขั้นตอน,เน้นการทำความเข้าใจความต้องการของกลุ่มเป้าหมาย | ให้ความสำคัญกับวิธีการที่สร้างสรรค์ในการแก้ปัญหา | เป็นกระบวนการแบบวนซ้ำที่มีการรับฟังข้อมูลป้อนกลับ (Feedback),confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 3,การสร้างนวัตกรรมด้วย Design thinking ตามคำกล่าวของ TIM BROWN อดีตผู้บริหารของ IDEO ตรงกับข้อใด,ถูกทุกข้อ,,confirmed,Untried options: มีความเป็นไปได้เชิงเทคนิค; สามารถขายได้ มีคนต้องการ; ให้ความสำคัญความต้องการของกลุ่มเป้าหมาย
+TSUGE07272,แบบทดสอบ : บทที่ 3,ขั้นตอนใดตรงกับการสร้างผลิตภัณฑ์ต้นแบบ,Prototype,Ideate,confirmed,Untried options: Empathize; Define
+TSUGE07272,แบบทดสอบ : บทที่ 3,ขั้นตอนใดตรงกับการนำผลิตภัณฑ์ไปให้กลุ่มเป้าหมายได้ทดลองใช้,Prototype,Ideate,confirmed,Untried options: Test; Define
+TSUGE07272,แบบทดสอบ : บทที่ 3,เป้าหมายสำคัญของขั้นตอน Empathize ได้แก่,ทำความเข้าใจมุมมองและความต้องการของลูกค้าอย่างลึกซึ้ง,การสร้างผลิตภัณฑ์ต้นแบบ,confirmed,Untried options: การนำแนวทางแก้ปัญหาไปทดสอบกับผู้ใช้งานจริง; การสร้างทางเลือกในการแก้ปัญหาให้มากที่สุดเท่าที่จะทำได้
+TSUGE07272,แบบทดสอบ : บทที่ 3,การสัมภาษณ์เพื่อทำความเข้าใจอย่างลึกซึ้งควรมีลักษณะตามข้อใด,ฟังอย่างตั้งอกตั้งใจและเปิดกว้างต่อทุกคำตอบ,เน้นเก็บข้อมูลที่เป็นตัวเลข,confirmed,Untried options: สัมภาษณ์กลุ่มเป้าหมายพร้อมกันครั้งละหลาย ๆ คน; ถามแบบชี้นำเพื่อไปสู่คำตอบที่ต้องการ
+TSUGE07272,แบบทดสอบ : บทที่ 3,ข้อใดไม่อยู่ในรายการเครื่องมือในการ Empathize,ไม่มีข้อใดถูกต้อง,,confirmed,Untried options: การสังเกต; การเข้าไปเป็นส่วนหนึ่งของเหตุการณ์; การสัมภาษณ์
+TSUGE07272,แบบทดสอบ : บทที่ 3,ข้อใดคือแนวคิดของอัลเบิร์ต ไอสไตน์ ที่สอดคล้องกับหลักการ Empathize มากที่สุด หากมีเวลา 1 ชั่วโมงในการแก้ปัญหา,ใช้เวลา 50 นาทีทำความเข้าใจปัญหา ใช้เวลา 10 นาทีค้นหาวิธีแก้ปัญหา,ไม่มีข้อใดถูกต้อง | ใช้เวลา 30 นาทีทำความเข้าใจปัญหา ใช้เวลา 30 นาทีค้นหาวิธีแก้ปัญหา,confirmed,Untried options: ใช้เวลา 10 นาทีทำความเข้าใจปัญหา ใช้เวลา 50 นาทีค้นหาวิธีแก้ปัญหา
+TSUGE07272,แบบทดสอบ : บทที่ 3,ข้อใดกล่าวได้ถูกต้องมากที่สุดเกี่ยวกับเครื่องมือที่เหมาะสำหรับการใช้ทำความเข้าใจความต้องการของเด็กเล็ก,Observation เนื่องจากเด็กเล็กอาจสื่อสารเป็นคำพูดได้ไม่ชัดเจน,เนื่องจากทำให้เข้าใจความรู้สึกเด็กได้มากที่สุด | Interview เนื่องจากเนื่องจากมีแนวโน้มที่จะสร้างแรงกดดันให้เด็กน้อยที่สุด | Interview เนื่องจากเก็บข้อมูลได้ละเอียดที่สุด,confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 3,ข้อใดกล่าวได้ถูกต้องเกี่ยวกับการ Define,ถูกทุกข้อ,,confirmed,Untried options: เป็นการกำหนดปัญหาให้มีความชัดเจนขึ้น; เป็นพื้นฐานสำคัญที่จะนำไปสู่การค้นหาวิธีการแก้ปัญหา; ใช้ข้อมูลที่ได้จากการ Empathize
+TSUGE07272,แบบทดสอบ : บทที่ 3,ข้อใดตรงกับ Persona มากที่สุด,บุคคลสมมติที่เป็นตัวแทนผู้ใช้งานหรือกลุ่มเป้าหมาย,ถูกทุกข้อ | ข้อมูลทางประชากรศาสตร์ของกลุ่มเป้าหมาย | บุคลิกภาพของกลุ่มเป้าหมาย,confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 3,ข้อใดไม่อยู่ในการเขียน Point of view,ผลิตภัณฑ์ที่เหมาะกับกลุ่มเป้าหมายคืออะไร,ถูกทุกข้อ | ใครคือผู้ใช้งาน | ความต้องการที่ยังไม่ได้รับการตอบสนองคืออะไร,confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 3,กรณีศึกษา Netflix สะท้อนประเด็นสำคัญในเรื่องใด,ง) ข้อ ข และ ค ถูกต้อง,ก) การ Define ไม่เกี่ยวข้องกับการหา solution | ข) การตั้งกรอบโจทย์/กำหนดปัญหาที่ต่างกันนำไปสู่ solution ที่ต่างกัน | ค) ระบบแนะนำภาพยนตร์ เป็นผลลัพธ์ของการ define ว่ากลุ่มเป้าหมายต้องการเข้าถึงเนื้อหาความบันเทิงใหม่ๆ ในเวลาที่ต้องการ,confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 3,ข้อใดเป็นข้อมูลที่มักจะมีการระบุเมื่อทำ Persona,เป็นไปได้ทุกข้อ,,confirmed,Untried options: Personality; Most used devices; Pain Points
+TSUGE07272,แบบทดสอบ : บทที่ 3,คำกล่าวที่ว่าจุดเริ่มต้นของไอเดียที่ดีมาจากการมีไอเดียเป็นจำนวนมากก่อนสะท้อนถึง,ปริมาณมาก่อนคุณภาพ,คุณภาพมาก่อนปริมาณ | ไอเดียที่ดีเป็นเรื่องของผู้เชี่ยวชาญ,confirmed,Untried options: ไอเดียที่ดีมาจากคนที่มีพรสวรรค์ด้านความคิดสร้างสรรค์เท่านั้น
+TSUGE07272,แบบทดสอบ : บทที่ 3,การระดมสมองที่จะนำไปสู่ผลลัพธ์ที่ต้องการนั้นจะต้องคำนึงถึงประเด็นใด,การไม่เร่งรีบวิจารณ์ความคิดที่ผู้อื่นเสนอขึ้นมา,การให้อิสระในการวิจารณ์ความคิดของผู้อื่น ตั้งแต่เริ่มกิจกรรมการระดมสมอง,confirmed,Untried options: การเสนอความคิดที่แปลกใหม่อย่างแท้จริงเท่านั้น; การเปิดโอกาสให้ทุกคนได้แสดงความคิดกันอย่างเต็มที่
+TSUGE07272,แบบทดสอบ : บทที่ 3,ข้อใดตรงกับ worst possible idea มากที่สุด,ทำให้คนกล้าพูด กล้าแสดงความคิดเห็น,เป็นวิธีการที่เน้นคุณภาพของไอเดียมากกว่าปริมาณของไอเดีย | ความคิดที่แย่ ไม่นำไปสู่วิธีการแก้ปัญหาได้ | ไอเดียที่ถูกคัดกรองออกระหว่างกระบวนการระดมสมอง,confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 3,คำใดตรงกับเทคนิคการสร้างสิ่งใหม่ด้วยการผสมผสาน,Combine,Adapt | Reverse | Eliminate,confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 3,คำใดตรงกับการสร้างสิ่งใหม่ด้วยการกำจัดบางสิ่งบางอย่างออกไป,Eliminate,Modify,confirmed,Untried options: Adapt; Combine
+TSUGE07272,แบบทดสอบ : บทที่ 4,ข้อใดอธิบายวัตถุประสงค์ของการทำ Value Proposition Canvas (VPC) ได้ดีที่สุด,การเข้าใจความต้องการของลูกค้าและการนำเสนอผลิตภัณฑ์หรือบริการที่ตอบสนอง,การวิเคราะห์คู่แข่งในตลาด,confirmed,Untried options: การกำหนดแผนการตลาดสำหรับผลิตภัณฑ์; การระบุทรัพยากรหลักที่จำเป็นสำหรับธุรกิจ
+TSUGE07272,แบบทดสอบ : บทที่ 4,VPC จะอยู่ในองค์ประกอบใดของ Business Model Canvas,Value Proposition และ Customer Segments,,confirmed,Untried options: Key Activity และ Key Resources; Customer Relationship และ Customer Segments; Customer Relationship และ Channel
+TSUGE07272,แบบทดสอบ : บทที่ 4,นายปิติต้องเดินทางไปทำงานทุกเช้า เขาจะต้องหาข้าวให้ลูกกินเป็นประจำทุกวัน และเดินทางไปทำงานให้ทันเวลา ท่านคิดว่า งานที่กล่าวข้างต้นจัดอยู่งานประเภทใด,Functional Value,Time Value | Personal Emotional Value | Social Value,confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 4,ข้อใดไม่ใช่ คุณลักษณะงานของลูกค้า (Customer Job) ที่ควรให้ความสำคัญ,ถ้าทำงานไม่สำเร็จจะเกิดผลที่ตามมาในระยะยาว,ถ้าทำงานไม่สำเร็จจะเกิดผลที่ตามมาอย่างรวดเร็ว | ถ้าทำงานไม่สำเร็จจะมีผลลัพธ์ที่รุนแรง | เป็นงานที่คนส่วนใหญ่เจอปัญหา,confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 4,นายพัฒน์ ทำความเข้าใจพฤติกรรมลูกค้า โดยการไปสืบข้อมูลจากที่มีอยู่บนอินเตอร์เน็ต การทำความเข้าใจดังกล่าวเปรียบเปรยเหมือนกับบุคคลใดต่อไปนี้,นักสืบ,นักวิทยาศาสตร์ | นักข่าว | นักมนุษวิทยา,confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 4,นางสาวใจดี ทำความเข้าใจพฤติกรรมลูกค้า โดยการไปใช้ชีวิตร่วมกับลูกค้า การทำความเข้าใจดังกล่าวเปรียบเปรยเหมือนกับบุคคลใดต่อไปนี้,นักมนุษวิทยา,นักวิทยาศาสตร์ | นักข่าว,confirmed,Untried options: นักสืบ
+TSUGE07272,แบบทดสอบ : บทที่ 4,นายสมพร ทำความเข้าใจพฤติกรรมลูกค้า โดยการไปสังเกตลูกค้าจนสามารถจับรูปแบบของพฤติกรรมที่จะเกิดขึ้นได้ การทำความเข้าใจดังกล่าวเปรียบเปรยเหมือนกับบุคคลใดต่อไปนี้,นักมนุษวิทยา,นักวิทยาศาสตร์ | นักข่าว,confirmed,Untried options: นักสืบ
+TSUGE07272,แบบทดสอบ : บทที่ 4,Minimum Viable Product (MVP) มีวัตถุประสงค์หลักเพื่ออะไร?,เพื่อทดสอบและยืนยันข้อสมมติอย่างรวดเร็วและมีต้นทุนต่ำ,,confirmed,Untried options: เพื่อเปิดตัวผลิตภัณฑ์ที่มีคุณสมบัติเต็มรูปแบบ; เพื่อสร้างช่องทางการตลาดที่มีความเฉพาะเจาะจง; เพื่อเพิ่มกำไรในระยะเริ่มแรก
+TSUGE07272,แบบทดสอบ : บทที่ 4,การให้ลูกค้า ได้สัมผัสทดลองใช้แบบจำลองเสมือนจริง (Life-size Prototypes) จัดอยู่ในการทดสอบสมมติฐานของผลิตภัณฑ์ ในลักษณะใด,การค้นหาความจริงจากพฤติกรรม โดยมีปฎิสัมพันธ์ทางตรงกับลูกค้า,การค้นหาความจริงจากทัศนคติ โดยใช้การสังเกตไปยังลูกค้า | การค้นหาความจริงจากพฤติกรรม โดยใช้การสังเกตไปยังลูกค้า | การค้นหาความจริงจากทัศนคติ โดยมีปฎิสัมพันธ์ทางตรงกับลูกค้า,confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 4,การเข้าไปดูข้อ comment ต่าง ๆ การพูดคุยกันในสื่อสังคมออนไลน์ ถึงผลิตภัณฑ์ที่ปล่อยออกสู่ตลาด จัดอยู่ในการทดสอบสมมติฐานของผลิตภัณฑ์ ในลักษณะใด,การค้นหาความจริงจากทัศนคติ โดยใช้การสังเกตไปยังลูกค้า,การค้นหาความจริงจากพฤติกรรม โดยมีปฎิสัมพันธ์ทางตรงกับลูกค้า | การค้นหาความจริงจากพฤติกรรม โดยใช้การสังเกตไปยังลูกค้า | การค้นหาความจริงจากทัศนคติ โดยมีปฎิสัมพันธ์ทางตรงกับลูกค้า,confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 5,ข้อใด ไม่ใช่ เป้าหมายหลักในการนำเสนอ,ข้อใดไม่ใช่เป้าหมายหลักในการนำเสนอ,การแชร์ความคิดใหม่ ๆ | การโน้มน้าวลูกค้า,confirmed,Untried options: การขอรับเงินทุน
+TSUGE07272,แบบทดสอบ : บทที่ 5,หากต้องการให้การนำเสนอ สามารถโน้มน้าวและสร้างความเชื่อถือให้กับผู้ฟังมากที่สุด ควรดำเนินการอย่างไร?,อ้างอิงข้อมูลทางวิชาการที่ทันสมัยและเชื่อถือได้,,confirmed,Untried options: รู้จัก และเข้าใจผู้ฟัง; จัดลำดับโครงสร้างของเนื้อหาได้ดี; เตรียมเนื้อหาที่สื่อสารอย่างมีประสิทธิภาพ
+TSUGE07272,แบบทดสอบ : บทที่ 5,ข้อใด ไม่ใช่ วิธีการนำเสนอที่ดี ?,การแสดงถึงจุดอ่อนและสิ่งที่ไม่ดีของธุรกิจอื่น,การแสดงผลการวิเคราะห์และผลสรุปที่ชัดเจน,confirmed,Untried options: การยกตัวอย่างโจทย์ปัญหาและแนวทางแก้ปัญหา; การให้ความรู้และคำแนะนำ
+TSUGE07272,แบบทดสอบ : บทที่ 5,การนำเสนอที่ไม่น่าสนใจ เกิดจากสาเหตุใดมากที่สุด?,ใช้ข้อมูลที่ไม่เชื่อมโยงกัน,ใช้กราฟหรือแผนภูมิมาก | ใช้อินโฟกราฟิกมาก | ไม่ใช้มัลติมีเดีย,confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 5,การนำเสนอแนวคิดนวัตกรรมด้วยเรื่องราวมีประโยชน์อย่างไร?,สร้างความเข้าใจและความสนใจจากผู้ฟัง,ลดความน่าเบื่อ | เพิ่มความซับซ้อนในแนวคิด,confirmed,Untried options: สร้างความสุขในทีมงาน
+TSUGE07272,แบบทดสอบ : บทที่ 5,ข้อใดเป็นขั้นตอนแรกในกระบวนการโปรโตไทป์ในการพัฒนาผลิตภัณฑ์?,การสร้างโปรโตไทป์แนวคิด,การออกแบบให้สมบูรณ์,confirmed,Untried options: การทดสอบผู้ใช้; การสร้างโปรโตไทป์รูปทรง
+TSUGE07272,แบบทดสอบ : บทที่ 5,โปรโตไทป์มีบทบาทสำคัญในการกระตุ้นนวัตกรรมได้อย่างไร?,ช่วยกระตุ้นให้เกิดการทดลอง,ช่วยในการลดความเสี่ยง | ช่วยในการสร้างแนวคิดที่ซับซ้อน,confirmed,Untried options: ทำให้ผู้ใช้มองเห็นภาพผลิตภัณฑ์ที่จะผลิตจริง
+TSUGE07272,แบบทดสอบ : บทที่ 5,การทำโปรโตไทป์ช่วยในการลดความเสี่ยงในกระบวนการพัฒนาผลิตภัณฑ์ได้อย่างไร?,ช่วยแสดงขอบเขตของผลิตภัณฑ์,ช่วยบันทึกข้อมูลำ | ช่วยให้ผู้ใช้ได้ทดลองใช้ | ช่วยลดต้นทุน,confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 5,การทำโปรโตไทป์ในระบบการพัฒนาผลิตภัณฑ์ ควรเริ่มต้นด้วยอะไร?,โปรโตไทป์แบบต้นทาง,โปรโตไทป์การทดสอบ,confirmed,Untried options: โปรโตไทป์แบบสมบูรณ์; โปรโตไทป์รูปทรง
+TSUGE07272,แบบทดสอบ : บทที่ 5,ข้อใดไม่ใช่คุณสมบัติหรือการใช้งานโปรโตไทป์ ?,การปรับปรุงสินค้าสุดท้าย,การกระตุ้นการทดลอง | การระบุและแก้ไขปัญหา | การบันทึกข้อมูลผู้ใช้,confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 5,วัตถุประสงค์หลักของการทดสอบโปรโตไทป์ในกระบวนการพัฒนาผลิตภัณฑ์คืออะไร?,เพื่อระบุและแก้ไขปัญหาในขั้นตอนเริ่มต้นของการพัฒนา,เพื่อสร้างผลิตภัณฑ์ที่สมบูรณ์แบบ,confirmed,Untried options: เพื่อนำผลิตภัณฑ์เข้าสู่ตลาด; เพื่อสร้างรายได้
+TSUGE07272,แบบทดสอบ : บทที่ 5,การทดสอบแบบใดใช้ในการประเมินว่า โปรโตไทป์ที่นำมาทดสอบใช้งานได้ดีเพียงไร?,การทดสอบความสามารถใช้งาน (Usability Testing),การทดสอบแอลฟ่า | การทดสอบเบต้า,confirmed,Untried options: การทดสอบ A/B
+TSUGE07272,แบบทดสอบ : บทที่ 5,การทดสอบโปรโตไทป์มีความจำเป็นในขั้นตอนใดของการพัฒนาผลิตภัณฑ์ ?,จำเป็นต้องใช้ตลอดทั้งกระบวนการพัฒนาผลิตภัณฑ์,,confirmed,Untried options: ขั้นตอนแรก; ขั้นตอนสุดท้าย; ขั้นตอนออกสู่ตลาด
+TSUGE07272,แบบทดสอบ : บทที่ 5,A/B testing ใช้ในการทดสอบโปรโตไทป์อย่างไร?,การเปรียบเทียบโปรโตไทป์ 2 แบบ,การระบุปัญหา | การรวบรวมคำแนะนำจากผู้ใช้,confirmed,Untried options: การทดสอบความทนทานของผลิตภัณฑ์
+TSUGE07272,แบบทดสอบ : บทที่ 5,ข้อใดเป็นประโยชน์ของการทดสอบโปรโตไทป์?,ช่วยลดความเสี่ยงในการออกแบบที่อาจมีความผิดพลาด,ช่วยเพิ่มกำลังการผลิต | ช่วยระบุปัญหาในขั้นตอนสุดท้ายของการพัฒนา,confirmed,Untried options: ช่วยนำผลิตภัณฑ์เข้าสู่ตลาด
+TSUGE07272,แบบทดสอบ : บทที่ 5,ข้อใด ไม่ใช่ เครื่องมือโปรโตไทป์ที่ใช้ในการสร้างโปรโตไทป์แบบกระดาษโดยตรง ?,Microsoft PowerPoint,Sketch | Figma,confirmed,Untried options: Axure RP
+TSUGE07272,แบบทดสอบ : บทที่ 5,การใช้เครื่องมือโปรโตไทป์ที่สามารถสร้างโมเดล 3 มิติ มีประโยชน์ในการทดสอบเกี่ยวกับเรื่องใด?,การทดสอบความรู้สึกของผู้ใช้,การทดสอบการเชื่อมต่อเครือข่าย | การทดสอบประสิทธิภาพของโปรแกรม | การทดสอบรูปร่างและการจัดวาง,confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 5,ซอฟต์แวร์ใดเป็นตัวอย่างของเครื่องมือโปรโตไทป์แบบโต้ตอบได้ทันที (Interactive prototype tool)?,Figma,POP | Microsoft Excel | Microsoft PowerPoint,confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 5,ข้อใด ไม่ใช่ ประโยชน์ของการใช้เครื่องมือโปรโตไทป์ในกระบวนการพัฒนาผลิตภัณฑ์?,ช่วยในการจัดทำเอกสารโครงการ,ช่วยในการสร้างโปรโตไทป์แบบรวดเร็ว | ช่วยในการทดสอบความพร้อมใช้งานของผลิตภัณฑ์,confirmed,Untried options: ช่วยในการสื่อสารแนวคิดของผลิตภัณฑ์
+TSUGE07272,แบบทดสอบ : บทที่ 5,เครื่องมือโปรโตไทป์เป็นสิ่งจำเป็นในกระบวนการพัฒนาผลิตภัณฑ์เพราะอะไร?,ก. ช่วยแสดงให้เห็นได้ว่าผลิตภัณฑ์นั้นสามารถพัฒนาได้,,confirmed,Untried options: มีความละเอียดสูงที่สุดในการจำลองผลิตภัณฑ์; ลดความต้องการใช้งานของผู้ใช้ระหว่างการพัฒนา; ช่วยในการเลือกตัวเลือกและแนวคิดใหม่ ๆ
+TSUGE07272,แบบทดสอบ : บทที่ 6,ข้อใดให้ความหมายของคำว่า ‘โมเดลธุรกิจ’ ได้ดีที่สุด,การนำเสนอโดยใช้เหตุผลอธิบายว่าองค์กรธุรกิจมีองค์ประกอบและกลไกที่สำคัญจะสร้าง ส่งมอบ และใช้ประโยชน์จากคุณค่าเพื่อสร้างกำไรให้กับธุรกิจได้อย่างไร,ถูกทุกข้อ,confirmed,Untried options: การนำเสนอองค์ประกอบเก้าช่องที่สำคัญรวมถึงแผนการปฏิบัติงานในการดำเนินธุรกิจ; แผนธุรกิจ ซึ่งประกอบไปด้วย แผนการเงิน แผนการตลาด แผนการจัดการ และ แผนความเสี่ยง
+TSUGE07272,แบบทดสอบ : บทที่ 6,ข้อใดไม่ใช่องค์ประกอบของสมมติฐานที่ต้องสร้างในการอธิบายโมเดลธุรกิจตาม ‘Theory of business’,การทำงานร่วมกันเป็นทีมของพนักงาน,,confirmed,Untried options: พันธกิจองค์กร; สิ่งที่องค์กรสามารถทำได้ถนัด; สภาพแวดล้อม เช่น สังคม เทคโนโลยี ลูกค้า และโครงสร้างตลาด
+TSUGE07272,แบบทดสอบ : บทที่ 6,ข้อใดไม่ใช่องค์ประกอบหลักของโมเดลธุรกิจของ Clayton Christensen,Key Partner,,confirmed,Untried options: Resources and Process; Profit Formula; Value Proposition
+TSUGE07272,แบบทดสอบ : บทที่ 6,Customer Segment ใน Business Model Canvas หมายถึงอะไร,ลูกค้าหรือกลุ่มผู้บริโภคหลักของธุรกิจ,วิธีการกระจายสินค้าหรือบริการ,confirmed,Untried options: รายได้ที่ธุรกิจรับได้; ผลิตภัณฑ์หรือบริการที่ธุรกิจเสนอ
+TSUGE07272,แบบทดสอบ : บทที่ 6,การกำหนดกลุ่มลูกค้าเป้าหมาย องค์กรควรต้องพิจารณาข้อใดต่อไปนี้,ถูกทุกข้อ,,confirmed,Untried options: โอกาสในการขยายตลาด; ส่วนแบ่งตลาดที่สูง; พฤติกรรมและความต้องการของลูกค้า
+TSUGE07272,แบบทดสอบ : บทที่ 6,การวิเคราะห์ Customer Persona มักถูกใช้ในการทำอะไร,การวิเคราะห์กลุ่มลูกค้าเป้าหมายเพื่อสร้างความเข้าใจลึกซึ้งเกี่ยวกับลูกค้า,การวิเคราะห์กลุ่มลูกค้าเป้าหมายเพื่อเพิ่มความละเอียดในกระบวนการการขาย | การวิเคราะห์กลุ่มลูกค้าเพื่อใช้ประโยชน์จากทรัพย์สินในธุรกิจให้สูงสุด,confirmed,Untried options: การวิเคราะห์กลุ่มลูกค้าทั้งหมดขององค์กรเพื่อสร้างโปรโมชั่นที่เหมาะสม
+TSUGE07272,แบบทดสอบ : บทที่ 6,แนวคิดเกี่ยวกับ Value ข้อใดควรจะถูกนำมาพิจารณาในการทำโมเดลธุรกิจ,ถูกทุกข้อ,,confirmed,Untried options: ประสบการณ์ผลลัพธ์ของลูกค้าทั้งชุดและสามารถแลกเปลี่ยนได้; คุณค่าหรือผลประโยชน์ที่เป็นเอกลักษณ์ที่บริษัทเสนอให้กับลูกค้า; ไม่เพียงพอที่จะมุ่งเน้นเพียงคุณค่าของบริการ/ผลิตภัณฑ์ที่นำเสนอ ประสบการณ์ทั้งหมดจากมุมมองของลูกค้า (Kotler P)
+TSUGE07272,แบบทดสอบ : บทที่ 6,การพิจารณาช่องทางควรคำนึงถึงช่องทางใดบ้าง,ถูกทุกข้อ,,confirmed,Untried options: บริการหลังการขาย; การขายหน้าร้าน และการขายออนไลน์; ช่องทางการรับรู้ของลูกค้า
+TSUGE07272,แบบทดสอบ : บทที่ 6,การพิจารณาช่องทางรายได้ของโมเดลธุรกิจควรพิจจารณาข้อใดเป็นหลัก,ถูกทุกข้อ,,confirmed,Untried options: ค่าธรรมเนียมและสมาชิก; การให้เช่าซื้อ; การขายผลิตภัณฑ์หรือบริการ
+TSUGE07272,แบบทดสอบ : บทที่ 6,ข้อใดคือลักษณะความสัมพันธ์กับลูกค้าที่เหมาสมในการเปิดร้านซักแห้งอัตโนมัติ,การบริการตนเอง,,confirmed,Untried options: การให้ลูกค้าสามารถเขียน review สินค้าได้; การช่วยเหลือที่เป็นส่วนตัว; การช่วยเหลือที่ทุ่มเทและเป็นส่วนตัว
+TSUGE07272,แบบทดสอบ : บทที่ 6,ในการออกแบบ BMC ผู้ออกแบบควรเริ่มจากองค์ประกอบใด,กลุ่มลูกค้าเป้าหมาย,,confirmed,Untried options: พันธมิตรหลัก; รายได้; โครงสร้างต้นทุน
+TSUGE07272,แบบทดสอบ : บทที่ 6,ข้อใด คือ ข้อคิดที่สำคัญในการออกแบบโมเดลธุรกิจ,ถูกทุกข้อ,ทำให้โมเดลให้เสร็จพอใช้ได้ และนำไปสร้างรายได้ให้เร็วที่สุด | เน้นการออกแบบและการพัฒนาอย่างต่อเนื่อง | พยายามวิเคราะห์อภิปรายและระดมสมองเพื่อสำรวจทางเลือกที่เป็นไปได้,confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 6,Key Resources ที่สำคัญสำหรับธุรกิจร้านอาหารริมทาง,ทรัพยากรบุคคล,,confirmed,Untried options: การตกแต่งร้านที่ปรับเปลี่ยนสม่ำเสมอ; ระบบเทคโนโลยีสารสนเทศที่ทันสมัย; ระบบฐานข้อมูลซัพพลายเออร์
+TSUGE07272,แบบทดสอบ : บทที่ 6,"ข้อใดอธิบายคำว่า ""Key Activities"" ใน Business Model Canvas ได้ดีที่สุด",กิจกรรมที่สำคัญที่ธุรกิจต้องดำเนินการเพื่อสร้างคุณค่าให้กับลูกค้า,กิจกรรมที่เกี่ยวข้องกับการบริหารจัดการบุคคล,confirmed,Untried options: กิจกรรมด้านการลดต้นทุน; กิจกรรมด้านการสร้างนวัตกรรม
+TSUGE07272,แบบทดสอบ : บทที่ 6,ข้อใด ไม่ใช่ องค์ประกอบหลักของ Business Model Canvas ตามแนวคิดของ Alexander Osterwalder,Profit formula,,confirmed,Untried options: Customer segment; Cost structure; Value proposition
+TSUGE07272,แบบทดสอบ : บทที่ 7,ข้อใดต่อไปนี้หมายถึงการจัดการทรัพยากรมนุษย์ (Human Resource Management) ?,การดำเนินกิจกรรมการแสวงหาคน การรักษาคน การประเมินผล และให้คนพ้นจากตำแหน่งงาน,การดำเนินกิจกรรมที่เกี่ยวข้องกับคนในระบบสุขภาพา | การคิดต้นทุนค่าใช้จ่ายที่ใช้ในการดำเนินกิจกรรมที่เกี่ยวข้องกับคนในองค์กร | การดำเนินงานเพื่อให้การพัฒนาและสร้างคุณค่าในกระบวนการผลิตหรือการทำงาน,confirmed,Untried options: การจัดการเรื่องคนเพื่อให้คนทำงานให้กับองค์กร
+TSUGE07272,แบบทดสอบ : บทที่ 7,คำกล่าวในข้อใดถูกต้องมากที่สุดเกี่ยวกับการจัดการทรัพยากรมนุษย์ ?,คนในองค์กรคือหัวใจแห่งการเพิ่มผลผลิตองค์กรจึงต้องให้การดูแลและให้ความสำคัญ,มีความจำเป็นที่จะต้องจ่ายค่ารักษาพยาบาลให้คนในองค์กรทั้งหมดเพราะเขาเป็นสมาชิกขององค์กรร | การจัดการทรัพยากรมนุษย์ที่ดี คือ ผลกำไรที่องค์กรจะได้รับเพื่อการให้บริการที่ดีที่สุดขององค์กร,confirmed,Untried options: ปัจจุบันต้องให้ความสำคัญกับการพัฒนาทรัพยากรมนุษย์เพราะคือการเริ่มต้นการผลิตให้ถึงมือผู้รับ; ต้นทุนจ่ายจริงเรื่องคนในองค์กรสูงมากจึงต้องบวกเข้ากับต้นทุนสินค้าและบริการ
+TSUGE07272,แบบทดสอบ : บทที่ 7,ในการวางแผนทรัพยากรมนุษย์ ควรให้ความสำคัญในการทำงานเรื่องใดต่อไปนี้ ?,ง . การสำรวจเพื่อการแสวงหาทรัพยากรมนุษย์ คัดเลือก และบรรจุบุคคลเพื่อให้เข้าร่วมทำงานในองค์กร,ก. การจัดเตรียมข้อมูลความต้องการพนักงานหรือประมาณความต้องการในแต่ละหน่วยงาน | ข. การสำรวจต้นทุนทรัพยากรมนุษย์เพื่อนำไปวางแผนความต้องการคนในแต่ละหน่วยงานในองค์กร | ค. การสำรวจเพื่อการแสวงหาทรัพยากรมนุษย์ คัดเลือก และบรรจุบุคคลเพื่อให้เข้าร่วมทำงานในองค์กร,confirmed,Untried options: จ. ข้อ ข และ ข้อ ค ถูกต้องมากที่สุด
+TSUGE07272,แบบทดสอบ : บทที่ 7,ข้อใดเป็นเรื่องที่ต้องดำเนินการในกระบวนการแรกของการวางแผนทรัพยากรมนุษย์ (Human Resource Planning: HRP) ?,ง. การทำ Job Design and Job Analysis,"ก. การทำ Job analysis, ทำ Job Description และ Job Specification | ข. การทำ Job Description , Job Specification และ Job analysis | ค. การทำ Organizational Structure, Job and Job Description",confirmed,Untried options: จ. ข้อ ก และ ข้อ ข ถูกต้อง
+TSUGE07272,แบบทดสอบ : บทที่ 7,ข้อใดเป็นเรื่องที่ต้องดำเนินการในกระบวนการแรกของการวางแผนทรัพยากรมนุษย์ (Human Resource Planning: HRP) ?,ง. การทำ Job Design and Job Analysis,"ก. การทำ Job analysis, ทำ Job Description และ Job Specification | ข. การทำ Job Description , Job Specification และ Job analysis | ค. การทำ Organizational Structure, Job and Job Description",confirmed,Untried options: จ. ข้อ ก และ ข้อ ข ถูกต้อง
+TSUGE07272,แบบทดสอบ : บทที่ 7,ข้อใดต่อไปนี้ที่เรียกว่าการพรรณนางานหรือการอธิบายงาน (Job Analysis) ?,การทำ Job Description และ Job Specification,"การทำ Job Specification และ Job Design | ถูกทุกข้อ | การทำ Organizational Structure, Job and Job Description | การทำ Job Design and Job Description",confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 7,การสรรหา (Recruitment) ในข้อใดต่อไปนี้ถูกต้องมากที่สุด,สรรหาจากภายในองค์กร สรรหาจากภายนอกองค์กร และสรรหาด้วยระบบอุปถัมภ์,,confirmed,Untried options: สรรหาจากจำนวนกำลังแรงงานที่ขาดหายไปจากองค์กร; สรรหาโดยการสอบสัมภาษณ์ หรือสรรหาโดยสอบข้อเขียน; สรรหาโดยคณะกรรมการสอบที่องค์กรแต่งตั้ง; สรรหาจากภายในองค์กร และสรรหาจากภายนอกองค์กร
+TSUGE07272,แบบทดสอบ : บทที่ 7,การคัดเลือก (Selection) ในข้อใดต่อไปนี้ถูกต้องมากที่สุด,คัดเลือกโดยการสอบสัมภาษณ์ คัดเลือกโดยสอบข้อเขียน หรือคัดเลือกโดยสอบปฏิบัติ,คัดเลือกจากภายในองค์กร คัดเลือกจากภายนอกองค์กร และคัดเลือกโดยใช้ระบบอุปถัมภ์ | คัดเลือกจำนวนกำลังแรงงานที่ขาดหายไปจากองค์กร,confirmed,Untried options: คัดเลือกโดยคณะกรรมการสอบที่องค์กรแต่งตั้ง; คัดเลือกโดยการสอบสัมภาษณ์ คัดเลือกโดยสอบข้อเขียน หรือคัดเลือกโดยสอบปฏิบัติ
+TSUGE07272,แบบทดสอบ : บทที่ 7,โดยภาพรวมแนวคิดขอบเขตการออกแบบงาน (Job Design) ควรใช้แนวคิดในข้อใดมากที่สุด,การแสวงหาบุคคลที่เหมาะสม การธำรงรักษาคน การประเมินผลการทำงาน และการให้พ้นจากงาน,การสรรหา การคัดเลือก การรักษาคน การพัฒนาคน และการให้พ้นจากงาน | การสรรหา การคัดเลือก การบรรจุแต่งตั้ง การพัฒนาคน การประเมินผล และการให้พ้นจากงาน | การสรรหา การคัดเลือก การพัฒนาคนคน การประเมินผลการทำงาน และการให้พ้นจากงาน | การแสวงหาบุคคลที่เหมาะสม การจูงใจคน การประเมินผลการทำงาน และการให้พ้นจากงาน,confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 7,โดยภาพรวมขอบเขตของการจัดการทรัพยากรมนุษย์ที่เหมาะสมควรเป็นข้อใดมากที่สุด?,การแสวงหาบุคคลที่เหมาะสม การธำรงรักษาคน การประเมินผลการทำงาน และการให้พ้นจากงาน,การสรรหา การคัดเลือก การรักษาคน การพัฒนาคน และการให้พ้นจากงาน | การสรรหา การคัดเลือก การบรรจุแต่งตั้ง การพัฒนาคน การประเมินผล และการให้พ้นจากงาน | การสรรหา การคัดเลือก การพัฒนาคนคน การประเมินผลการทำงาน และการให้พ้นจากงาน | การแสวงหาบุคคลที่เหมาะสม การจูงใจคน การประเมินผลการทำงาน และการให้พ้นจากงาน,confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 8,ต้นทุนหมายถึงอะไร,เงินสดหรือสิ่งที่เทียบเท่าเงินสด ที่ได้จ่ายไปเพื่อให้ได้มาซึ่งสินค้าหรือบริการซึ่งนำประโยชน์มาให้ กิจการในปัจจุบันหรือในอนาคต,ทุกสิ่งทุกอย่างที่จ่ายไป เพื่อให้ได้ประโยชน์ในอนาคต,confirmed,Untried options: เงินสดหรือสิ่งที่เทียบเท่าเงินสด ที่ได้จ่ายไปเพื่อให้ได้มาซึ่งสินค้าหรือบริการซึ่งนำประโยชน์มาให้ กิจการในอนาคต; เงินสด หรือค่าใช้จ่ายที่จ่ายไปในปัจจุบัน
+TSUGE07272,แบบทดสอบ : บทที่ 8,ต้นทุนการผลิตประกอบด้วยอะไรบ้าง,วัตถุดิบทางตรง ค่าแรงทางตรง ค่าใช้จ่ายในการผลิต,ค่าใช้ตามงวดเวลา และค่าใช้จ่ายคงที่ | ต้นทางตรง ต้นทุนทางอ้อม | ต้นทุนคงที่ ต้นทุนผันแปร,confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 8,ข้อใดถูก ?,ต้นทุนจม หมายถึงต้นทุนที่ไม่เกี่ยวข้องกับการตัดสินใจ,ต้นทุนคงที่ คือต้นทุนที่สามารถปรับเปลี่ยนได้ตามกิจกรรมที่ใช้ | ต้นทุนค่าเสียโอกาส หมายถึงที่สามารถหลีกเลี่ยงได้,confirmed,Untried options: ต้นทุนที่ไม่สามารถหลีกเลี่ยงได้ หมายถึงต้นทุนผันแปร
+TSUGE07272,แบบทดสอบ : บทที่ 8,นาย ใจดี ได้มีการจ่ายค่าโทรศัพท์เคลื่อนที่ เป็นรายเดือน เดือนละ 500 บาท สามารถที่จะโทรศัพท์ได้จำนวน 300 นาที ส่วนที่เกินจะคิดนาทีละ 0.50 สต. จากกรณีดังกล่าวจะมีลักษณะตรงกับข้อใด,"5,000 หน่วย","2,500 หน่วย",confirmed,"Untried options: 1,667 หน่วย; 1,000 หน่วย"
+TSUGE07272,แบบทดสอบ : บทที่ 8,นาย ใจดี ได้มีการจ่ายค่าโทรศัพท์เคลื่อนที่ เป็นรายเดือน เดือนละ 500 บาท สามารถที่จะโทรศัพท์ได้จำนวน 300 นาที ส่วนที่เกินจะคิดนาทีละ 0.50 สต. จากกรณีดังกล่าวจะมีลักษณะตรงกับข้อใด,"5,000 หน่วย","2,500 หน่วย",confirmed,"Untried options: 1,667 หน่วย; 1,000 หน่วย"
+TSUGE07272,แบบทดสอบ : บทที่ 8,"ร้าน สมใจ ขายสินค้าในราคาหน่วยละ 30 บาท มีต้นทุนผันแปร หน่วยละ 20 บาท และมีต้นทุนคงที่ จำนวน 50,000 บาท จุดคุ้มทุนจะตรงกับข้อใด ถ้าตรงการกำไรจำนวน 2,000 บาท จะต้องขายให้ได้กี่หน่วย","5,067 หน่วย","2,567 หน่วย | 1,067 หน่วย | 1,733 หน่วย",confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 8,"ร้าน สมใจ ขายสินค้าในราคาหน่วยละ 30 บาท มีต้นทุนผันแปร หน่วยละ 20 บาท และมีต้นทุนคงที่ จำนวน 50,000 บาท จุดคุ้มทุนจะตรงกับข้อใด ถ้าตรงการกำไรจำนวน 2,000 บาท ข้อใดเป็นขั้นตอนแรกในกระบวนการโปรโตไทป์ในการพัฒนาผลิตภัณฑ์?","5,000 หน่วย",,confirmed,"Untried options: 1,154 หน่วย; 1,875 หน่วย; 7,500 หน่วย"
+TSUGE07272,แบบทดสอบ : บทที่ 8,"นาย คิดดี ได้นำเงินฝากธนาคารในปีที่ 1 จำนวน 1,000 บาท เป็นระยเวลา 3 ปี โดยได้รับอัตราดอกเบี้ยในอัตรา 3% ต่อปี ในสิ้นปีที่ 3 นายคิดดี จะได้เงินรวมทั้งสิ้นเท่าใด","1,092.73 บาท","1,090.73 บาท | 1,009.00 บาท",confirmed,"Untried options: 1,090.00 บาท"
+TSUGE07272,แบบทดสอบ : บทที่ 8,"นายมานะ ได้ตัดสินใจ ลงทุนจำนวน 5,000 บาท โดยคาดว่าจะได้รับผลตอบแทนทุกปี ปีละ 1,200 บาท เป็นระยะเวลา 5 ปี โดยกำหนดอัตราผลตอบแทนที่ 10% ให้คำนวณหามูลค่าปัจจุบันสุทธิ จะตรงกับข้อใด","4,549.20 บาท","6,000.00 บาท | 6,500.00 บาท | 7,500.00 บาท",confirmed,
+TSUGE07272,แบบทดสอบ : บทที่ 8,"นาง มานี ได้มีการลงทุนจำนวน 20,000 บาท โดยคาดว่าจะได้รับผลตอบแทนปีละ 4,000 บาท ให้คำนวณหาระยะเวลาคืนทุนตรงกับข้อใด",5 ปี,5 ปี,confirmed,Untried options: 6 ปี; 4 ปี There are two options that both read '5 ปี'. The FIRST '5 ปี' was marked wrong; the SECOND listed '5 ปี' is the correct one. Do not click the first.
+TSUGE07272,แบบทดสอบหลังเรียน (Post-Test),"ร้าน สมใจ ขายสินค้าในราคาหน่วยละ 30 บาท มีต้นทุนผันแปร หน่วยละ 20 บาท และมีต้นทุนคงที่ จำนวน 50,000 บาท จุดคุ้มทุนจะตรงกับข้อใด ถ้าตรงการกำไรจำนวน 2,000 บาท จะต้องขายให้ได้กี่หน่วย","5,067 หน่วย","2,567 หน่วย | 1,067 หน่วย | 1,733 หน่วย",confirmed,"Confirmed in both chapter 8 and the post-test. A neighbouring item without the 2,000-baht profit is confirmed as '5,000 หน่วย'."
+TSUGE07272,แบบทดสอบหลังเรียน (Post-Test),"นาง มานี ได้มีการลงทุนจำนวน 20,000 บาท โดยคาดว่าจะได้รับผลตอบแทนปีละ 4,000 บาท ให้คำนวณหาระยะเวลาคืนทุนตรงกับข้อใด",5 ปี,5 ปี,confirmed,Two options are both labelled '5 ปี'. The first listed '5 ปี' is wrong [0/1]; the second listed '5 ปี' is correct [1/1]. Also confirmed in the post-test.
+TSUGE000111,บทที่ 1 อัตลักษณ์มหาวิทยาลัยทักษิณ,เดิมมหาวิทยาลัยทักษิณมีชื่อว่าอะไร,ถูกทุกข้อ,มหาวิทยาลัยศรีนครินทรวิโรฒ วิทยาเขตภาคใต้ | วิทยาลัยวิชาการศึกษาสงขลา,confirmed,
+TSUGE000111,บทที่ 1 อัตลักษณ์มหาวิทยาลัยทักษิณ,สีประจำมหาวิทยาลัยทักษิณคือสีอะไร,เทา-ฟ้า,ฟ้า-ขาว,confirmed,
+TSUGE000111,บทที่ 1 อัตลักษณ์มหาวิทยาลัยทักษิณ,ต้นไม้และดอกไม้ประจำมหาวิทยาลัยทักษิณคือต้นอะไร,ต้นทองหลาง,ต้นราชพฤกษ์,confirmed,
+TSUGE000111,บทที่ 1 อัตลักษณ์มหาวิทยาลัยทักษิณ,มหาวิทยาลัยศรีนครินทรวิโรฒ ภาคใต้ ได้รับการยกวิทยฐานะเป็นมหาวิทยาลัยทักษิณเมื่อใด,1 พฤศจิกายน พ.ศ. 2539,,confirmed,
+TSUGE000111,บทที่ 1 อัตลักษณ์มหาวิทยาลัยทักษิณ,มหาวิทยาลัยทักษิณได้รับการยกฐานะเป็นอะไร,กรม,,confirmed,
+TSUGE000111,บทที่ 1 อัตลักษณ์มหาวิทยาลัยทักษิณ,ข้อใดคือปรัชญาของมหาวิทยาลัยทักษิณ,ปัญญา จริยธรรม และการพัฒนา,,confirmed,
+TSUGE000111,บทที่ 1 อัตลักษณ์มหาวิทยาลัยทักษิณ,ข้อใดคือปรัชญาการศึกษาของมหาวิทยาลัยทักษิณ,มุ่งเน้นผลลัพธ์การเรียนรู้ของผู้เรียนสู่สมรรถนะนวัตกรรมสังคมและการเป็นผู้ประกอบการที่มีปัญญา จริยธรรม นำการพัฒนา โดยการจัดการเรียนรู้เชิงรุก,,confirmed,
+TSUGE000111,บทที่ 1 อัตลักษณ์มหาวิทยาลัยทักษิณ,ข้อใดไม่ใช่ค่านิยมหลักมหาวิทยาลัยทักษิณ (TSU Core Values),การบริการวิชาการร่วมกับชุมชนและสังคม,สร้างสรรค์สังคม,confirmed,
+TSUGE000111,บทที่ 1 อัตลักษณ์มหาวิทยาลัยทักษิณ,ข้อใดคืออัตลักษณ์ของนิสิตมหาวิทยาลัยทักษิณ,รับผิดชอบ รอบรู้ สู้งาน มีประสบการณ์เชิงปฏิบัติ,เป็นคนดี มีทักษะชีวิต มีจิตสาธารณะ,confirmed,
+TSUGE000111,บทที่ 1 อัตลักษณ์มหาวิทยาลัยทักษิณ,“การสร้างนวัตกรรมสังคมเพื่อการพัฒนาและแก้ปัญหาในชุมชน” คือเป้าประสงค์ใดของอัตลักษณ์นิสิตมหาวิทยาลัยทักษิณ,มีประสบการณ์เชิงปฏิบัติ,,confirmed,
+TSUGE000111,บทที่ 2 ความเป็นพลเมือง,“ไม่ยอมรับหรือสนับสนุนการกระทำที่ไม่ถูกต้อง” คือคุณธรรมจริยธรรมพลเมืองที่ดีด้านใด,ความกล้าหาญและเชื่อมั่นในตนเอง,,confirmed,
+TSUGE000111,บทที่ 2 ความเป็นพลเมือง,ข้อใดไม่ใช่องค์ประกอบที่สำคัญของการเป็นพลเมืองที่ดีของสังคมไทย,ลดความขัดแย้งและการใช้ความรุนแรงในสังคม,มีจิตสำนึกและหน้าที่พลเมือง,confirmed,
+TSUGE000111,บทที่ 2 ความเป็นพลเมือง,ข้อใดไม่ใช่คุณลักษณะของพลเมืองที่ดี,มีส่วนร่วมในการป้องกันและแก้ไขปัญหาของชุมชน ประเทศชาติ และสังคมโลก,ส่วนร่วมในกระบวนการทางการเมืองการปกครอง,confirmed,เฉลยที่ระบบรายวิชาแสดง แม้ข้อความคำถามกับคำตอบอาจไม่สอดคล้องกับหลักทั่วไป — ตรวจว่าเป็นโจทย์และชุดตัวเลือกเดิมก่อนใช้
+TSUGE000111,บทที่ 2 ความเป็นพลเมือง,ข้อใดคือความเคารพและดูแลรักษาสาธารณสมบัติ,ไม่ทำความเสียหายต่อสถานที่ราชการ โบราณสถาน,,confirmed,
+TSUGE000111,บทที่ 2 ความเป็นพลเมือง,ข้อใดไม่ใช่การเป็นพลเมืองที่ดีของประเทศชาติและสังคมโลก,การถือค่านิยมของต่างชาติมากกว่าศิลปวัฒนธรรมและประเพณีของตน,,confirmed,
+TSUGE000111,บทที่ 2 ความเป็นพลเมือง,ความเป็นพลเมืองดิจิทัลคืออะไร,พลเมืองผู้ใช้งานสื่อดิจิทัลและสื่อสังคมออนไลน์ที่เข้าใจบรรทัดฐานของการปฏิบัติตัวให้เหมาะสมและมีความรับผิดชอบในการใช้เทคโนโลยี โดยเฉพาะอย่างยิ่งการสื่อสารในยุคดิจิทัลเป็นการสื่อสารที่ไร้พรมแดน,พลเมืองที่มีความสามารถในการป้องกันข้อมูลด้วยการสร้างระบบความปลอดภัยที่เข้มแข็งและป้องกันการโจรกรรมข้อมูลหรือการโจมตีทางออนไลน์ได้,confirmed,
+TSUGE000111,บทที่ 2 ความเป็นพลเมือง,ข้อใดกล่าวถูกต้องเกี่ยวกับทักษะในการคิดวิเคราะห์มีวิจารณญาณที่ดี (Critical Thinking),ความสามารถในการวิเคราะห์แยกแยะระหว่างข้อมูลที่ถูกต้องและข้อมูลที่ผิด ข้อมูลที่มีเนื้อหาดีและข้อมูลที่เข้าข่ายอันตราย ข้อมูลติดต่อทางออนไลน์ที่น่าตั้งข้อสงสัยและน่าเชื่อถือได้,,confirmed,
+TSUGE000111,บทที่ 2 ความเป็นพลเมือง,“ความสามารถในการเห็นอกเห็นใจและสร้างความสัมพันธ์ที่ดีกับผู้อื่นบนโลกออนไลน์” คือทักษะความเป็นพลเมืองดิจิทัลในด้านใด,ทักษะในการใช้เทคโนโลยีอย่างมีจริยธรรม (Digital Empathy),ทักษะในการรักษาข้อมูลส่วนตัว (Privacy Management),confirmed,
+TSUGE000111,บทที่ 2 ความเป็นพลเมือง,ข้อใดเกี่ยวข้องกับการเป็นพลเมืองดิจิทัล (Digital Citizens) น้อยที่สุด,การรับชมวิดีโอผ่านเว็บรวบรวมสื่อ เช่น YouTube,การใช้อุปกรณ์สื่อสารและช่องทางการสื่อสารประเภทต่าง ๆ | ถูกทุกข้อ,confirmed,
+TSUGE000111,บทที่ 2 ความเป็นพลเมือง,ข้อมูลส่วนตัวประเภทใดต่อไปนี้ที่เราต้องคิดก่อนที่จะแชร์ในโลกออนไลน์,ชื่อ-นามสกุลจริง,อาหารที่น้องแมวที่บ้านชอบ,confirmed,
+TSUGE000111,บทที่ 3 ทักษะในศตวรรษที่ 21,ข้อใดคือเป้าหมายสูงสุดของการศึกษา “ทักษะในศตวรรษที่ 21” (21st Century Skill),ประยุกต์ใช้ความรู้และทักษะในศตวรรษที่ 21 ในการศึกษา,สร้างสรรค์ความรู้ใหม่โดยใช้ทักษะในศตวรรษที่ 21 เป็นฐานได้ | เข้าใจความหมายของความรู้และทักษะในศตวรรษที่ 21,confirmed,
+TSUGE000111,บทที่ 3 ทักษะในศตวรรษที่ 21,ข้อใดเป็นตัวอย่างของ “ความรู้” (Knowledge),การเข้าใจวงจรไฟฟ้า,การเล่นดนตรีไทย,confirmed,
+TSUGE000111,บทที่ 3 ทักษะในศตวรรษที่ 21,ข้อใดกล่าวถูกต้องเกี่ยวกับความรู้,ความรู้สามารถจัดการและส่งต่อได้,,confirmed,
+TSUGE000111,บทที่ 3 ทักษะในศตวรรษที่ 21,ข้อใดเป็นตัวอย่างของ “ทักษะที่ส่งต่อได้” (Transferable Skill),การวิเคราะห์และสังเคราะห์ข้อมูล,,confirmed,
+TSUGE000111,บทที่ 3 ทักษะในศตวรรษที่ 21,ข้อใดกล่าวถูกต้องเกี่ยวกับทักษะ,ทักษะสร้างจากการศึกษา การฝึกฝน หรือประสบการณ์ก็ได้,ถูกทุกข้อ,confirmed,
+TSUGE000111,บทที่ 3 ทักษะในศตวรรษที่ 21,ข้อใดกล่าวถึง “สิ่งประดิษฐ์” (Invention),วศิน สร้างเครื่องตรวจข้อสอบอัตนัยเครื่องแรกของโลกโดยใช้เทคโนโลยี AI,รุ่งรวี สร้างผลงานเพลงชิ้นใหม่ของโลกโดยมีพัทลุงเป็นแรงบันดาลใจ,confirmed,
+TSUGE000111,บทที่ 3 ทักษะในศตวรรษที่ 21,ข้อใดกล่าวถึง “นวัตกรรม” (Innovation),สุทธิพร พัฒนาระบบการศึกษา ม.ทักษิณ จนตอบความต้องการของอุตสาหกรรม,รุ่งรวี สร้างผลงานเพลงชิ้นใหม่ของโลกโดยมีพัทลุงเป็นแรงบันดาลใจ,confirmed,
+TSUGE000111,บทที่ 3 ทักษะในศตวรรษที่ 21,ข้อใดกล่าวถึง “ความคิดสร้างสรรค์” (Creativity),รุ่งรวี สร้างผลงานเพลงชิ้นใหม่ของโลกโดยมีพัทลุงเป็นแรงบันดาลใจ,สุทธิพร พัฒนาระบบการศึกษา ม.ทักษิณ จนตอบความต้องการของอุตสาหกรรม,confirmed,
+TSUGE000111,บทที่ 3 ทักษะในศตวรรษที่ 21,ข้อใดต่อไปนี้ไม่ใช่ทักษะสำคัญในการเรียนรู้ในศตวรรษที่ 21 หรือ 4C,การใช้ปัญญาประดิษฐ์,,confirmed,
+TSUGE000111,บทที่ 3 ทักษะในศตวรรษที่ 21,ทำไมผู้เรียนจึงต้องให้ความสำคัญกับ “ทักษะในศตวรรษที่ 21” (21st Century Skill),เป็นทักษะที่สำคัญในการทำงานและการใช้ชีวิตในปัจจุบันและอนาคต,เป็นทักษะที่ทันสมัย ถ้าใครถามแล้วตอบไม่ได้ถือว่าไม่ใช่บัณฑิตที่มีปริญญา,confirmed,
+TSUGE000111,บทที่ 4 ทักษะการสื่อสาร,ข้อใดคือเป้าหมายสูงสุดของการศึกษา “ทักษะการสื่อสาร” (Communication Skill),ฝึกใช้ทักษะการสื่อสารในชีวิตจริง ในการเรียนรู้ในมหาวิทยาลัย และในการทำงานจริง,เข้าใจทักษะการสื่อสารว่ามีความสำคัญต่อการศึกษาอย่างไร,confirmed,
+TSUGE000111,บทที่ 4 ทักษะการสื่อสาร,ข้อใดคือเป้าหมายของการสื่อสารตามหลักการทางนิเทศศาสตร์ (Communication Principle),ความเข้าใจร่วมระหว่างคู่สื่อสาร,ความสร้างสรรค์ในการสื่อสาร,confirmed,
+TSUGE000111,บทที่ 4 ทักษะการสื่อสาร,กระบวนการสื่อสารที่มีประสิทธิภาพ ใช้โมเดลฯ ในข้อใด,SMCR+F,SMCR,confirmed,
+TSUGE000111,บทที่ 4 ทักษะการสื่อสาร,ผู้เรียนในฐานะผู้สื่อสารทำหน้าที่ในกระบวนการสื่อสารใดได้บ้าง,ผู้ส่งสาร สาร สื่อ,ผู้ส่งสาร สาร | ผู้ส่งสาร สาร สื่อ ผู้รับสาร และผู้ติดตามการสื่อสาร | ผู้ส่งสาร สาร สื่อ และผู้รับสาร,confirmed,
+TSUGE000111,บทที่ 4 ทักษะการสื่อสาร,การสื่อสารแบ่งออกได้เป็นกี่ระดับ,6,,confirmed,
+TSUGE000111,บทที่ 4 ทักษะการสื่อสาร,การสื่อสารของมนุษย์แบ่งออกเป็น 2 รูปแบบหลัก ๆ ได้แก่ข้อใด,วัจนภาษา และ อวัจนภาษา,ภายใน และ ภายนอก,confirmed,
+TSUGE000111,บทที่ 4 ทักษะการสื่อสาร,ข้อใดเป็นหลักการในการตรวจสอบประสิทธิภาพในการสื่อสาร,ติดตามปฏิกิริยาของคู่สื่อสาร,ผลการประเมินภายหลังการสื่อสาร,confirmed,
+TSUGE000111,บทที่ 4 ทักษะการสื่อสาร,หากผู้เรียนเกิดความตื่นเต้นก่อนการสื่อสารต่อหน้าสาธารณชน ผู้เรียนสามารถลดความตื่นเต้นตามหลักการทางการสื่อสารได้อย่างไร,ควบคุมลมหายใจ ฝึกหายใจเข้าออกช้า ๆ เป็นจังหวะ,รับประทานอาหารธาตุเย็นเพื่อลดแรงกดดันจากภายใน,confirmed,
+TSUGE000111,บทที่ 4 ทักษะการสื่อสาร,ข้อใดเป็นข้อควรระวังในการสื่อสาร เพื่อให้การสื่อสารเกิดประสิทธิภาพสูงสุด,ถูกทุกข้อ,,confirmed,
+TSUGE000111,บทที่ 4 ทักษะการสื่อสาร,ข้อใดไม่ถูกต้องเกี่ยวกับการพัฒนาการสื่อสารของผู้เรียน,การเตรียมความรู้และการแต่งกายสำคัญกว่าการเตรียมใจ,,confirmed,
+TSUGE000111,บทที่ 5 บุคลิกภาพและความเป็นผู้นำ,ลักษณะของผู้นำตามทฤษฎีคุณลักษณะความเป็นผู้นำ ผู้นำที่มีประสิทธิภาพจะมีสติปัญญา ความรู้ ความสามารถและบุคลิกภาพอย่างไร,ถูกทุกข้อ,,confirmed,
+TSUGE000111,บทที่ 5 บุคลิกภาพและความเป็นผู้นำ,ข้อใดไม่ใช่ทฤษฏีเชิงคุณลักษณะของผู้นำ (Trait Theory),วุฒิภาวะทางอารมณ์,,confirmed,
+TSUGE000111,บทที่ 5 บุคลิกภาพและความเป็นผู้นำ,ผู้นำแบบมุ่งงาน (Initiating Ltructure) มีลักษณะของความกระตือรือร้น มีความคิดริเริ่ม มีการกำหนดเป้าหมายและบทบาทหน้าที่ของผู้นำ และผู้ปฏิบัติงานไว้อย่างชัดเจนมีการวางแผนการทำงาน และกำหนดตารางเวลาทำงานแน่นอน เน้นการทำงานให้เป็นไปตามขั้นตอน มีการกำหนดมาตรฐานงาน มีการติดต่อสื่อสารกับทุกคนมีการมอบหมายงานที่ชัดเจน ซึ่งจะปรากฏอยู่ในทฤษฎีใด,ทฤษฏีเชิงสถานการณ์ (Situational Leadership Theory),การทำงานเป็นทีม (Teamwork) | ทฤษฏีเชิงพฤติกรรมของผู้นำ (Behavioral Theory),confirmed,คำตอบที่ระบบรายวิชารับ อย่าเปลี่ยนตามตำราทั่วไปโดยไม่ตรวจโจทย์ รุ่น และหลักฐานใหม่
+TSUGE000111,บทที่ 5 บุคลิกภาพและความเป็นผู้นำ,ทฤษฏีเชิงพฤติกรรมของผู้นำ (Behavioral Theory) ประกอบด้วยกี่แนวคิด อะไรบ้าง,3 แนวคิด ได้แก่ ผู้นำแบบเผด็จการ ผู้นำแบบประชาธิปไตย และผู้นำแบบเสรีนิยม,,confirmed,
+TSUGE000111,บทที่ 5 บุคลิกภาพและความเป็นผู้นำ,“เป็นผู้นำที่ชอบใช้อำนาจโดยวิธีการออกคำสั่งควบคุมผู้ปฏิบัติงานอย่างเข้มงวด ยึดถือกฎระเบียบข้อบังคับเป็นเครื่องมือควบคุมการทำงาน มักจะตัดสินใจด้วยตนเองแต่ผู้เดียวไม่ฟังความคิดเห็นของคนรอบข้าง” กล่าวถึงแนวคิดของผู้นำแบบใด,ผู้นำแบบเผด็จการ,ผู้นำแบบประชาธิปไตย,confirmed,
+TSUGE000111,บทที่ 5 บุคลิกภาพและความเป็นผู้นำ,ข้อใดไม่ใช่พฤติกรรมของผู้นำแบบมุ่งสร้างโครงสร้าง,คอยช่วยเหลือสนับสนุน,ประสานงาน,confirmed,
+TSUGE000111,บทที่ 5 บุคลิกภาพและความเป็นผู้นำ,ข้อใดไม่ใช่พฤติกรรมผู้นำแบบสร้างน้ำใจ,ระบุขอบเขตและบทบาทของผู้ใต้บังคับบัญชา,,confirmed,
+TSUGE000111,บทที่ 5 บุคลิกภาพและความเป็นผู้นำ,ข้อใดกล่าวถูกต้องเกี่ยวกับผู้นำแบบมุ่งคน (Consideration Leadership),มีลักษณะของการดูแลเอาใจใส่ดูแลทุกข์สุขและสร้างความสัมพันธ์อันดีกับผู้ปฏิบัติงาน,,confirmed,
+TSUGE000111,บทที่ 5 บุคลิกภาพและความเป็นผู้นำ,ภาวะผู้นำในองค์การที่น่าจะเป็นประโยชน์ในการพัฒนาองค์การคือข้อใด,ผู้นำแบบประชาธิปไตย,,confirmed,
+TSUGE000111,บทที่ 5 บุคลิกภาพและความเป็นผู้นำ,ข้อใดคืออิทธิพลที่ส่งผลต่อทัศนคติที่ดีของผู้นำที่ประสบความสำเร็จน้อยที่สุด,มีทัศนคติในเชิงบวกต่อมนุษย์,มีความเด่นหรือความมีอำนาจ,confirmed,คำตอบที่ระบบรายวิชารับ อย่าเปลี่ยนตามตำราทั่วไปโดยไม่ตรวจโจทย์ รุ่น และหลักฐานใหม่
+TSUGE000111,บทที่ 6 Design Thinking และ Appreciative Inquiry,ข้อใดกล่าวถูกต้องเกี่ยวกับ Design Thinking หรือการคิดเชิงออกแบบ,กระบวนการทำความเข้าใจปัญหาของผู้ใช้หรือนำเสนอทางแก้ไขปัญหาแบบใหม่ที่อาจไม่เคยคิดมาก่อน,,confirmed,
+TSUGE000111,บทที่ 6 Design Thinking และ Appreciative Inquiry,การคิดเชิงออกแบบ (Design Thinking) มีกระบวนการกี่ขั้นตอน ประกอบด้วยอะไรบ้าง,5 ขั้นตอน ได้แก่ การเข้าใจ การนิยาม การสร้างสรรค์ การจำลอง และการทดสอบ,4 ขั้นตอน ได้แก่ การเข้าใจ การนิยาม การสร้างสรรค์ การจำลอง,confirmed,
+TSUGE000111,บทที่ 6 Design Thinking และ Appreciative Inquiry,“อ๋อมแอ๋มระดมความคิดจากหลากหลายมุมมอง ด้วยความคิดสร้างสรรค์ และคิดนอกกรอบ เพื่อหาแนวทางที่แปลกใหม่และมีประสิทธิภาพมากที่สุด” คือขั้นตอนใดของการคิดเชิงออกแบบ (Design Thinking),การสร้างสรรค์,,confirmed,
+TSUGE000111,บทที่ 6 Design Thinking และ Appreciative Inquiry,ข้อใดคือ Design Thinking สำหรับการสร้างอัตลักษณ์ให้กับองค์กร,ถูกทุกข้อ,,confirmed,
+TSUGE000111,บทที่ 6 Design Thinking และ Appreciative Inquiry,“ผลจากการแก้ปัญหาโดยผ่านการคิดเชิงออกแบบ (Design Thinking) เทคโนโลยีที่สร้างขึ้นอาจเรียกว่า นวัตกรรม (Innovation)” ในความคิดของผู้เรียน “นวัตกรรม” มีลักษณะอย่างไร,เทคโนโลยีที่แปลกจากเดิม,ผลลัพธ์ที่ได้จากกระบวนการออกแบบเชิงวิศวกรรม,confirmed,
+TSUGE000111,บทที่ 6 Design Thinking และ Appreciative Inquiry,ข้อใดไม่ใช่ประโยชน์ของการคิดเชิงออกแบบ (Design Thinking),สนับสนุนการใช้เทคโนโลยีชั้นสูงมากกว่าการใช้แรงงานมนุษย์,,confirmed,
+TSUGE000111,บทที่ 6 Design Thinking และ Appreciative Inquiry,“ปัจจุบันป่าไม้จำนวนมากถูกทำลาย จึงมีการจัดกิจกรรมปลูกป่าขึ้น ในการปลูกป่าแต่ละครั้งจะมีการปลูกต้นกล้าเป็นจำนวนมาก แต่มีต้นกล้าบางส่วนที่ไม่สามารถเจริญเติบโตได้ เนื่องจากดินในบางพื้นที่ไม่มีธาตุอาหาร หรือถุงเพาะชำพลาสติกมีการถูกรวบกวนระบบราก จึงทำให้ต้นไม้เจริญเติบโตช้าหรือไม่เจริญเติบโต” จากสถานการณ์ข้างต้นแก้ปัญหานี้อย่างไร,ใช้ดินเพาะปลูกที่มีธาตุอาหารครบถ้วนพร้อมที่จะทำให้ต้นกล้าเจริญเติบโตได้ดี,,confirmed,
+TSUGE000111,บทที่ 6 Design Thinking และ Appreciative Inquiry,ข้อใดกล่าวถูกต้องเกี่ยวกับสุนทรียสาธก (Appreciative Inquiry: AI),กระบวนการตั้งคำถามเชิงสร้างสรรค์,,confirmed,
+TSUGE000111,บทที่ 6 Design Thinking และ Appreciative Inquiry,ข้อใดไม่ใช่แนวคิดของการใช้ Appreciative Inquiry,Delete,Discovery,confirmed,
+TSUGE000111,บทที่ 6 Design Thinking และ Appreciative Inquiry,“โรงเรียนแห่งหนึ่งต้องการเสริมสร้างบรรยากาศการเรียนรู้ที่ดีขึ้น” โดยใช้ Appreciative Inquiry ข้อใดคือขั้น Dream,จัดกิจกรรม Workshop เพื่อสร้างวิสัยทัศน์ร่วมของโรงเรียนในฝัน,,confirmed,
