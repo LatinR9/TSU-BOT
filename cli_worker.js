@@ -21,6 +21,7 @@ const courseCode = getArg('course', '');
 const speed = getArg('speed', 'normal');
 const url = getArg('url', '');
 const workerId = getArg('id', 'Worker-1');
+const modes = getArg('modes', process.env.TSU_BOT_MODES || 'quiz,video,doc'); // any of quiz,video,doc
 
 let activeWorker = null;
 
@@ -67,7 +68,7 @@ async function main() {
   if (action === 'run') {
     activeWorker = new AutomationWorker(
       workerId,
-      { courseCode, targetUrl: url, speedMode: speed },
+      { courseCode, targetUrl: url, speedMode: speed, modes },
       (id, text, level) => {
         console.log(`[LOG] ${text}`);
       },
