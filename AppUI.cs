@@ -843,19 +843,23 @@ namespace TSUBotDesktop
                 using (WebClient wc = new WebClient())
                 {
                     wc.Headers.Add("User-Agent", "TSU-BOT-Desktop");
+                    wc.Headers.Add("Cache-Control", "no-cache");
+                    wc.Headers.Add("Pragma", "no-cache");
+                    long ticks = DateTime.UtcNow.Ticks;
                     string baseRaw = string.Format("https://raw.githubusercontent.com/{0}/main/", GITHUB_REPO);
 
                     AppendLog("1/4 ดาวน์โหลดฐานเฉลยล่าสุด...");
-                    wc.DownloadFile(baseRaw + "tsu_answers.json", Path.Combine(appDir, "tsu_answers.json"));
+                    wc.DownloadFile(baseRaw + "tsu_answers.json?t=" + ticks, Path.Combine(appDir, "tsu_answers.json"));
+                    try { wc.DownloadFile(baseRaw + "tsu_missing.json?t=" + ticks, Path.Combine(appDir, "tsu_missing.json")); } catch { }
 
                     AppendLog("2/4 ดาวน์โหลดสคริปต์ระบบล่าสุด...");
-                    wc.DownloadFile(baseRaw + "cli_worker.js", Path.Combine(appDir, "cli_worker.js"));
-                    wc.DownloadFile(baseRaw + "worker.js", Path.Combine(appDir, "worker.js"));
-                    wc.DownloadFile(baseRaw + "db_manager.js", Path.Combine(appDir, "db_manager.js"));
+                    wc.DownloadFile(baseRaw + "cli_worker.js?t=" + ticks, Path.Combine(appDir, "cli_worker.js"));
+                    wc.DownloadFile(baseRaw + "worker.js?t=" + ticks, Path.Combine(appDir, "worker.js"));
+                    wc.DownloadFile(baseRaw + "db_manager.js?t=" + ticks, Path.Combine(appDir, "db_manager.js"));
 
                     AppendLog("3/4 ดาวน์โหลดโปรแกรม .exe เวอร์ชั่นใหม่...");
                     string updateExePath = Path.Combine(appDir, "TSU-BOT-Pro.update");
-                    wc.DownloadFile(baseRaw + "TSU-BOT-Pro.exe", updateExePath);
+                    wc.DownloadFile(baseRaw + "TSU-BOT-Pro.exe?t=" + ticks, updateExePath);
 
                     AppendLog("4/4 เตรียมรีสตาร์ทเพื่อติดตั้ง...", Color.FromArgb(52, 211, 153));
 
