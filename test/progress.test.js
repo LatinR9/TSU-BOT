@@ -11,6 +11,48 @@ const playwright = require('playwright');
 const AutomationWorker = require('../worker');
 const { startCourseServer } = require('./fixtures/course/server');
 
+const CH1 = 'บทที่ 1 อัตลักษณ์มหาวิทยาลัยทักษิณ';
+const CH2 = 'บทที่ 2 ความเป็นพลเมือง พลเมืองโลก และพลเมืองดิจิทัล';
+const CH3 = 'บทที่ 3 ทักษะการเรียนรู้ในศตวรรษที่ 21';
+const QUIZ = 'แบบทดสอบหลังบทเรียน';
+
+// Live TSUGE000111: every chapter quiz is titled the same. บทที่ 3 is already 10/10;
+// บทที่ 1 starts on an intro sheet; Post-Test begins with instructional text.
+const atlakDup = {
+  courseCode: 'TSUGE000111',
+  courseName: 'อัตลักษณ์ทักษิณและความเป็นพลเมือง',
+  submitLabel: 'ส่งคำตอบ',
+  noCourseOutline: true,
+  outline: ['บทนำ', CH1, CH2, CH3, 'Post Test'],
+  sequences: [
+    { id: 'pre', title: 'แบบทดสอบความรู้เบื้องต้นก่อนเริ่มเรียน (Pre-Test)', chapter: 'บทนำ แนะนำรายวิชา' },
+    { id: 'q1', title: QUIZ, chapter: CH1 },
+    { id: 'q2', title: QUIZ, chapter: CH2 },
+    { id: 'q3', title: QUIZ, chapter: CH3 },
+    { id: 'post', title: 'แบบทดสอบความรู้หลังเรียน (Post-Test)', chapter: 'Post Test' }
+  ],
+  units: [
+    { id: 'preQuiz', seq: 'pre', type: 'quiz', section: 'บทนำ แนะนำรายวิชา', title: 'แบบทดสอบความรู้เบื้องต้นก่อนเริ่มเรียน (Pre-Test)', pretest: true, problems: [
+      { id: 'pt1', stem: 'สีประจำมหาวิทยาลัยทักษิณคือสีอะไร', choices: ['ฟ้า-ขาว', 'แดง-เหลือง', 'เทา–ฟ้า'], answer: 2 }
+    ] },
+    { id: 'q1intro', seq: 'q1', type: 'doc', section: CH1, title: 'คำชี้แจง' },
+    { id: 'q1quiz', seq: 'q1', type: 'quiz', section: CH1, title: QUIZ, problems: [
+      { id: 'q1a', stem: 'เดิมมหาวิทยาลัยทักษิณมีชื่อว่าอะไร', choices: ['วิทยาลัยวิชาการศึกษาสงขลา', 'มหาวิทยาลัยศรีนครินทรวิโรฒ วิทยาเขตภาคใต้', 'ถูกทุกข้อ'], answer: 2 }
+    ] },
+    { id: 'q2quiz', seq: 'q2', type: 'quiz', section: CH2, title: QUIZ, problems: [
+      { id: 'q2a', stem: 'ข้อใดคือความเคารพและดูแลรักษาสาธารณสมบัติ', choices: ['ไม่ทำความเสียหายต่อสถานที่ราชการ โบราณสถาน', 'อื่น ๆ'], answer: 0 }
+    ] },
+    { id: 'q3quiz', seq: 'q3', type: 'quiz', section: CH3, title: QUIZ, complete: true, problems: [
+      { id: 'q3a', stem: 'ข้อใดคือ Design Thinking สำหรับการสร้างอัตลักษณ์ให้กับองค์กร', choices: ['ถูกทุกข้อ', 'อื่น ๆ'], answer: 0, preGraded: true }
+    ] },
+    { id: 'postQuiz', seq: 'post', type: 'quiz', section: 'Post Test', title: 'แบบทดสอบความรู้หลังเรียน (Post-Test)', problems: [
+      { id: 'poIntro', instructional: true, title: 'คำชี้แจง', stem: 'แบบทดสอบหลังเรียนเป็นแบบปรนัย มีจำนวน 40 ข้อ' },
+      { id: 'po1', stem: 'ข้อใดคือความเคารพและดูแลรักษาสาธารณสมบัติ', choices: ['ไม่ทำความเสียหายต่อสถานที่ราชการ โบราณสถาน', 'อื่น ๆ'], answer: 0, preGraded: 'incorrect', maxAttempts: 1 },
+      { id: 'po2', stem: 'เดิมมหาวิทยาลัยทักษิณมีชื่อว่าอะไร', choices: ['วิทยาลัยวิชาการศึกษาสงขลา', 'มหาวิทยาลัยศรีนครินทรวิโรฒ วิทยาเขตภาคใต้', 'ถูกทุกข้อ'], answer: 2 }
+    ] }
+  ]
+};
+
 const realLaunch = playwright.chromium.launchPersistentContext.bind(playwright.chromium);
 playwright.chromium.launchPersistentContext = (dir, opts) => realLaunch(fs.mkdtempSync(path.join(os.tmpdir(), 'tsubot-profile-')), {
   ...opts,
@@ -102,12 +144,13 @@ const submits = (r, unit) => r.srv.state.events.filter(e => e.type === 'submit' 
 const firstIdx = (r, pred) => r.srv.state.events.findIndex(pred);
 const failMsg = r => `\n--- worker log ---\n${r.logs.join('\n')}`;
 
-let full, stuck, noQuiz;
+let full, stuck, noQuiz, atlakDupRun;
 before(async () => {
-  [full, stuck, noQuiz] = await Promise.all([
+  [full, stuck, noQuiz, atlakDupRun] = await Promise.all([
     run(course({ withUnanswerable: false }), 'quiz,video,doc'),
     run(course({ withUnanswerable: true }), 'quiz,video,doc'),
-    run(course({ withUnanswerable: false }), 'video,doc')
+    run(course({ withUnanswerable: false }), 'video,doc'),
+    run(atlakDup, 'quiz,video,doc')
   ]);
 });
 after(() => { playwright.chromium.launchPersistentContext = realLaunch; });
@@ -184,6 +227,53 @@ test('unanswerable quiz: one extra pass, then stops and reports it', () => {
   assert.ok(summary.includes('Quiz : Unit 2 : Chapter 1') && summary.includes('ยังไม่ครบ 100%'), failMsg(r));
   const leftover = r.logs.findIndex(l => l.includes('ข้อที่ยังไม่ได้ส่งเพราะไม่มีเฉลยที่ใช้ได้ 1 ข้อ'));
   assert.ok(leftover > 0 && r.logs[leftover + 1].includes('Unit 2') && r.logs[leftover + 1].includes('fixture bank'), `leftover listed explicitly${failMsg(r)}`);
+});
+
+test('duplicate แบบทดสอบหลังบทเรียน: each chapter is its own row; 0/10 siblings are not skipped', () => {
+  const r = atlakDupRun;
+  assert.strictEqual(r.status, 'completed', failMsg(r));
+  const start = r.progress[0];
+  const dup = start.zero.filter(z => z.name === QUIZ);
+  assert.strictEqual(dup.length, 2, `expected บทที่ 1 and 2 at 0, got ${JSON.stringify(dup)}${failMsg(r)}`);
+  assert.deepStrictEqual(dup.map(z => z.section).sort(), [CH1, CH2].sort(), failMsg(r));
+  assert.ok(!dup.some(z => z.section === CH3), failMsg(r));
+  assert.ok(r.logs.some(l => l.includes(CH1) && l.includes(QUIZ)), failMsg(r));
+  assert.ok(r.logs.some(l => l.includes(CH2) && l.includes(QUIZ)), failMsg(r));
+  assert.ok(r.logs.some(l => l.includes('คำชี้แจง') || l.includes('ยังไม่ใช่แบบทดสอบ')), failMsg(r));
+  assert.strictEqual(submits(r, 'q1quiz').length, 1, failMsg(r));
+  assert.strictEqual(submits(r, 'q2quiz').length, 1, failMsg(r));
+  assert.strictEqual(submits(r, 'q3quiz').length, 0, `บทที่ 3 is 10/10 — must not resubmit${failMsg(r)}`);
+  assert.ok(r.srv.state.complete.q1quiz && r.srv.state.complete.q2quiz, failMsg(r));
+  const quizLinks = r.srv.state.events.filter(e => e.type === 'progress-link' && e.title === QUIZ);
+  assert.ok(quizLinks.length >= 2, `each 0/10 แบบทดสอบหลังบทเรียน must be clicked, got ${quizLinks.length}${failMsg(r)}`);
+});
+
+test('Post-Test instructional first block is not a leftover; submitted 0-score items are not retried', () => {
+  const r = atlakDupRun;
+  assert.strictEqual(submits(r, 'postQuiz').map(s => s.problem).sort().join(','), 'po2', failMsg(r));
+  assert.ok(!r.logs.some(l => l.includes('poIntro') || (l.includes('ยังค้าง') && l.includes('คำชี้แจง'))), failMsg(r));
+  assert.ok(r.logs.some(l => l.includes('ข้อความอธิบาย') || l.includes('ไม่มีช่องตอบ')), failMsg(r));
+  assert.ok(r.logs.some(l => l.includes('ไม่แตะต้องคำตอบเดิม')), failMsg(r));
+});
+
+test('progress parser keeps one row per section when titles repeat', async () => {
+  const browser = await playwright.chromium.launch({ headless: true, ...(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {}) });
+  const page = await browser.newPage();
+  await page.setContent(`<main><div class="donut-chart-number">12%</div>
+    <div class="detailed-grades">
+      <table><thead><tr><th>${CH1}</th><th>Score</th></tr></thead>
+        <tbody><tr><td><a href="/learning/course/course-v1:X+TSUGE000111+Y/block-v1:X+TSUGE000111+Y+type@sequential+block@q1">${QUIZ}</a></td><td>0/10</td></tr></tbody></table>
+      <table><thead><tr><th>${CH2}</th><th>Score</th></tr></thead>
+        <tbody><tr><td><a href="/learning/course/course-v1:X+TSUGE000111+Y/block-v1:X+TSUGE000111+Y+type@sequential+block@q2">${QUIZ}</a></td><td>0/10</td></tr></tbody></table>
+      <table><thead><tr><th>${CH3}</th><th>Score</th></tr></thead>
+        <tbody><tr><td><a href="/learning/course/course-v1:X+TSUGE000111+Y/block-v1:X+TSUGE000111+Y+type@sequential+block@q3">${QUIZ}</a></td><td>10/10</td></tr></tbody></table>
+    </div></main>`);
+  const out = await page.evaluate(AutomationWorker.parseProgressPage);
+  await browser.close();
+  assert.strictEqual(out.rows.length, 3);
+  assert.deepStrictEqual(out.rows.map(r => [r.section, r.name, r.earned, r.possible]), [
+    [CH1, QUIZ, 0, 10], [CH2, QUIZ, 0, 10], [CH3, QUIZ, 10, 10]
+  ]);
 });
 
 test('quiz mode off: Progress is read and logged but quizzes are not opened', () => {

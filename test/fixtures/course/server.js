@@ -37,6 +37,23 @@ function startCourseServer(spec) {
   const seqOf = u => sequences.find(x => x.id === u.seqId);
   const unitUrl = u => `/learning/course/${cid}/${seqOf(u).key}/${u.key}`;
   const seqUrl = sq => `/learning/course/${cid}/${sq.key}`;
+  const slug = s => String(s || 'ch').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '') || 'ch';
+  // Identity / non-Language TSU courses often link outline rows with courseware, jump_to_id,
+  // or type@vertical hrefs instead of (or mixed with) type@sequential.
+  const seqHref = sq => {
+    const style = sq.linkStyle || spec.linkStyle || 'sequential';
+    if (style === 'vertical') return `/learning/course/${cid}/${sq.units[0].key}`;
+    if (style === 'courseware') return `/courses/${cid}/courseware/${slug(sq.chapter)}/${sq.id}/`;
+    if (style === 'jump_to_id') return `/courses/${cid}/jump_to_id/${sq.id}`;
+    if (style === 'jump_to') return `/courses/${cid}/jump_to/${encodeURIComponent(sq.key)}`;
+    return seqUrl(sq);
+  };
+  const openSeq = keyOrId => {
+    const sq = sequences.find(x => x.id === keyOrId || x.key === keyOrId);
+    if (!sq) return null;
+    ev('sequence-open', sq.units[0].id, { seq: sq.id });
+    return unitUrl(sq.units[0]);
+  };
   const tabs = active => `<nav class="nav nav-underline-tabs course-tabs-navigation" aria-label="Course Material">
     ${[['Course', `/learning/course/${cid}/home`], ['Progress', `/learning/course/${cid}/progress`], ['Dates', `/learning/course/${cid}/dates`]]
       .map(([n, h]) => `<a class="nav-item flex-shrink-0 nav-link${n === active ? ' active' : ''}" href="${h}">${n}</a>`).join('')}</nav>`;
@@ -236,6 +253,17 @@ ${tabs('Course')}
   }
 
   function problemHtml(u, p, n) {
+    if (p.instructional) {
+      return `
+<div class="vert vert-${n}">
+  <div class="xblock xblock-student_view xblock-student_view-problem" data-block-type="problem">
+    <div class="problems-wrapper" id="problem_${p.id}">
+      <h3 class="hd hd-3 problem-header">${esc(p.title || 'คำชี้แจง')}</h3>
+      <div class="problem"><p>${esc(p.stem)}</p></div>
+    </div>
+  </div>
+</div>`;
+    }
     const graded = state.graded[p.id];
     const maxAttempts = p.maxAttempts || 1;
     const used = state.attempts[p.id];
@@ -283,10 +311,10 @@ ${tabs('Course')}
 
   function progressData() {
     const done = units.filter(u => state.complete[u.id]).length;
-    const graded = sequences.filter(sq => sq.graded && sq.units.some(u => u.problems)).map(sq => {
-      const probs = sq.units.flatMap(u => u.problems || []);
+    const graded = sequences.filter(sq => sq.graded && sq.units.some(u => (u.problems || []).some(p => !p.instructional))).map(sq => {
+      const probs = sq.units.flatMap(u => (u.problems || []).filter(p => !p.instructional));
       return {
-        chapter: sq.chapter, title: sq.title, url: seqUrl(sq),
+        chapter: sq.chapter, title: sq.title, url: seqHref(sq),
         earned: probs.filter(p => state.graded[p.id] === 'correct').length, possible: probs.length,
         problems: probs.map(p => `${state.graded[p.id] === 'correct' ? 1 : 0}/1`)
       };
@@ -349,7 +377,10 @@ ${tabs('Progress')}
     sequences.forEach(sq => {
       let s = sections.find(x => x.title === sq.chapter);
       if (!s) sections.push(s = { title: sq.chapter, sequences: [] });
-      s.sequences.push({ title: sq.title, url: seqUrl(sq), complete: sq.units.every(u => state.complete[u.id]) });
+      s.sequences.push({
+        title: sq.title, url: seqHref(sq), complete: sq.units.every(u => state.complete[u.id]),
+        unitType: (sq.units[0] && sq.units[0].type) || 'quiz'
+      });
     });
     sections.forEach(s => { s.complete = s.sequences.every(x => x.complete); });
     return { sections };
@@ -361,9 +392,16 @@ ${tabs('Progress')}
       return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(spec.courseName)} | Home</title></head><body>
         ${tabs('Course')}<h1>${esc(spec.courseName)}</h1><a class="btn btn-primary" href="${unitUrl(units[0])}">Resume course</a></body></html>`;
     }
+    const home = spec.outlineHome || {};
+    const expandText = home.expandText || 'Expand all';
+    const collapseText = home.collapseText || 'Collapse all';
+    const expandTag = home.expandTag || 'button';
+    const useAria = home.ariaExpanded !== false;
+    const typeIcons = !!home.typeIcons;
+    const outlineId = home.outlineId || 'courseHome-outline';
     return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Course | ${esc(spec.courseName)} | TSU COURSE</title>
 <style>.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)} .text-success{color:#15376d} .text-gray-400{color:#adadad}
-.collapsible-card-lg{border:1px solid #eee;margin:8px 0;padding:12px} #courseHome-outline li{min-height:48px}</style></head>
+.collapsible-card-lg{border:1px solid #eee;margin:8px 0;padding:12px} #${esc(outlineId)} li{min-height:48px}</style></head>
 <body style="margin:0;font-family:sans-serif">
 <header style="height:60px;background:#0b6">TSU COURSE</header>
 ${tabs('Course')}
@@ -373,28 +411,36 @@ ${tabs('Course')}
 </main>
 <script>
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const icon = (done, what) => done
+  const typeGlyph = t => t === 'video' ? 'play' : t === 'doc' ? 'file' : 'pencil';
+  const icon = (done, what, unitType) => done
     ? '<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="check-circle" class="svg-inline--fa fa-check-circle fa-fw float-left mt-1 text-success" width="16" height="16"><title>Completed ' + what + '</title><circle cx="8" cy="8" r="8" fill="currentColor"></circle></svg>'
-    : '<svg aria-hidden="true" focusable="false" data-prefix="far" data-icon="check-circle" class="svg-inline--fa fa-check-circle fa-fw float-left mt-1 text-gray-400" width="16" height="16"><title>Incomplete ' + what + '</title><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor"></circle></svg>';
-  let data, open = new Set([0]), expandAll = false;
+    : (${typeIcons} && what === 'assignment'
+      ? '<svg aria-hidden="true" focusable="false" data-icon="' + typeGlyph(unitType) + '" class="svg-inline--fa fa-' + typeGlyph(unitType) + ' fa-fw float-left mt-1" width="16" height="16" style="color:#15376d"><title>' + typeGlyph(unitType) + '</title></svg>'
+      : '<svg aria-hidden="true" focusable="false" data-prefix="far" data-icon="check-circle" class="svg-inline--fa fa-check-circle fa-fw float-left mt-1 text-gray-400" width="16" height="16"><title>Incomplete ' + what + '</title><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor"></circle></svg>');
+  let data, open = new Set(${home.startCollapsed ? '[]' : '[0]'}), expandAll = false;
   function render() {
+    const expandLabel = expandAll ? ${JSON.stringify(collapseText)} : ${JSON.stringify(expandText)};
+    const expandCtl = ${JSON.stringify(expandTag)} === 'a'
+      ? '<a class="btn btn-outline-primary btn-block" id="expand-all" href="#outline">' + expandLabel + '</a>'
+      : '<button class="btn btn-outline-primary btn-block" id="expand-all">' + expandLabel + '</button>';
     document.getElementById('outline-root').innerHTML = \`
-      <div class="row"><button class="btn btn-outline-primary btn-block" id="expand-all">\${expandAll ? 'Collapse all' : 'Expand all'}</button></div>
-      <ol id="courseHome-outline" class="list-unstyled">\${data.sections.map((s, i) => \`
-        <li><div class="pgn_collapsible collapsible-card-lg\${open.has(i) ? ' is-open' : ''}">
-          <div class="collapsible-trigger" role="button" tabindex="0" aria-expanded="\${open.has(i)}" data-sec="\${i}">
-            <div class="collapsible-title"><div class="d-flex row w-100 m-0"><div class="col-auto p-0">\${icon(s.complete, 'section')}</div>
+      <div class="row">\${expandCtl}</div>
+      <ol id="${esc(outlineId)}" class="list-unstyled block-tree">\${data.sections.map((s, i) => \`
+        <li class="outline-item section"><div class="pgn_collapsible collapsible-card-lg\${open.has(i) ? ' is-open' : ''}">
+          <div class="collapsible-trigger section-toggle" role="button" tabindex="0"${useAria ? ' aria-expanded="\${open.has(i)}"' : ''} data-sec="\${i}">
+            <div class="collapsible-title section-name"><div class="d-flex row w-100 m-0"><div class="col-auto p-0">\${icon(s.complete, 'section')}</div>
               <div class="col-10 ml-3 p-0 font-weight-bold"><span class="align-middle">\${esc(s.title)}</span>
               <span class="sr-only">, \${s.complete ? 'Completed section' : 'Incomplete section'}</span></div></div></div>
             <span class="collapsible-icon">\${open.has(i) ? '&minus;' : '+'}</span>
           </div>
           \${open.has(i) ? \`<div class="collapsible-body"><ol class="list-unstyled">\${s.sequences.map(q => \`
-            <li><div class="row w-100 m-0"><div class="col-auto p-0">\${icon(q.complete, 'assignment')}</div>
+            <li class="outline-item"><div class="row w-100 m-0"><div class="col-auto p-0">\${icon(q.complete, 'assignment', q.unitType)}</div>
               <div class="col-10 p-0 ml-3 text-break"><span class="align-middle"><a href="\${q.url}">\${esc(q.title)}</a></span>
               <span class="sr-only">, \${q.complete ? 'Completed' : 'Incomplete'}</span></div></div></li>\`).join('')}</ol></div>\` : ''}
         </div></li>\`).join('')}
       </ol>\`;
-    document.getElementById('expand-all').onclick = () => {
+    document.getElementById('expand-all').onclick = (e) => {
+      e.preventDefault();
       expandAll = !expandAll;
       open = expandAll ? new Set(data.sections.map((_, i) => i)) : new Set();
       render();
@@ -402,7 +448,7 @@ ${tabs('Course')}
     document.querySelectorAll('.collapsible-trigger').forEach(t => t.onclick = () => {
       const i = +t.dataset.sec; open.has(i) ? open.delete(i) : open.add(i); render();
     });
-    document.querySelectorAll('#courseHome-outline a').forEach(a => a.addEventListener('click', () =>
+    document.querySelectorAll('#${esc(outlineId)} a').forEach(a => a.addEventListener('click', () =>
       navigator.sendBeacon('/event', JSON.stringify({ type: 'outline-link', title: a.textContent }))));
   }
   setTimeout(async () => { data = await (await fetch('/outline-data')).json(); render(); }, 600);
@@ -424,10 +470,39 @@ ${tabs('Course')}
     }
     if (url === '/progress-data') return send(200, JSON.stringify(progressData()), 'application/json');
     if ((m = url.match(/^\/learning\/course\/[^/]+\/(block-v1:[^/]+type@sequential[^/]+)$/))) {
-      const sq = sequences.find(x => x.key === m[1]);
-      if (!sq) return send(404, 'no sequence');
-      ev('sequence-open', sq.units[0].id, { seq: sq.id });
-      res.writeHead(302, { Location: unitUrl(sq.units[0]) });
+      const loc = openSeq(m[1]);
+      if (!loc) return send(404, 'no sequence');
+      res.writeHead(302, { Location: loc });
+      return res.end();
+    }
+    if ((m = url.match(/^\/learning\/course\/[^/]+\/(block-v1:[^/]+type@vertical[^/]+)$/))) {
+      const u = units.find(x => x.key === m[1]);
+      if (!u) return send(404, 'no unit');
+      ev('sequence-open', u.id, { seq: u.seqId });
+      return send(200, shell(u));
+    }
+    if ((m = url.match(/^\/courses\/[^/]+\/courseware\/[^/]+\/([^/]+)\/?$/))) {
+      const loc = openSeq(m[1]);
+      if (!loc) return send(404, 'no sequence');
+      res.writeHead(302, { Location: loc });
+      return res.end();
+    }
+    if ((m = url.match(/^\/courses\/[^/]+\/jump_to_id\/([^/]+)\/?$/))) {
+      const loc = openSeq(m[1]);
+      if (!loc) {
+        const u = units.find(x => x.id === m[1]);
+        if (!u) return send(404, 'no jump_to_id');
+        ev('sequence-open', u.id, { seq: u.seqId });
+        res.writeHead(302, { Location: unitUrl(u) });
+        return res.end();
+      }
+      res.writeHead(302, { Location: loc });
+      return res.end();
+    }
+    if ((m = url.match(/^\/courses\/[^/]+\/jump_to\/(.+)$/))) {
+      const loc = openSeq(decodeURIComponent(m[1]));
+      if (!loc) return send(404, 'no jump_to');
+      res.writeHead(302, { Location: loc });
       return res.end();
     }
     if ((m = url.match(/^\/learning\/course\/[^/]+\/block-v1:[^/]+type@sequential[^/]+\/(block-v1:.+)$/))) {
@@ -465,7 +540,7 @@ ${tabs('Course')}
       state.graded[p.id] = correct ? 'correct' : 'incorrect';
       state.attempts[p.id]++;
       ev('submit', u.id, { problem: p.id, choice: p.kind ? undefined : m[3], values, correct });
-      const unitComplete = u.problems.every(x => state.graded[x.id]);
+      const unitComplete = u.problems.filter(x => !x.instructional).every(x => state.graded[x.id]);
       if (unitComplete) { state.complete[u.id] = true; ev('complete', u.id); }
       return send(200, JSON.stringify({ correct, unitComplete }), 'application/json');
     }

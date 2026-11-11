@@ -19,6 +19,54 @@ playwright.chromium.launchPersistentContext = (dir, opts) => realLaunch(fs.mkdte
 
 const U1 = 'Unit 1 : Entertainment';
 const U2 = 'Unit 2 : Sport and health';
+const CH1 = 'บทที่ 1 อัตลักษณ์มหาวิทยาลัยทักษิณ';
+const CH2 = 'บทที่ 2 ความเป็นพลเมือง';
+
+// TSUGE000111 (วิชาอัตลักษณ์): Thai item titles without the Language-course "Quiz :" / "Sheet :"
+// prefix, mixed Open edX hrefs, a Thai <a> Expand-all control, collapsed later sections with no
+// aria-expanded, and content-type icons on unfinished rows (the combination that used to leave
+// only Pre Test visible / clickable).
+const atlak = {
+  courseCode: 'TSUGE000111',
+  courseName: 'อัตลักษณ์ทักษิณและความเป็นพลเมือง',
+  submitLabel: 'ส่งคำตอบ',
+  outlineHome: {
+    expandText: 'ขยายทุกส่วน', collapseText: 'ยุบทั้งหมด', expandTag: 'a',
+    ariaExpanded: false, typeIcons: true, outlineId: 'course-outline-block-tree',
+    startCollapsed: true
+  },
+  outline: ['บทนำ', CH1, CH2],
+  sequences: [
+    { id: 'pre', title: 'Pre Test', chapter: 'บทนำ' },
+    { id: 'vid1', title: 'วิดีโอ บทที่ 1', chapter: CH1, linkStyle: 'vertical' },
+    { id: 'doc1', title: 'เอกสารประกอบ บทที่ 1', chapter: CH1, linkStyle: 'jump_to_id' },
+    { id: 'ex1', title: 'แบบฝึก บทที่ 1', chapter: CH1, linkStyle: 'courseware', graded: false },
+    { id: 'q1', title: 'แบบทดสอบหลังบทเรียน', chapter: CH1 },
+    { id: 'ex2', title: 'แบบฝึกหัดท้ายบท บทที่ 2', chapter: CH2, linkStyle: 'courseware', graded: false },
+    { id: 'post', title: 'แบบทดสอบหลังเรียน (Post-Test)', chapter: CH2 }
+  ],
+  units: [
+    { id: 'preQuiz', seq: 'pre', type: 'quiz', section: 'บทนำ', title: 'Pre Test', pretest: true, problems: [
+      { id: 'pt1', stem: 'สีประจำมหาวิทยาลัยทักษิณคือสีอะไร', choices: ['ฟ้า-ขาว', 'แดง-เหลือง', 'เทา–ฟ้า'], answer: 2 }
+    ] },
+    { id: 'vid1u', seq: 'vid1', type: 'video', section: CH1, title: 'วิดีโอ บทที่ 1' },
+    { id: 'doc1u', seq: 'doc1', type: 'doc', section: CH1, title: 'เอกสารประกอบ บทที่ 1', docText: 'ประวัติมหาวิทยาลัยทักษิณ' },
+    { id: 'ex1u', seq: 'ex1', type: 'quiz', section: CH1, title: 'แบบฝึก บทที่ 1', problems: [
+      { id: 'ex1a', stem: 'ต้นไม้และดอกไม้ประจำมหาวิทยาลัยทักษิณคือต้นอะไร', choices: ['ต้นราชพฤกษ์', 'ต้นทองหลาง', 'ต้นสัก'], answer: 1 }
+    ] },
+    { id: 'q1intro', seq: 'q1', type: 'doc', section: CH1, title: 'คำชี้แจง แบบทดสอบหลังบทเรียน' },
+    { id: 'q1u', seq: 'q1', type: 'quiz', section: CH1, title: 'แบบทดสอบหลังบทเรียน', problems: [
+      { id: 'q1a', stem: 'เดิมมหาวิทยาลัยทักษิณมีชื่อว่าอะไร', choices: ['วิทยาลัยวิชาการศึกษาสงขลา', 'มหาวิทยาลัยศรีนครินทรวิโรฒ วิทยาเขตภาคใต้', 'ถูกทุกข้อ'], answer: 2 },
+      { id: 'q1b', stem: 'สีประจำมหาวิทยาลัยทักษิณคือสีอะไร', choices: ['ฟ้า-ขาว', 'แดง-เหลือง', 'เทา–ฟ้า'], answer: 2, preGraded: true }
+    ] },
+    { id: 'ex2u', seq: 'ex2', type: 'quiz', section: CH2, title: 'แบบฝึกหัดท้ายบท บทที่ 2', problems: [
+      { id: 'ex2a', stem: 'ข้อใดคือความเคารพและดูแลรักษาสาธารณสมบัติ', choices: ['ไม่ทำความเสียหายต่อสถานที่ราชการ โบราณสถาน', 'อื่น ๆ'], answer: 0 }
+    ] },
+    { id: 'postU', seq: 'post', type: 'quiz', section: CH2, title: 'แบบทดสอบหลังเรียน (Post-Test)', complete: true, problems: [
+      { id: 'po1', stem: 'ข้อใดคือความเคารพและดูแลรักษาสาธารณสมบัติ', choices: ['ไม่ทำความเสียหายต่อสถานที่ราชการ โบราณสถาน', 'อื่น ๆ'], answer: 0, preGraded: true }
+    ] }
+  ]
+};
 
 // The run is started on the last unit; the bot must still go to the Course tab first. Every unfinished
 // item sits in a section that starts collapsed (only the first is open).
@@ -112,11 +160,13 @@ const afterFirstOutline = r => {
 };
 const seqOpens = (r, seq) => afterFirstOutline(r).filter(e => e.type === 'sequence-open' && e.seq === seq).length;
 
-let ok, stuck;
+let ok, stuck, atlakAll, atlakQuizOnly;
 before(async () => {
-  [ok, stuck] = await Promise.all([
+  [ok, stuck, atlakAll, atlakQuizOnly] = await Promise.all([
     run(resumed, 'quiz,video,doc', 'q21quiz'),
-    run(blocked, 'quiz,doc', 'lastQuiz')
+    run(blocked, 'quiz,doc', 'lastQuiz'),
+    run(atlak, 'quiz,video,doc', 'postU'),
+    run(atlak, 'quiz', 'postU')
   ]);
 });
 after(() => { playwright.chromium.launchPersistentContext = realLaunch; });
@@ -188,6 +238,70 @@ test('mode off and unfinishable items: bounded passes, each left item logged wit
   assert.ok(firstOutline >= 0 && firstOutline < firstProgress, failMsg(r));
 });
 
+test('identity course: opens every unchecked แบบฝึก / แบบทดสอบ / video / sheet, Progress only at the end', () => {
+  const r = atlakAll;
+  assert.strictEqual(r.status, 'completed', failMsg(r));
+  assert.deepStrictEqual(Object.entries(r.srv.state.complete).filter(([, v]) => !v).map(([k]) => k), [], failMsg(r));
+  assert.strictEqual(r.final.completion, 100, failMsg(r));
+  assert.deepStrictEqual(r.progress.map(p => p.phase), ['ตรวจยืนยันตอนจบ'], failMsg(r));
+  assert.ok(r.logs[r.logs.length - 1].includes('ครบ 100% แล้ว'), failMsg(r));
+
+  const first = r.outline[0];
+  assert.ok(first.total >= 7, `Expand all must reveal later units, got ${first.total}${failMsg(r)}`);
+  assert.deepStrictEqual(first.open.map(o => o.name).sort(), [
+    'Pre Test', 'วิดีโอ บทที่ 1', 'เอกสารประกอบ บทที่ 1', 'แบบฝึก บทที่ 1',
+    'แบบทดสอบหลังบทเรียน', 'แบบฝึกหัดท้ายบท บทที่ 2'
+  ].sort(), failMsg(r));
+  assert.ok(first.checked.map(c => c.name).includes('แบบทดสอบหลังเรียน (Post-Test)'), failMsg(r));
+  assert.strictEqual(seqOpens(r, 'post'), 0, failMsg(r));
+  ['pre', 'vid1', 'doc1', 'ex1', 'q1', 'ex2'].forEach(s =>
+    assert.ok(seqOpens(r, s) >= 1, `${s} was never opened${failMsg(r)}`));
+
+  const firstOutline = firstIdx(r, e => e.type === 'outline-view');
+  const firstProgress = firstIdx(r, e => e.type === 'progress-view');
+  assert.ok(firstOutline >= 0 && firstOutline < firstProgress, failMsg(r));
+  assert.deepStrictEqual(r.srv.state.events.filter(e => e.type === 'submit').map(e => e.problem).sort(),
+    ['ex1a', 'ex2a', 'pt1', 'q1a'].sort(), failMsg(r));
+  assert.ok(!r.srv.state.events.some(e => e.type === 'submit' && e.problem === 'q1b'), failMsg(r));
+});
+
+test('identity course: mode picker skips video/doc by Thai title; quizzes still open', () => {
+  const r = atlakQuizOnly;
+  assert.strictEqual(r.status, 'completed', failMsg(r));
+  assert.ok(!r.srv.state.events.some(e => e.type === 'video-play'), failMsg(r));
+  assert.ok(r.srv.state.complete.ex1u && r.srv.state.complete.q1u && r.srv.state.complete.ex2u, failMsg(r));
+  assert.ok(r.logs.some(l => l.includes('วิดีโอ บทที่ 1') && l.includes('ไม่ได้เลือกให้ทำวิดีโอ')), failMsg(r));
+  assert.ok(r.logs.some(l => l.includes('เอกสารประกอบ บทที่ 1') && l.includes('ไม่ได้เลือกให้ทำเอกสาร')), failMsg(r));
+  assert.ok(r.logs[r.logs.length - 1].includes('ยังไม่ครบ 100%'), failMsg(r));
+});
+
+test('outlineItemKind: Thai แบบฝึก / แบบทดสอบ / Pre Test and mixed hrefs', () => {
+  const w = new AutomationWorker('K', { courseCode: 'TSUGE000111' });
+  const kind = name => w.outlineItemKind({ name, href: '' });
+  assert.strictEqual(kind('Pre Test'), 'quiz');
+  assert.strictEqual(kind('แบบฝึก บทที่ 1'), 'quiz');
+  assert.strictEqual(kind('แบบฝึกหัดท้ายบท บทที่ 2'), 'quiz');
+  assert.strictEqual(kind('แบบทดสอบ บทที่ 1'), 'quiz');
+  assert.strictEqual(kind('แบบทดสอบหลังบทเรียน'), 'quiz');
+  assert.strictEqual(kind('แบบทดสอบหลังเรียน (Post-Test)'), 'quiz');
+  assert.strictEqual(kind('Quiz : Unit 1 : Chapter 1'), 'quiz');
+  assert.strictEqual(kind('Practice : Unit 1 : Chapter 1'), 'quiz');
+  assert.strictEqual(kind('วิดีโอ บทที่ 1'), 'video');
+  assert.strictEqual(kind('เอกสารประกอบ บทที่ 1'), 'doc');
+  assert.strictEqual(kind('Sheet : Movies Vocabulary'), 'doc');
+  assert.strictEqual(kind('Movies Vocabulary'), '');
+  assert.strictEqual(w.courseCodeFromId('course-v1:Language_and_Communication+TSUGE00152+2026_T2'), 'TSUGE00152');
+  assert.strictEqual(w.courseCodeFromId('course-v1:Life_skills_and_Personal_development+TSUGE000111+2024_T2'), 'TSUGE000111');
+  const redirected = w.resolveTargetUrl(
+    'https://apps.course.tsu.ac.th/learning/course/course-v1:Language_and_Communication+TSUGE00152+2026_T2/home',
+    'TSUGE000111');
+  assert.ok(redirected.includes('TSUGE000111'), redirected);
+  assert.ok(redirected.includes('Life_skills_and_Personal_development'), redirected);
+  assert.strictEqual(w.outlineItemKind({
+    name: 'x', href: '/courses/course-v1:TSU+X+Y/jump_to_id/ex1'
+  }, { rows: [{ name: 'แบบฝึก บทที่ 1', href: '/courses/course-v1:TSU+X+Y/jump_to_id/ex1' }] }), 'quiz');
+});
+
 test('outline parser: filled vs hollow check across icon markups', async () => {
   const browser = await playwright.chromium.launch(launchOpts);
   const page = await browser.newPage();
@@ -206,5 +320,48 @@ test('outline parser: filled vs hollow check across icon markups', async () => {
   assert.deepStrictEqual(out.items.map(i => [i.name, i.section, i.done]), [
     ['FontAwesome hollow', U1, false], ['FontAwesome filled', U1, true],
     ['Paragon grey', U1, false], ['Paragon navy', U1, true], ['Titled', U1, false], ['No icon', U1, null]
+  ]);
+});
+
+test('outline parser: LMS block-tree + Thai names + mixed hrefs + type icons are not skipped', async () => {
+  const browser = await playwright.chromium.launch(launchOpts);
+  const page = await browser.newPage();
+  await page.setContent(`<ol id="course-outline-block-tree" class="block-tree accordion">
+    <li class="outline-item section">
+      <button class="section-name accordion-trigger">บทนำ<span class="sr-only">, Incomplete section</span></button>
+      <ol>
+        <li><svg data-prefix="far" data-icon="check-circle"></svg>
+          <a href="/learning/course/course-v1:TSU+TSUGE000111+2026_T1/block-v1:TSU+TSUGE000111+2026_T1+type@sequential+block@pre">Pre Test</a>
+          <span class="sr-only">, Incomplete</span></li>
+      </ol>
+    </li>
+    <li class="outline-item section">
+      <button class="section-name accordion-trigger">${CH1}</button>
+      <ol>
+        <li><svg data-icon="play" class="fa-play" style="color:#15376d"></svg>
+          <a href="/learning/course/course-v1:TSU+TSUGE000111+2026_T1/block-v1:TSU+TSUGE000111+2026_T1+type@vertical+block@vid1">วิดีโอ บทที่ 1</a></li>
+        <li><svg data-icon="file" class="fa-file" style="color:#15376d"></svg>
+          <a href="/courses/course-v1:TSU+TSUGE000111+2026_T1/jump_to_id/doc1">เอกสารประกอบ บทที่ 1</a></li>
+        <li><svg data-icon="pencil" class="fa-pencil" style="color:#15376d"></svg>
+          <a href="/courses/course-v1:TSU+TSUGE000111+2026_T1/courseware/ch1/ex1/">แบบฝึก บทที่ 1</a></li>
+        <li><svg data-prefix="far" data-icon="check-circle"></svg>
+          <a href="/learning/course/course-v1:TSU+TSUGE000111+2026_T1/block-v1:TSU+TSUGE000111+2026_T1+type@sequential+block@q1">แบบทดสอบ บทที่ 1</a>
+          <span class="sr-only">, ยังไม่เสร็จ</span></li>
+        <li><svg data-prefix="fas" data-icon="check-circle" class="text-success"></svg>
+          <a href="/courses/course-v1:TSU+TSUGE000111+2026_T1/jump_to/block-v1:TSU+TSUGE000111+2026_T1+type@sequential+block@post">แบบทดสอบหลังเรียน (Post-Test)</a>
+          <span class="sr-only">, Completed</span></li>
+      </ol>
+    </li>
+  </ol>`);
+  const out = await page.evaluate(AutomationWorker.parseCourseOutline);
+  await browser.close();
+  assert.ok(out.rendered && out.items.length === 6, JSON.stringify(out.items.map(i => i.name)));
+  assert.deepStrictEqual(out.items.map(i => [i.name, i.done]), [
+    ['Pre Test', false],
+    ['วิดีโอ บทที่ 1', false],
+    ['เอกสารประกอบ บทที่ 1', false],
+    ['แบบฝึก บทที่ 1', false],
+    ['แบบทดสอบ บทที่ 1', false],
+    ['แบบทดสอบหลังเรียน (Post-Test)', true]
   ]);
 });
