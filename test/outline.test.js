@@ -22,6 +22,8 @@ const U2 = 'Unit 2 : Sport and health';
 const CH1 = 'บทที่ 1 อัตลักษณ์มหาวิทยาลัยทักษิณ';
 const CH2 = 'บทที่ 2 ความเป็นพลเมือง';
 const CH4 = 'บทที่ 4 ทักษะการสื่อสาร';
+const CH5 = 'บทที่ 5 บุคลิกภาพและความเป็นผู้นำ';
+const CH6 = 'บทที่ 6 Design Thinking และ Appreciative Inquiry';
 
 // TSUGE000111 (วิชาอัตลักษณ์): Thai item titles without the Language-course "Quiz :" / "Sheet :"
 // prefix, mixed Open edX hrefs, a Thai <a> Expand-all control, collapsed later sections with no
@@ -168,13 +170,15 @@ const part3 = {
   courseName: 'อัตลักษณ์ทักษิณและความเป็นพลเมือง',
   submitLabel: 'ส่งคำตอบ',
   outlineHome: { typeIcons: true, outlineId: 'course-outline-block-tree' },
-  outline: [CH1, CH2, CH4, 'Post Test'],
+  outline: [CH1, CH2, CH4, CH5, CH6, 'Post Test'],
   sequences: [
     { id: 'doneSolo', title: 'video (already watched)', chapter: CH4 },
     { id: 'q1', title: 'แบบทดสอบหลังบทเรียน', chapter: CH1 },
     { id: 'q2', title: 'แบบทดสอบหลังบทเรียน', chapter: CH2 },
     { id: 'part3', title: 'part 3', chapter: CH4 },
     { id: 'q4', title: 'แบบทดสอบหลังบทเรียน', chapter: CH4 },
+    { id: 'q5', title: 'แบบทดสอบหลังบทเรียน', chapter: CH5 },
+    { id: 'q6', title: 'แบบทดสอบหลังบทเรียน', chapter: CH6 },
     { id: 'post', title: 'แบบทดสอบความรู้หลังเรียน (Post-Test)', chapter: 'Post Test' }
   ],
   units: [
@@ -182,7 +186,16 @@ const part3 = {
     { id: 'q1intro', seq: 'q1', type: 'doc', section: CH1, title: 'คำชี้แจง', docText: 'อ่านก่อนสอบ' },
     { id: 'q1vid', seq: 'q1', type: 'video', section: CH1, title: 'video (3/10)', complete: true },
     { id: 'q1quiz', seq: 'q1', type: 'quiz', section: CH1, title: 'แบบทดสอบหลังบทเรียน', problems: [
-      { id: 'q1a', stem: 'ต้นไม้และดอกไม้ประจำมหาวิทยาลัยทักษิณคือต้นอะไร', choices: ['ต้นราชพฤกษ์', 'ต้นทองหลาง', 'ต้นสัก'], answer: 1 }
+      { id: 'q1a', stem: 'เดิมมหาวิทยาลัยทักษิณมีชื่อว่าอะไร', choices: ['วิทยาลัยวิชาการศึกษาสงขลา', 'มหาวิทยาลัยศรีนครินทรวิโรฒ วิทยาเขตภาคใต้', 'ถูกทุกข้อ'], answer: 2 },
+      { id: 'q1b', stem: 'สีประจำมหาวิทยาลัยทักษิณคือสีอะไร', choices: ['ฟ้า-ขาว', 'แดง-เหลือง', 'เทา–ฟ้า'], answer: 2 },
+      { id: 'q1c', stem: 'ต้นไม้และดอกไม้ประจำมหาวิทยาลัยทักษิณคือต้นอะไร', choices: ['ต้นราชพฤกษ์', 'ต้นทองหลาง', 'ต้นสัก'], answer: 1 },
+      { id: 'q1d', stem: 'มหาวิทยาลัยศรีนครินทรวิโรฒ ภาคใต้ ได้รับการยกวิทยฐานะเป็นมหาวิทยาลัยทักษิณเมื่อใด', choices: ['1 พฤศจิกายน พ.ศ. 2539', 'อื่น ๆ'], answer: 0 },
+      { id: 'q1e', stem: 'มหาวิทยาลัยทักษิณได้รับการยกฐานะเป็นอะไร', choices: ['กรม', 'อื่น ๆ'], answer: 0 },
+      { id: 'q1f', stem: 'ข้อใดคือปรัชญาของมหาวิทยาลัยทักษิณ', choices: ['ปัญญา จริยธรรม และการพัฒนา', 'อื่น ๆ'], answer: 0 },
+      { id: 'q1g', stem: 'ข้อใดคือปรัชญาการศึกษาของมหาวิทยาลัยทักษิณ', choices: ['มุ่งเน้นผลลัพธ์การเรียนรู้ของผู้เรียนสู่สมรรถนะนวัตกรรมสังคมและการเป็นผู้ประกอบการที่มีปัญญา จริยธรรม นำการพัฒนา โดยการจัดการเรียนรู้เชิงรุก', 'อื่น ๆ'], answer: 0 },
+      { id: 'q1h', stem: 'ข้อใดไม่ใช่ค่านิยมหลักมหาวิทยาลัยทักษิณ (TSU Core Values)', choices: ['สร้างสรรค์สังคม', 'การบริการวิชาการร่วมกับชุมชนและสังคม'], answer: 1 },
+      { id: 'q1i', stem: 'ข้อใดคืออัตลักษณ์ของนิสิตมหาวิทยาลัยทักษิณ', choices: ['เป็นคนดี มีทักษะชีวิต มีจิตสาธารณะ', 'รับผิดชอบ รอบรู้ สู้งาน มีประสบการณ์เชิงปฏิบัติ'], answer: 1 },
+      { id: 'q1j', stem: '“การสร้างนวัตกรรมสังคมเพื่อการพัฒนาและแก้ปัญหาในชุมชน” คือเป้าประสงค์ใดของอัตลักษณ์นิสิตมหาวิทยาลัยทักษิณ', choices: ['มีประสบการณ์เชิงปฏิบัติ', 'อื่น ๆ'], answer: 0 }
     ] },
     { id: 'q2quiz', seq: 'q2', type: 'quiz', section: CH2, title: 'แบบทดสอบหลังบทเรียน', problems: [
       { id: 'q2a', stem: 'ข้อใดคือความเคารพและดูแลรักษาสาธารณสมบัติ', choices: ['ไม่ทำความเสียหายต่อสถานที่ราชการ โบราณสถาน', 'อื่น ๆ'], answer: 0 }
@@ -193,6 +206,12 @@ const part3 = {
     { id: 'v4open', seq: 'part3', type: 'video', section: CH4, title: 'video (4/10)' },
     { id: 'qpart', seq: 'q4', type: 'quiz', section: CH4, title: 'แบบทดสอบหลังบทเรียน', problems: [
       { id: 'qp1', stem: 'เดิมมหาวิทยาลัยทักษิณมีชื่อว่าอะไร', choices: ['วิทยาลัยวิชาการศึกษาสงขลา', 'มหาวิทยาลัยศรีนครินทรวิโรฒ วิทยาเขตภาคใต้', 'ถูกทุกข้อ'], answer: 2 }
+    ] },
+    { id: 'q5quiz', seq: 'q5', type: 'quiz', section: CH5, title: 'แบบทดสอบหลังบทเรียน', problems: [
+      { id: 'q5a', stem: 'ข้อใดกล่าวถูกต้องเกี่ยวกับผู้นำแบบมุ่งคน (Consideration Leadership)', choices: ['มีลักษณะของการดูแลเอาใจใส่ดูแลทุกข์สุขและสร้างความสัมพันธ์อันดีกับผู้ปฏิบัติงาน', 'อื่น ๆ'], answer: 0 }
+    ] },
+    { id: 'q6quiz', seq: 'q6', type: 'quiz', section: CH6, title: 'แบบทดสอบหลังบทเรียน', problems: [
+      { id: 'q6a', stem: 'ข้อใดคือ Design Thinking สำหรับการสร้างอัตลักษณ์ให้กับองค์กร', choices: ['ถูกทุกข้อ', 'อื่น ๆ'], answer: 0 }
     ] },
     { id: 'postQuiz', seq: 'post', type: 'quiz', section: 'Post Test', title: 'แบบทดสอบความรู้หลังเรียน (Post-Test)', problems: [
       { id: 'poIntro', instructional: true, title: 'คำชี้แจง', stem: 'แบบทดสอบหลังเรียนเป็นแบบปรนัย' },
@@ -425,11 +444,17 @@ test('already-checked video (3/10) is not replayed; sequential Next skips filled
 
 test('Course tab opens every unchecked แบบทดสอบหลังบทเรียน sibling; one visit is not max 3 passes', () => {
   const r = part3Run;
-  const submits = r.srv.state.events.filter(e => e.type === 'submit').map(e => e.unit).sort();
-  assert.deepStrictEqual([...new Set(submits)].sort(), ['postQuiz', 'q1quiz', 'q2quiz', 'qpart'].sort(), failMsg(r));
-  assert.ok(seqOpens(r, 'q1') >= 1 && seqOpens(r, 'q2') >= 1 && seqOpens(r, 'q4') >= 1,
-    `sibling quizzes were never opened q1=${seqOpens(r, 'q1')} q2=${seqOpens(r, 'q2')} q4=${seqOpens(r, 'q4')}${failMsg(r)}`);
+  const submits = r.srv.state.events.filter(e => e.type === 'submit');
+  assert.deepStrictEqual([...new Set(submits.map(e => e.unit))].sort(),
+    ['postQuiz', 'q1quiz', 'q2quiz', 'q5quiz', 'q6quiz', 'qpart'].sort(), failMsg(r));
+  const q1subs = submits.filter(e => e.unit === 'q1quiz');
+  assert.strictEqual(q1subs.length, 10, `chapter 1 must click+submit all 10, got ${q1subs.map(e => e.problem)}${failMsg(r)}`);
+  assert.ok(q1subs.every(e => e.correct !== false), failMsg(r));
+  ['q1', 'q2', 'q4', 'q5', 'q6', 'post'].forEach(s =>
+    assert.ok(seqOpens(r, s) >= 1, `sibling ${s} was never opened${failMsg(r)}`));
   assert.ok(!r.srv.state.events.some(e => e.type === 'video-play' && e.unit === 'q1vid'), failMsg(r));
+  assert.ok(!r.logs.some(l => l.includes('ข้ามทั้งแบบทดสอบ')), failMsg(r));
+  assert.ok(!r.logs.some(l => l.includes('ข้อสอบทั้ง') && l.includes('ส่งครบแล้ว')), failMsg(r));
   const leftover = r.logs.filter(l => l.includes('ยังมี') && l.includes('ไม่ขึ้นติ๊ก'));
   leftover.forEach(l => assert.ok(!l.includes('ยังไม่ได้เปิดทำ'), l));
   const ch1 = r.logs.find(l => l.includes(CH1) && l.includes('แบบทดสอบหลังบทเรียน') && l.includes('เปิดทำแล้ว 1 ครั้ง'));

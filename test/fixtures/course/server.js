@@ -268,7 +268,8 @@ ${tabs('Course')}
     const maxAttempts = p.maxAttempts || 1;
     const used = state.attempts[p.id];
     const locked = graded && used >= maxAttempts;
-    const progress = graded === 'correct' ? '1/1 point (graded)' : graded === 'incorrect' ? '0/1 point (graded)' : '1 point possible (graded)';
+    // Live Open edX prints the WEIGHT as "0/1 point (graded)" before any submit. That is not a grade.
+    const progress = graded === 'correct' ? '1/1 point (graded)' : '0/1 point (graded)';
     return `
 <div class="vert vert-${n}">
   <div class="xblock xblock-student_view xblock-student_view-problem" data-block-type="problem">
