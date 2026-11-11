@@ -60,10 +60,10 @@ function startCourseServer(spec) {
 
   function shell(u) {
     const navItems = seqOf(u).units.map(x => `
-      <li><button class="btn nav-link${x.id === u.id ? ' active' : ''}" data-unit="${x.id}" ${x.id === u.id ? 'aria-current="page"' : ''}
+      <li><button class="btn nav-link sequence-navigation-tabs-nav-item${x.id === u.id ? ' active' : ''}" data-unit="${x.id}" ${x.id === u.id ? 'aria-current="page"' : ''}
           aria-label="${esc(x.title)}${state.complete[x.id] ? ', Completed' : ''}">
-        <span class="pgn__icon unit-icon"><svg width="16" height="16"></svg></span>
-        ${state.complete[x.id] ? '<span class="pgn__icon text-success complete-checkmark"><svg width="16" height="16" data-icon="check"></svg></span>' : ''}
+        <span class="pgn__icon unit-icon"><svg width="16" height="16" data-prefix="fas" data-icon="${x.type === 'video' ? 'video' : x.type === 'doc' ? 'file' : 'question'}"></svg></span>
+        ${state.complete[x.id] ? '<span class="pgn__icon"><svg width="16" height="16" data-prefix="fas" data-icon="check-circle"></svg></span>' : ''}
       </button></li>`).join('');
     const prev = units[u.idx - 1], next = units[u.idx + 1];
     return `<!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><title>${esc(u.title)} | ${esc(spec.courseName)} | TSU COURSE</title></head>
@@ -107,8 +107,8 @@ ${tabs('Course')}
     const st = await (await fetch('/state')).json();
     document.querySelectorAll('.sequence-navigation li button').forEach(b => {
       const done = st.complete[b.dataset.unit];
-      const has = b.querySelector('.complete-checkmark');
-      if (done && !has) b.insertAdjacentHTML('beforeend', '<span class="pgn__icon text-success complete-checkmark"><svg width="16" height="16" data-icon="check"></svg></span>');
+      const has = b.querySelector('[data-prefix="fas"][data-icon="check-circle"], .complete-checkmark');
+      if (done && !has) b.insertAdjacentHTML('beforeend', '<span class="pgn__icon"><svg width="16" height="16" data-prefix="fas" data-icon="check-circle"></svg></span>');
     });
   }
   // SPA navigation like the learning MFE: no page load, only the unit iframe changes.
@@ -412,11 +412,13 @@ ${tabs('Course')}
 <script>
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const typeGlyph = t => t === 'video' ? 'play' : t === 'doc' ? 'file' : 'pencil';
+  const typeSvg = unitType => '<svg aria-hidden="true" focusable="false" data-icon="' + typeGlyph(unitType) + '" class="svg-inline--fa fa-' + typeGlyph(unitType) + ' fa-fw float-left mt-1" width="16" height="16" style="color:#15376d"><title>' + typeGlyph(unitType) + '</title></svg>';
+  const filled = what => '<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="check-circle" class="svg-inline--fa fa-check-circle fa-fw float-left mt-1 text-success" width="16" height="16"><title>Completed ' + what + '</title><circle cx="8" cy="8" r="8" fill="currentColor"></circle></svg>';
+  const hollow = what => '<svg aria-hidden="true" focusable="false" data-prefix="far" data-icon="check-circle" class="svg-inline--fa fa-check-circle fa-fw float-left mt-1 text-gray-400" width="16" height="16"><title>Incomplete ' + what + '</title><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor"></circle></svg>';
+  // Completed videos keep the play/file type icon *and* a filled check (live TSUGE000111).
   const icon = (done, what, unitType) => done
-    ? '<svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="check-circle" class="svg-inline--fa fa-check-circle fa-fw float-left mt-1 text-success" width="16" height="16"><title>Completed ' + what + '</title><circle cx="8" cy="8" r="8" fill="currentColor"></circle></svg>'
-    : (${typeIcons} && what === 'assignment'
-      ? '<svg aria-hidden="true" focusable="false" data-icon="' + typeGlyph(unitType) + '" class="svg-inline--fa fa-' + typeGlyph(unitType) + ' fa-fw float-left mt-1" width="16" height="16" style="color:#15376d"><title>' + typeGlyph(unitType) + '</title></svg>'
-      : '<svg aria-hidden="true" focusable="false" data-prefix="far" data-icon="check-circle" class="svg-inline--fa fa-check-circle fa-fw float-left mt-1 text-gray-400" width="16" height="16"><title>Incomplete ' + what + '</title><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor"></circle></svg>');
+    ? ((${typeIcons} && what === 'assignment') ? typeSvg(unitType) : '') + filled(what)
+    : (${typeIcons} && what === 'assignment' ? typeSvg(unitType) : hollow(what));
   let data, open = new Set(${home.startCollapsed ? '[]' : '[0]'}), expandAll = false;
   function render() {
     const expandLabel = expandAll ? ${JSON.stringify(collapseText)} : ${JSON.stringify(expandText)};

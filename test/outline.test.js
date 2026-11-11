@@ -21,6 +21,7 @@ const U1 = 'Unit 1 : Entertainment';
 const U2 = 'Unit 2 : Sport and health';
 const CH1 = 'บทที่ 1 อัตลักษณ์มหาวิทยาลัยทักษิณ';
 const CH2 = 'บทที่ 2 ความเป็นพลเมือง';
+const CH4 = 'บทที่ 4 ทักษะการสื่อสาร';
 
 // TSUGE000111 (วิชาอัตลักษณ์): Thai item titles without the Language-course "Quiz :" / "Sheet :"
 // prefix, mixed Open edX hrefs, a Thai <a> Expand-all control, collapsed later sections with no
@@ -160,13 +161,54 @@ const afterFirstOutline = r => {
 };
 const seqOpens = (r, seq) => afterFirstOutline(r).filter(e => e.type === 'sequence-open' && e.seq === seq).length;
 
-let ok, stuck, atlakAll, atlakQuizOnly;
+// Live TSUGE000111: Course tab lists duplicate แบบทดสอบหลังบทเรียน under each chapter.
+// Chapter 1 starts with an intro sheet + an already-checked video; siblings must still be opened.
+const part3 = {
+  courseCode: 'TSUGE000111',
+  courseName: 'อัตลักษณ์ทักษิณและความเป็นพลเมือง',
+  submitLabel: 'ส่งคำตอบ',
+  outlineHome: { typeIcons: true, outlineId: 'course-outline-block-tree' },
+  outline: [CH1, CH2, CH4, 'Post Test'],
+  sequences: [
+    { id: 'doneSolo', title: 'video (already watched)', chapter: CH4 },
+    { id: 'q1', title: 'แบบทดสอบหลังบทเรียน', chapter: CH1 },
+    { id: 'q2', title: 'แบบทดสอบหลังบทเรียน', chapter: CH2 },
+    { id: 'part3', title: 'part 3', chapter: CH4 },
+    { id: 'q4', title: 'แบบทดสอบหลังบทเรียน', chapter: CH4 },
+    { id: 'post', title: 'แบบทดสอบความรู้หลังเรียน (Post-Test)', chapter: 'Post Test' }
+  ],
+  units: [
+    { id: 'doneSoloU', seq: 'doneSolo', type: 'video', section: CH4, title: 'video (already watched)', complete: true },
+    { id: 'q1intro', seq: 'q1', type: 'doc', section: CH1, title: 'คำชี้แจง', docText: 'อ่านก่อนสอบ' },
+    { id: 'q1vid', seq: 'q1', type: 'video', section: CH1, title: 'video (3/10)', complete: true },
+    { id: 'q1quiz', seq: 'q1', type: 'quiz', section: CH1, title: 'แบบทดสอบหลังบทเรียน', problems: [
+      { id: 'q1a', stem: 'ต้นไม้และดอกไม้ประจำมหาวิทยาลัยทักษิณคือต้นอะไร', choices: ['ต้นราชพฤกษ์', 'ต้นทองหลาง', 'ต้นสัก'], answer: 1 }
+    ] },
+    { id: 'q2quiz', seq: 'q2', type: 'quiz', section: CH2, title: 'แบบทดสอบหลังบทเรียน', problems: [
+      { id: 'q2a', stem: 'ข้อใดคือความเคารพและดูแลรักษาสาธารณสมบัติ', choices: ['ไม่ทำความเสียหายต่อสถานที่ราชการ โบราณสถาน', 'อื่น ๆ'], answer: 0 }
+    ] },
+    { id: 'v1done', seq: 'part3', type: 'video', section: CH4, title: 'video (1/10)', complete: true },
+    { id: 'v2done', seq: 'part3', type: 'video', section: CH4, title: 'video (2/10)', complete: true },
+    { id: 'v3done', seq: 'part3', type: 'video', section: CH4, title: 'video (3/10)', complete: true },
+    { id: 'v4open', seq: 'part3', type: 'video', section: CH4, title: 'video (4/10)' },
+    { id: 'qpart', seq: 'q4', type: 'quiz', section: CH4, title: 'แบบทดสอบหลังบทเรียน', problems: [
+      { id: 'qp1', stem: 'เดิมมหาวิทยาลัยทักษิณมีชื่อว่าอะไร', choices: ['วิทยาลัยวิชาการศึกษาสงขลา', 'มหาวิทยาลัยศรีนครินทรวิโรฒ วิทยาเขตภาคใต้', 'ถูกทุกข้อ'], answer: 2 }
+    ] },
+    { id: 'postQuiz', seq: 'post', type: 'quiz', section: 'Post Test', title: 'แบบทดสอบความรู้หลังเรียน (Post-Test)', problems: [
+      { id: 'poIntro', instructional: true, title: 'คำชี้แจง', stem: 'แบบทดสอบหลังเรียนเป็นแบบปรนัย' },
+      { id: 'po1', stem: 'สีประจำมหาวิทยาลัยทักษิณคือสีอะไร', choices: ['ฟ้า-ขาว', 'แดง-เหลือง', 'เทา–ฟ้า'], answer: 2 }
+    ] }
+  ]
+};
+
+let ok, stuck, atlakAll, atlakQuizOnly, part3Run;
 before(async () => {
-  [ok, stuck, atlakAll, atlakQuizOnly] = await Promise.all([
+  [ok, stuck, atlakAll, atlakQuizOnly, part3Run] = await Promise.all([
     run(resumed, 'quiz,video,doc', 'q21quiz'),
     run(blocked, 'quiz,doc', 'lastQuiz'),
     run(atlak, 'quiz,video,doc', 'postU'),
-    run(atlak, 'quiz', 'postU')
+    run(atlak, 'quiz', 'postU'),
+    run(part3, 'quiz,video,doc', 'doneSoloU')
   ]);
 });
 after(() => { playwright.chromium.launchPersistentContext = realLaunch; });
@@ -350,18 +392,62 @@ test('outline parser: LMS block-tree + Thai names + mixed hrefs + type icons are
         <li><svg data-prefix="fas" data-icon="check-circle" class="text-success"></svg>
           <a href="/courses/course-v1:TSU+TSUGE000111+2026_T1/jump_to/block-v1:TSU+TSUGE000111+2026_T1+type@sequential+block@post">แบบทดสอบหลังเรียน (Post-Test)</a>
           <span class="sr-only">, Completed</span></li>
+        <li><svg data-icon="play" class="fa-play" style="color:#15376d"></svg>
+          <svg data-prefix="fas" data-icon="check-circle"></svg>
+          <a href="/learning/course/course-v1:TSU+TSUGE000111+2026_T1/block-v1:TSU+TSUGE000111+2026_T1+type@sequential+block@v3">video (3/10)</a></li>
       </ol>
     </li>
   </ol>`);
   const out = await page.evaluate(AutomationWorker.parseCourseOutline);
   await browser.close();
-  assert.ok(out.rendered && out.items.length === 6, JSON.stringify(out.items.map(i => i.name)));
+  assert.ok(out.rendered && out.items.length === 7, JSON.stringify(out.items.map(i => i.name)));
   assert.deepStrictEqual(out.items.map(i => [i.name, i.done]), [
     ['Pre Test', false],
     ['วิดีโอ บทที่ 1', false],
     ['เอกสารประกอบ บทที่ 1', false],
     ['แบบฝึก บทที่ 1', false],
     ['แบบทดสอบ บทที่ 1', false],
-    ['แบบทดสอบหลังเรียน (Post-Test)', true]
+    ['แบบทดสอบหลังเรียน (Post-Test)', true],
+    ['video (3/10)', true]
   ]);
+});
+
+test('already-checked video (3/10) is not replayed; sequential Next skips filled checks', () => {
+  const r = part3Run;
+  assert.strictEqual(r.status, 'completed', failMsg(r));
+  const plays = r.srv.state.events.filter(e => e.type === 'video-play').map(e => e.unit);
+  assert.ok(plays.includes('v4open'), `open video never played${failMsg(r)}`);
+  assert.ok(plays.every(u => u === 'v4open'), `checked videos were replayed: ${plays}${failMsg(r)}`);
+  assert.strictEqual(seqOpens(r, 'doneSolo'), 0, `Course tab reopened a filled-check video${failMsg(r)}`);
+  assert.ok(seqOpens(r, 'part3') >= 1, failMsg(r));
+  assert.ok(r.logs.some(l => l.includes('video (already watched)') && l.includes('ขึ้นติ๊กถูกแล้ว')), failMsg(r));
+});
+
+test('Course tab opens every unchecked แบบทดสอบหลังบทเรียน sibling; one visit is not max 3 passes', () => {
+  const r = part3Run;
+  const submits = r.srv.state.events.filter(e => e.type === 'submit').map(e => e.unit).sort();
+  assert.deepStrictEqual([...new Set(submits)].sort(), ['postQuiz', 'q1quiz', 'q2quiz', 'qpart'].sort(), failMsg(r));
+  assert.ok(seqOpens(r, 'q1') >= 1 && seqOpens(r, 'q2') >= 1 && seqOpens(r, 'q4') >= 1,
+    `sibling quizzes were never opened q1=${seqOpens(r, 'q1')} q2=${seqOpens(r, 'q2')} q4=${seqOpens(r, 'q4')}${failMsg(r)}`);
+  assert.ok(!r.srv.state.events.some(e => e.type === 'video-play' && e.unit === 'q1vid'), failMsg(r));
+  const leftover = r.logs.filter(l => l.includes('ยังมี') && l.includes('ไม่ขึ้นติ๊ก'));
+  leftover.forEach(l => assert.ok(!l.includes('ยังไม่ได้เปิดทำ'), l));
+  const ch1 = r.logs.find(l => l.includes(CH1) && l.includes('แบบทดสอบหลังบทเรียน') && l.includes('เปิดทำแล้ว 1 ครั้ง'));
+  if (ch1) assert.ok(!ch1.includes('ครบจำนวนรอบสูงสุด'), ch1);
+  assert.ok(!r.logs.some(l => l.includes('poIntro') && l.includes('ค้าง')), failMsg(r));
+});
+
+test('in-unit sequence tab: video icon + fas check-circle (no text-success) counts as complete', async () => {
+  const browser = await playwright.chromium.launch(launchOpts);
+  const page = await browser.newPage();
+  await page.setContent(`<nav class="sequence-navigation" aria-label="Unit navigation">
+    <ol><li><button class="btn nav-link sequence-navigation-tabs-nav-item active" aria-current="page" aria-label="video (3/10)">
+      <span class="pgn__icon unit-icon"><svg data-prefix="fas" data-icon="video"></svg></span>
+      <span class="pgn__icon"><svg data-prefix="fas" data-icon="check-circle"></svg></span>
+    </button></li></ol>
+  </nav>
+  <h1 class="unit-title">video (3/10)</h1>`);
+  const out = await page.evaluate(`(${AutomationWorker.unitCompletionProbe})(${AutomationWorker.problemDoneReason})`);
+  await browser.close();
+  assert.ok(out.hasNav && out.navDone, JSON.stringify(out));
 });
