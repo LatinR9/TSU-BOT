@@ -614,6 +614,11 @@ class DBManager {
     return { ...d, action: 'choice', index: d.fills[0].index, choiceText: d.fills[0].choiceText, choiceMethod: d.fills[0].choiceMethod };
   }
 
+  courseUrl(courseCode) {
+    const c = this.courses.find(x => x.course_code === courseCode);
+    return (c && c.course_id_url_if_known) || '';
+  }
+
   getCoursesSummary() {
     return this.courses.map(c => {
       let totalQuestions = 0;

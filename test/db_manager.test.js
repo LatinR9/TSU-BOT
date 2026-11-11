@@ -20,11 +20,19 @@ test('matchChoice prefers exact over substring and skips known wrong answers', (
   assert.strictEqual(db.matchChoice(['การรู้เท่าทันสื่อและสารสนเทศ', 'ถูกทุกข้อ'], 'การรู้เท่าทันสื่อและข้อมูลสารสนเทศ').index, 0);
 });
 
+test('courseUrl returns the stored TSUGE000111 learning MFE URL', () => {
+  const url = db.courseUrl('TSUGE000111');
+  assert.ok(url.includes('TSUGE000111'), url);
+  assert.ok(url.includes('Life_skills_and_Personal_development'), url);
+  assert.strictEqual(db.courseUrl('NO-SUCH-COURSE'), '');
+});
+
 test('resolveSection understands Thai and English section names', () => {
   assert.strictEqual(db.resolveSection('TSUGE000271', 'แบบทดสอบ บทที่ 2 | Course'), 'แบบทดสอบ : บทที่ 2');
   assert.strictEqual(db.resolveSection('TSUGE00152', 'Unit 3: Chapter 1.1 Food'), 'Unit 3 Chapter 1.1');
   assert.strictEqual(db.resolveSection('TSUGE00152', 'Unit 5 Chapter 1 #2'), 'Unit 5 Chapter 1 #2');
   assert.strictEqual(db.resolveSection('TSUGE000111', 'แบบทดสอบหลังเรียน'), 'แบบทดสอบหลังเรียน (Post-Test)');
+  assert.ok(db.courseUrl('TSUGE000111').includes('Life_skills_and_Personal_development+TSUGE000111+2024_T2'));
 });
 
 test('near-identical Thai stems resolve to their own entry', () => {

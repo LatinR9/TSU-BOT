@@ -98,15 +98,21 @@ function check(run) {
     const has = type => tl.evs.some(e => e.type === type);
     const completeEv = tl.evs.find(e => e.type === 'complete');
 
+    const on = modes.has(u.type);
     if (u.complete) {
       // Outline-first skips items that already show the filled check, so they may never be entered.
       expect(!has('video-play') && !has('submit') && !has('scroll'), `${u.id}: already-completed unit was interacted with`);
       if (has('enter') && !isLast) expect(tl.dwell < 4.5, `${u.id}: already-completed unit not skipped immediately (dwell ${tl.dwell}s)`);
       return;
     }
+    if (!on) {
+      // Course tab classifies วิดีโอ / เอกสาร / Video lesson by title and skips without opening.
+      expect(!has('video-play') && !has('submit') && !has('scroll'), `${u.id}: mode-off unit was interacted with`);
+      if (has('enter') && !isLast) expect(tl.dwell !== null, `${u.id}: worker never moved on (stuck)`);
+      return;
+    }
     expect(has('enter'), `${u.id}: unit never visited`);
     if (!isLast) expect(tl.dwell !== null, `${u.id}: worker never moved on (stuck)`);
-    const on = modes.has(u.type);
     if (u.type === 'quiz') {
       const subs = tl.evs.filter(e => e.type === 'submit');
       const todo = u.problems.filter(p => !p.preGraded);
