@@ -115,15 +115,11 @@ function collectQuizResponses() {
 // Runs inside the page (passed to evaluate). Returns why a problem must not be answered again
 // ('' = still open). A problem counts as done once it was submitted at all — graded correct,
 // graded wrong/partial, or out of attempts — so the bot never resubmits an answered question.
+// Open edX prints the WEIGHT as "0/1 point (graded)" / "1/1 point (graded)" before any submit;
+// that is not a grade. Only grader status, used attempts, or a received-answer notice count.
 function problemDoneReason(el) {
   const text = el.innerText || '';
-  const score = text.match(/(\d+(?:\.\d+)?)\s*(?:\/|of|เต็ม|จาก)\s*(\d+(?:\.\d+)?)\s*(?:points?|คะแนน)/i);
-  if (score && parseFloat(score[2]) > 0) {
-    return parseFloat(score[1]) >= parseFloat(score[2])
-      ? `ได้คะแนนเต็มแล้ว (${score[0]})`
-      : `ส่งคำตอบไปแล้ว ได้ ${score[0]} — ไม่ส่งซ้ำ`;
-  }
-  // Only real grader marks — not a hollow check-circle icon, not a generic .correct elsewhere on the page.
+  // Only real grader marks — not a hollow check-circle, not .status.unanswered, not problem-progress weight.
   if (el.querySelector('.status.correct, .message.correct, .indicator-container .correct, span.status.correct')) {
     return 'มีเครื่องหมายถูกต้อง (Correct / ติ๊กเขียว)';
   }
@@ -135,6 +131,10 @@ function problemDoneReason(el) {
     return used[1] === used[2] ? `ใช้โควตาส่งคำตอบครบแล้ว (${used[0]})` : `ส่งคำตอบไปแล้ว (${used[0]}) — ไม่ส่งซ้ำ`;
   }
   if (/Your answer has been receive|คำตอบของคุณถูกบันทึกแล้ว/i.test(text)) return 'ส่งคำตอบเรียบร้อยแล้ว';
+  const inputs = Array.from(el.querySelectorAll('input:not([type="hidden"]), select, textarea'));
+  if (inputs.length && inputs.every(i => i.disabled)) {
+    return 'ช่องตอบถูกล็อกแล้ว (ส่งไปแล้ว) — ไม่ส่งซ้ำ';
+  }
   return '';
 }
 
@@ -596,21 +596,25 @@ class AutomationWorker {
       if (f !== this.page.mainFrame()) await f.waitForLoadState('domcontentloaded', { timeout: 8000 }).catch(() => {});
     }
 
-    // This vertical's sequence-nav / in-unit filled check. Never replay a completed video or sheet,
-    // even when hunting for a quiz in the same subsection. A leftover check from a *sibling chapter*
-    // is avoided by clicking the matching href, not by ignoring this unit's marker.
+    // This vertical's sequence-nav / in-unit filled check. Never replay a completed video or sheet.
+    // When the Course tab row is still unchecked (expectQuiz), a green check on an intro/video
+    // vertical or a leftover "all submitted" from another iframe must not skip the quiz: keep
+    // looking for CAPA and answer+submit every still-open problem.
     const probe = await this.probeUnitCompletion();
     if (probe.problemsDone > 0 && probe.problems > probe.problemsDone) {
       this.log(`ℹ️ หน่วยนี้ส่งคำตอบแล้ว ${probe.problemsDone}/${probe.problems} ข้อ — จะทำเฉพาะข้อที่ยังไม่ได้ส่ง (ไม่ส่งข้อเดิมซ้ำ)`);
     }
-    if ((probe.navDone || (probe.problems > 0 && probe.problemsDone === probe.problems)) && !probe.hasOpenProblems) {
+    const looksFinished = (probe.navDone || (probe.problems > 0 && probe.problemsDone === probe.problems)) && !probe.hasOpenProblems;
+    if (looksFinished && !expectQuiz) {
       this.lastUnitOutcome = 'complete';
       if (probe.navDone) this.log(`⏭️ [ข้ามทันที] ${probe.navDone} ข้ามไปบทเรียนถัดไปตามที่กำหนด!`);
       else this.log(`⏭️ [ข้ามทันที] ข้อสอบทั้ง ${probe.problems} ข้อในหน่วยนี้ส่งคำตอบครบแล้ว -> ข้ามทันที!`);
       this.log(`⏭️ [ข้ามทันที] หน่วยนี้ขึ้นติ๊กถูกสีเขียว/ได้คะแนนเต็มแล้ว (Completed) ข้ามไปหน่วยถัดไปทันทีตามเกณฑ์ TSU...`);
       return;
     }
-    if (probe.navDone && probe.hasOpenProblems) {
+    if (expectQuiz && looksFinished) {
+      this.log(`ℹ️ Course tab ยังไม่ติ๊กแบบทดสอบนี้ — ไม่ข้ามทั้งหน้าจากติ๊ก/คะแนนของหน่วยอื่น ตรวจหาช่องตอบที่ยังไม่ได้ส่ง`);
+    } else if (probe.navDone && probe.hasOpenProblems) {
       this.log(`ℹ️ หน่วยนี้ขึ้นติ๊กบนแถบลำดับ แต่ยังมีข้อที่ยังไม่ได้ส่ง — จะทำเฉพาะข้อที่ยังไม่ได้ส่ง`);
     }
 
@@ -699,13 +703,24 @@ class AutomationWorker {
       const probes = [];
       for (const f of this.page.frames()) {
         const r = await f.evaluate(`(${unitCompletionProbe})(${problemDoneReason})`).catch(() => null);
-        if (r) probes.push({ main: f === this.page.mainFrame(), ...r });
+        if (!r) continue;
+        let frameId = '';
+        try {
+          const el = await f.frameElement();
+          if (el) frameId = (await el.getAttribute('id')) || (await el.getAttribute('name')) || '';
+        } catch (e) {}
+        probes.push({ main: f === this.page.mainFrame(), url: f.url(), name: f.name() || frameId, ...r });
       }
       const nav = probes.find(p => p.main && p.navDone);
-      const problems = probes.reduce((n, p) => n + p.problems, 0);
-      const problemsDone = probes.reduce((n, p) => n + p.problemsDone, 0);
+      // Count CAPA in this unit's iframe only. Summing every frame treats a leftover บทที่-3
+      // 10/10 iframe as "ข้อสอบทั้ง 10 ข้อส่งครบแล้ว" on the next chapter's intro page.
+      const unitFrames = probes.filter(p => !p.main && (/unit-iframe/i.test(p.name) || /\/xblock\/|unit-iframe/i.test(p.url)));
+      const unit = unitFrames.length ? unitFrames[unitFrames.length - 1] : probes.find(p => p.main);
+      const srcs = unit ? [unit] : probes;
+      const problems = srcs.reduce((n, p) => n + p.problems, 0);
+      const problemsDone = srcs.reduce((n, p) => n + p.problemsDone, 0);
       return {
-        navDone: nav ? nav.navDone : '',
+        navDone: nav ? nav.navDone : (unit && unit.navDone) || '',
         problems,
         problemsDone,
         hasOpenProblems: problems > problemsDone

@@ -61,6 +61,43 @@ test('no match is reported instead of defaulting to a choice', () => {
   assert.strictEqual(d.action, 'skip');
 });
 
+test('TSUGE000111 chapter 1,2,4,5,6 have confirmed answers; Post-Test reuses those stems', () => {
+  const pick = (section, question, choices, want) => {
+    const d = db.decideResponse({ courseCode: 'TSUGE000111', section, texts: [question], choices });
+    assert.strictEqual(d.action, 'choice', `${section}: ${question} → ${d.reason || d.action}`);
+    assert.strictEqual(d.choiceText, want, `${section}: ${question}`);
+    assert.strictEqual(d.match && d.match.status, 'confirmed', `${section}: ${question} status`);
+  };
+  pick('บทที่ 1 อัตลักษณ์มหาวิทยาลัยทักษิณ', 'เดิมมหาวิทยาลัยทักษิณมีชื่อว่าอะไร',
+    ['วิทยาลัยวิชาการศึกษาสงขลา', 'มหาวิทยาลัยศรีนครินทรวิโรฒ วิทยาเขตภาคใต้', 'ถูกทุกข้อ'], 'ถูกทุกข้อ');
+  pick('บทที่ 2 ความเป็นพลเมือง', 'ข้อใดคือความเคารพและดูแลรักษาสาธารณสมบัติ',
+    ['ไม่ทำความเสียหายต่อสถานที่ราชการ โบราณสถาน', 'อื่น ๆ'], 'ไม่ทำความเสียหายต่อสถานที่ราชการ โบราณสถาน');
+  pick('บทที่ 4 ทักษะการสื่อสาร', 'กระบวนการสื่อสารที่มีประสิทธิภาพ ใช้โมเดลฯ ในข้อใด',
+    ['SMCR', 'SMCR+F'], 'SMCR+F');
+  pick('บทที่ 5 บุคลิกภาพและความเป็นผู้นำ', 'ข้อใดกล่าวถูกต้องเกี่ยวกับผู้นำแบบมุ่งคน (Consideration Leadership)',
+    ['มีลักษณะของการดูแลเอาใจใส่ดูแลทุกข์สุขและสร้างความสัมพันธ์อันดีกับผู้ปฏิบัติงาน', 'อื่น ๆ'],
+    'มีลักษณะของการดูแลเอาใจใส่ดูแลทุกข์สุขและสร้างความสัมพันธ์อันดีกับผู้ปฏิบัติงาน');
+  pick('บทที่ 6 Design Thinking และ Appreciative Inquiry', 'ข้อใดคือ Design Thinking สำหรับการสร้างอัตลักษณ์ให้กับองค์กร',
+    ['ถูกทุกข้อ', 'อื่น ๆ'], 'ถูกทุกข้อ');
+  const course = db.courses.find(c => c.course_code === 'TSUGE000111');
+  const counts = Object.fromEntries(course.sections.map(s => [s.section, (s.questions || []).length]));
+  assert.strictEqual(counts['บทที่ 1 อัตลักษณ์มหาวิทยาลัยทักษิณ'], 10);
+  assert.strictEqual(counts['บทที่ 2 ความเป็นพลเมือง'], 10);
+  assert.strictEqual(counts['บทที่ 3 ทักษะในศตวรรษที่ 21'], 10);
+  assert.strictEqual(counts['บทที่ 4 ทักษะการสื่อสาร'], 10);
+  assert.strictEqual(counts['บทที่ 5 บุคลิกภาพและความเป็นผู้นำ'], 10);
+  assert.strictEqual(counts['บทที่ 6 Design Thinking และ Appreciative Inquiry'], 10);
+  assert.strictEqual(counts['แบบทดสอบหลังเรียน (Post-Test)'], 0);
+  const post = db.decideResponse({
+    courseCode: 'TSUGE000111',
+    section: db.resolveSection('TSUGE000111', 'Post Test | แบบทดสอบความรู้หลังเรียน (Post-Test)'),
+    texts: ['สีประจำมหาวิทยาลัยทักษิณคือสีอะไร'],
+    choices: ['ฟ้า-ขาว', 'แดง-เหลือง', 'เทา–ฟ้า']
+  });
+  assert.strictEqual(post.action, 'choice');
+  assert.strictEqual(post.choiceText, 'เทา–ฟ้า');
+});
+
 test('inferred entries are answered and flagged; a known-wrong option is never picked', () => {
   const tsu = 'TSUGE00152';
   const meat = db.decideResponse({ courseCode: tsu, section: 'Unit 3 Chapter 1.1', choices: ['tuna', 'crab', 'oysters', 'beef'],
