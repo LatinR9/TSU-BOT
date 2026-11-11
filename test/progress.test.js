@@ -53,6 +53,25 @@ const atlakDup = {
   ]
 };
 
+const CH4 = 'บทที่ 4 ทักษะการสื่อสาร';
+const part3Fallback = {
+  courseCode: 'TSUGE000111',
+  courseName: 'อัตลักษณ์ทักษิณและความเป็นพลเมือง',
+  submitLabel: 'ส่งคำตอบ',
+  noCourseOutline: true,
+  outline: [CH4],
+  sequences: [
+    { id: 'part3', title: 'part 3', chapter: CH4, graded: false }
+  ],
+  units: [
+    { id: 'v3done', seq: 'part3', type: 'video', section: CH4, title: 'video (3/10)', complete: true },
+    { id: 'v4open', seq: 'part3', type: 'video', section: CH4, title: 'video (4/10)' },
+    { id: 'qpart', seq: 'part3', type: 'quiz', section: CH4, title: 'แบบทดสอบหลังบทเรียน', problems: [
+      { id: 'qp1', stem: 'ต้นไม้และดอกไม้ประจำมหาวิทยาลัยทักษิณคือต้นอะไร', choices: ['ต้นราชพฤกษ์', 'ต้นทองหลาง', 'ต้นสัก'], answer: 1 }
+    ] }
+  ]
+};
+
 const realLaunch = playwright.chromium.launchPersistentContext.bind(playwright.chromium);
 playwright.chromium.launchPersistentContext = (dir, opts) => realLaunch(fs.mkdtempSync(path.join(os.tmpdir(), 'tsubot-profile-')), {
   ...opts,
@@ -144,13 +163,14 @@ const submits = (r, unit) => r.srv.state.events.filter(e => e.type === 'submit' 
 const firstIdx = (r, pred) => r.srv.state.events.findIndex(pred);
 const failMsg = r => `\n--- worker log ---\n${r.logs.join('\n')}`;
 
-let full, stuck, noQuiz, atlakDupRun;
+let full, stuck, noQuiz, atlakDupRun, part3Fb;
 before(async () => {
-  [full, stuck, noQuiz, atlakDupRun] = await Promise.all([
+  [full, stuck, noQuiz, atlakDupRun, part3Fb] = await Promise.all([
     run(course({ withUnanswerable: false }), 'quiz,video,doc'),
     run(course({ withUnanswerable: true }), 'quiz,video,doc'),
     run(course({ withUnanswerable: false }), 'video,doc'),
-    run(atlakDup, 'quiz,video,doc')
+    run(atlakDup, 'quiz,video,doc'),
+    run(part3Fallback, 'quiz,video,doc')
   ]);
 });
 after(() => { playwright.chromium.launchPersistentContext = realLaunch; });
@@ -274,6 +294,18 @@ test('progress parser keeps one row per section when titles repeat', async () =>
   assert.deepStrictEqual(out.rows.map(r => [r.section, r.name, r.earned, r.possible]), [
     [CH1, QUIZ, 0, 10], [CH2, QUIZ, 0, 10], [CH3, QUIZ, 10, 10]
   ]);
+});
+
+test('Progress fallback Next-walk: filled-check video (3/10) is not replayed', () => {
+  const r = part3Fb;
+  assert.strictEqual(r.status, 'completed', failMsg(r));
+  const plays = r.srv.state.events.filter(e => e.type === 'video-play').map(e => e.unit);
+  assert.ok(plays.includes('v4open') && plays.every(u => u === 'v4open'), `checked video was replayed: ${plays}${failMsg(r)}`);
+  const v3 = r.srv.state.events.filter(e => e.unit === 'v3done');
+  assert.ok(v3.some(e => e.type === 'enter'), `walker never reached video (3/10)${failMsg(r)}`);
+  assert.ok(!v3.some(e => e.type === 'video-play'), failMsg(r));
+  assert.strictEqual(r.srv.state.events.filter(e => e.type === 'submit' && e.unit === 'qpart').length, 1, failMsg(r));
+  assert.ok(r.logs.some(l => l.includes('ติ๊กถูกสีเขียว') || l.includes('ขึ้นติ๊กถูก')), failMsg(r));
 });
 
 test('quiz mode off: Progress is read and logged but quizzes are not opened', () => {
