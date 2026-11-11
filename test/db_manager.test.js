@@ -146,3 +146,59 @@ test('multi-blank answers map to slots in order; dropdown options match across a
     texts: ['1. They __(1)__ (not/go) back home if you __(2)__ (pay) them.'], slots: [{ kind: 'select', choices: ['wouldn’t go', 'paid'] }] });
   assert.strictEqual(one.action, 'skip', 'a two-part answer is never forced into one slot');
 });
+
+test('TSUGE00156 (ภาวะผู้นำยุคดิจิทัล): all 8 chapters (80 Qs) and Post-Test (87 Qs) resolve accurately', () => {
+  const course = db.courses.find(c => c.course_code === 'TSUGE00156');
+  assert.ok(course, 'TSUGE00156 must exist in tsu_answers.json');
+  assert.strictEqual(course.course_name, 'ภาวะผู้นำยุคดิจิทัล');
+  const counts = Object.fromEntries(course.sections.map(s => [s.section, (s.questions || []).length]));
+  for (let b = 1; b <= 8; b++) {
+    assert.strictEqual(counts[`บทที่ ${b}`], 10, `บทที่ ${b} must have 10 questions`);
+    assert.strictEqual(db.resolveSection('TSUGE00156', `บทที่ ${b} จิตวิทยาและผู้นำ | แบบทดสอบหลังบทเรียน`), `บทที่ ${b}`);
+  }
+  assert.strictEqual(counts['แบบทดสอบหลังเรียน (Post-Test)'], 87);
+  assert.strictEqual(db.resolveSection('TSUGE00156', 'Post-test | แบบทดสอบหลังเรียน'), 'แบบทดสอบหลังเรียน (Post-Test)');
+
+  // Verify every question in every section matches its own answer when presented with distractors
+  for (const sec of course.sections) {
+    for (const q of sec.questions) {
+      const choices = ['ตัวเลือกหลอก 1', q.correct_answer, 'ตัวเลือกหลอก 2'];
+      const d = db.decideResponse({ courseCode: 'TSUGE00156', section: sec.section, texts: [q.question], choices });
+      assert.strictEqual(d.action, 'choice', `${sec.section}: ${q.question}`);
+      assert.strictEqual(d.choiceText, q.correct_answer, `${sec.section}: ${q.question}`);
+    }
+  }
+
+  // Numbered stems on live Post-Test (10., 20., ..., 80.) match exact entry
+  const q10 = db.decideResponse({
+    courseCode: 'TSUGE00156',
+    section: 'แบบทดสอบหลังเรียน (Post-Test)',
+    texts: ['10. การพัฒนาคนในยุคดิจิทัลควรเน้นที่อะไร?'],
+    choices: ['การลดต้นทุน', 'การสร้างวัฒนธรรมการเรียนรู้', 'การเพิ่มเวลาทำงาน']
+  });
+  assert.strictEqual(q10.choiceText, 'การสร้างวัฒนธรรมการเรียนรู้');
+
+  const q81 = db.decideResponse({
+    courseCode: 'TSUGE00156',
+    section: 'แบบทดสอบหลังเรียน (Post-Test)',
+    texts: ['80. การคิดเชิงสร้างสรรค์สามารถช่วยแก้ปัญหาใดในสังคมไทย?'],
+    choices: ['การสร้างโอกาสให้กับผู้ที่ขาดโอกาสในสังคม', 'การผูกขาดตลาด']
+  });
+  assert.strictEqual(q81.choiceText, 'การสร้างโอกาสให้กับผู้ที่ขาดโอกาสในสังคม');
+
+  // Q31 unconfirmed/inferred: never picks the 3 known wrong options, picks the untried one
+  const q31 = db.decideResponse({
+    courseCode: 'TSUGE00156',
+    section: 'แบบทดสอบหลังเรียน (Post-Test)',
+    texts: ['ข้อใดต่อไปนี้เป็นคุณลักษณะที่สำคัญของพลเมืองดิจิทัล?'],
+    choices: [
+      'การใช้เทคโนโลยีอย่างมีความรับผิดชอบ',
+      'การใช้เทคโนโลยีดิจิทัลอย่างไม่ระมัดระวัง',
+      'การเผยแพร่ข้อมูลส่วนบุคคลอย่างเปิดเผย',
+      'การละเมิดสิทธิของผู้อื่นในโลกออนไลน์'
+    ]
+  });
+  assert.strictEqual(q31.action, 'choice');
+  assert.strictEqual(q31.choiceText, 'การละเมิดสิทธิของผู้อื่นในโลกออนไลน์');
+  assert.strictEqual(q31.inferred, true);
+});

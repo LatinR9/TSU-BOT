@@ -5743,6 +5743,1413 @@
           "questions": []
         }
       ]
+    },
+    {
+      "course_code": "TSUGE00156",
+      "course_name": "ภาวะผู้นำยุคดิจิทัล",
+      "org": "TSU",
+      "course_id_url_if_known": "",
+      "terms_seen": [
+        "2026_T1"
+      ],
+      "pretest_policy": "random",
+      "notes": "verified 2026-11-11, account Praipsy_139. Match by question TEXT (option order may differ). Pre-test: answer randomly, not stored.",
+      "sections": [
+        {
+          "section": "บทที่ 1",
+          "notes": "10/10",
+          "questions": [
+            {
+              "question": "ข้อใดคือความสำคัญของจิตวิทยาสำหรับผู้นำยุคดิจิทัล?",
+              "answer_type": "choice",
+              "correct_answer": "การปรับตัวให้ทันกับการเปลี่ยนแปลงที่รวดเร็ว",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ผู้นำยุคดิจิทัลควรมีทักษะในการจัดการความขัดแย้งระหว่างใคร?",
+              "answer_type": "choice",
+              "correct_answer": "คนรุ่นใหม่และคนรุ่นเดิมในองค์กร",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การเปลี่ยนแปลงพฤติกรรมในยุคดิจิทัลมักเกิดขึ้นจากอะไร?",
+              "answer_type": "choice",
+              "correct_answer": "การใช้เทคโนโลยีที่เพิ่มขึ้น",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "องค์กรที่ไม่ปรับตัวต่อการเปลี่ยนแปลงพฤติกรรมจะเกิดผลอะไร?",
+              "answer_type": "choice",
+              "correct_answer": "ถูกแซงหน้าโดยคู่แข่ง",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ผู้นำยุคดิจิทัลควรมีความสามารถในการสร้างความไว้วางใจจากใคร?",
+              "answer_type": "choice",
+              "correct_answer": "คนในองค์กร",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "เทคโนโลยีมีบทบาทสำคัญในการปรับเปลี่ยนพฤติกรรมอย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "ขยายสภาพแวดล้อมในการปรับเปลี่ยนพฤติกรรม",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การเปลี่ยนแปลงพฤติกรรมแบบดิจิทัลหมายถึงอะไร?",
+              "answer_type": "choice",
+              "correct_answer": "การใช้เทคโนโลยีในการส่งเสริมการปรับเปลี่ยนพฤติกรรม",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ผู้นำควรใช้จิตวิทยาในการจัดการกับพฤติกรรมในองค์กรอย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "แยกแยะและจัดการกับพฤติกรรมที่ดีและไม่ดี",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ความแตกต่างระหว่างคนรุ่นใหม่และรุ่นเดิมในองค์กรสร้างผลกระทบอย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "เกิดความขัดแย้งในการทำงาน",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การใช้เทคโนโลยีในการปรับเปลี่ยนพฤติกรรมสามารถทำได้ผ่านอะไร?",
+              "answer_type": "choice",
+              "correct_answer": "การจัดทำแอปพลิเคชันเพื่อการแจ้งเตือน",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "section": "บทที่ 2",
+          "notes": "10/10",
+          "questions": [
+            {
+              "question": "ความยืดหยุ่นในการทำงานในยุคดิจิทัลหมายถึงอะไร?",
+              "answer_type": "choice",
+              "correct_answer": "การสามารถปรับตารางเวลาและสถานที่ทำงานได้ตามความเหมาะสม",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การใช้เทคโนโลยีเพื่อการทำงานในยุคดิจิทัลจะช่วยให้ผู้นำสามารถทำอะไรได้บ้าง?",
+              "answer_type": "choice",
+              "correct_answer": "เพิ่มประสิทธิภาพการทำงานและการจัดการโครงการ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ในการทำงานร่วมกันทางไกล สิ่งที่สำคัญที่สุดคืออะไร?",
+              "answer_type": "choice",
+              "correct_answer": "การสร้างความเข้าใจร่วมกันและการสื่อสารที่ชัดเจน",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การสื่อสารวิสัยทัศน์ขององค์กรให้ทีมงานเข้าใจจำเป็นต้องใช้วิธีใด?",
+              "answer_type": "choice",
+              "correct_answer": "การให้ข้อมูลที่ชัดเจนและกระตุ้นให้เห็นภาพรวม",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การฟังความคิดเห็นและข้อเสนอแนะจากทีมงานช่วยผู้นำอย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "ช่วยให้ผู้นำเข้าใจความต้องการและปัญหาที่เกิดขึ้น",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การใช้เครื่องมือการประชุมออนไลน์ช่วยให้ผู้นำสามารถทำอะไรได้?",
+              "answer_type": "choice",
+              "correct_answer": "เชื่อมต่อกับทีมงานได้แม้จะอยู่ห่างไกล",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การสื่อสารที่เปิดเผยและโปร่งใสในองค์กรช่วยอะไรได้บ้าง?",
+              "answer_type": "choice",
+              "correct_answer": "สร้างความเชื่อมั่นและความร่วมมือ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การสื่อสารข้ามวัฒนธรรมมีความสำคัญอย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "ช่วยให้การสื่อสารเป็นไปอย่างราบรื่น",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ในสถานการณ์วิกฤต การสื่อสารที่มีประสิทธิภาพควรมีลักษณะอย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "เน้นการให้ข้อมูลที่เป็นจริงและทันสมัย",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ในการทำงานร่วมกันทางไกล ผู้นำควรทำอย่างไรเพื่อสร้างความไว้วางใจ?",
+              "answer_type": "choice",
+              "correct_answer": "สนับสนุนซึ่งกันและกันและสร้างความเข้าใจร่วมกัน",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "section": "บทที่ 3",
+          "notes": "10/10",
+          "questions": [
+            {
+              "question": "Outward Mindset คืออะไร?",
+              "answer_type": "choice",
+              "correct_answer": "การคิดถึงผู้อื่นและผลกระทบที่เกิดขึ้นกับส่วนรวม",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การสร้างแรงบันดาลใจ (Inspirational) ในการเป็นผู้นำหมายถึงอะไร?",
+              "answer_type": "choice",
+              "correct_answer": "การสร้างวิสัยทัศน์ที่ชัดเจนให้กับทีม",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "Lifelong Learning มีความสำคัญต่อผู้นำอย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "ช่วยให้ผู้นำสามารถเรียนรู้และปรับตัวตามการเปลี่ยนแปลงได้ตลอดเวลา",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การสื่อสารที่มีประสิทธิภาพ (Communication) ควรเป็นอย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "รับฟังความคิดเห็นของผู้อื่นและสื่อสารอย่างชัดเจน",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ความฉลาดทางอารมณ์ (Emotional Intelligence) ช่วยให้ผู้นำสามารถทำอะไรได้บ้าง?",
+              "answer_type": "choice",
+              "correct_answer": "รับรู้และควบคุมอารมณ์ของตนเอง รวมถึงเข้าใจผู้อื่น",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "Unstructured Problem-Solving หมายถึงอะไร?",
+              "answer_type": "choice",
+              "correct_answer": "การแก้ปัญหาด้วยการคิดพลิกแพลงและใช้วิธีการที่ไม่เป็นทางการ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "Change Management มีความสำคัญอย่างไรในยุคดิจิทัล?",
+              "answer_type": "choice",
+              "correct_answer": "ช่วยให้ผู้นำสามารถปรับตัวกับการเปลี่ยนแปลงได้อย่างรวดเร็ว",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การสร้างแรงบันดาลใจในทีมงานส่งผลอย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "ทำให้ทีมงานมีพลังและความมุ่งมั่นในการทำงาน",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การคิดแบบ Outward Mindset จะช่วยพัฒนาองค์กรอย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "ช่วยให้ทุกคนในองค์กรคิดถึงผลประโยชน์รวมกัน",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ความสำคัญของ Lifelong Learning สำหรับผู้นำคืออะไร?",
+              "answer_type": "choice",
+              "correct_answer": "ทำให้ผู้นำสามารถปรับตัวตามเทรนด์ใหม่ๆ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "section": "บทที่ 4",
+          "notes": "10/10",
+          "questions": [
+            {
+              "question": "ผู้นำในยุคดิจิทัลควรมีคุณสมบัติใดเป็นสำคัญที่สุด?",
+              "answer_type": "choice",
+              "correct_answer": "ความสามารถในการใช้เทคโนโลยี",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การใช้งานแอปพลิเคชันใดที่สามารถช่วยสร้างนวัตกรรมการเรียนรู้ได้?",
+              "answer_type": "choice",
+              "correct_answer": "ถูกทุกข้อ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "WiMax เป็นเทคโนโลยีที่ใช้ในการทำอะไร?",
+              "answer_type": "choice",
+              "correct_answer": "การเชื่อมต่อแบบไร้สายที่มีระยะทางไกล",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ผู้นำยุคดิจิทัลควรใช้เทคนิคใดในการสร้างความร่วมมือในทีม?",
+              "answer_type": "choice",
+              "correct_answer": "การสื่อสารและให้คำปรึกษาอย่างสม่ำเสมอ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การพัฒนาอีเลิร์นนิงจำเป็นต้องใช้เทคโนโลยีใด?",
+              "answer_type": "choice",
+              "correct_answer": "ถูกทุกข้อ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "เทคโนโลยีใดที่ช่วยในการเชื่อมต่อและสื่อสารในองค์กรยุคดิจิทัล?",
+              "answer_type": "choice",
+              "correct_answer": "ถูกทุกข้อ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การสร้างแรงบันดาลใจให้กับผู้ตามควรใช้วิธีการใด?",
+              "answer_type": "choice",
+              "correct_answer": "การให้แรงจูงใจผ่านคำชมและรางวัล",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การสื่อสารแบบใดที่ผู้นำยุคดิจิทัลควรมี?",
+              "answer_type": "choice",
+              "correct_answer": "ถูกทุกข้อ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การรู้จำคำพูดและการสื่อสารแบบไหนที่มีผลต่อการพัฒนาองค์กรดิจิทัล?",
+              "answer_type": "choice",
+              "correct_answer": "การรู้จำคำพูดและการสื่อสารผ่านแอปพลิเคชัน",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การใช้ Virtual Reality ในการเรียนรู้มีประโยชน์อย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "ช่วยในการสร้างประสบการณ์การเรียนรู้เสมือนจริง",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "section": "บทที่ 5",
+          "notes": "10/10",
+          "questions": [
+            {
+              "question": "อะไรคือปัจจัยสำคัญในการทำงานร่วมกันให้มีประสิทธิภาพ?",
+              "answer_type": "choice",
+              "correct_answer": "การสื่อสารที่เปิดเผย",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การเปิดใจกว้างช่วยให้บุคคลสามารถทำอะไรได้ดีขึ้น?",
+              "answer_type": "choice",
+              "correct_answer": "การมองเห็นและรับฟังความคิดเห็นที่หลากหลาย",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การแบ่งปันข้อมูลและทรัพยากรสามารถช่วยอะไรได้บ้าง?",
+              "answer_type": "choice",
+              "correct_answer": "การสร้างความสัมพันธ์ที่ดีและการเติบโต",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การพึ่งพาอาศัยกันในทีมช่วยเพิ่มอะไร?",
+              "answer_type": "choice",
+              "correct_answer": "ความเชื่อมั่นในทีม",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ความซื่อสัตย์มีความสำคัญอย่างไรในการสร้างความเชื่อมั่นในทีม?",
+              "answer_type": "choice",
+              "correct_answer": "โดยการทำตามคำสัญญาและการเปิดเผยข้อผิดพลาด",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การส่งเสริมการมีส่วนร่วมทางการเมืองช่วยอะไรในการเสริมสร้างประชาธิปไตย?",
+              "answer_type": "choice",
+              "correct_answer": "การเพิ่มการมีส่วนร่วมของประชาชน",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "อะไรคือวิธีที่สำคัญในการส่งเสริมความโปร่งใสในองค์กร?",
+              "answer_type": "choice",
+              "correct_answer": "การเปิดเผยข้อมูลและการรายงาน",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การเรียนรู้ทางวิทยาศาสตร์ช่วยให้สามารถทำอะไรได้ดีขึ้น?",
+              "answer_type": "choice",
+              "correct_answer": "การสร้างและทดสอบแนวทางใหม่ ๆ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "วิธีใดต่อไปนี้เป็นวิธีการสร้างแนวทางใหม่ ๆ ในการเรียนรู้ทางวิทยาศาสตร์?",
+              "answer_type": "choice",
+              "correct_answer": "การทดลองและการวิจัยใหม่ ๆ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การส่งเสริมการตระหนักรู้เกี่ยวกับความท้าทายในโลกดิจิทัลช่วยให้เกิดอะไร?",
+              "answer_type": "choice",
+              "correct_answer": "การเตรียมความพร้อมและการปรับตัวต่อการเปลี่ยนแปลง",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "section": "บทที่ 6",
+          "notes": "10/10",
+          "questions": [
+            {
+              "question": "การวัดความเหลื่อมล้ำในด้านรายได้ของประชากรสามารถใช้ดัชนีใดในการวิเคราะห์?",
+              "answer_type": "choice",
+              "correct_answer": "ดัชนีจีนนี่ (Gini Index)",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การใช้เครื่องมือค้นหาข้อมูลออนไลน์เช่น Google เพื่อค้นหาข้อมูลที่ต้องการเป็นตัวอย่างของพฤติกรรมใด?",
+              "answer_type": "choice",
+              "correct_answer": "การค้นหาข้อมูล",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การใช้ระบบปฏิบัติการเพื่อจัดการและควบคุมการทำงานของฮาร์ดแวร์และซอฟต์แวร์ เช่น Windows หรือ macOS เป็นตัวอย่างของพฤติกรรมการใช้เทคโนโลยีใด?",
+              "answer_type": "choice",
+              "correct_answer": "การใช้ระบบปฏิบัติการ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การใช้แอพพลิเคชันสำหรับการสื่อสาร เช่น WhatsApp หรือ Line เพื่อส่งข้อความหรือโทรศัพท์เป็นตัวอย่างของพฤติกรรมการใช้เทคโนโลยีใด?",
+              "answer_type": "choice",
+              "correct_answer": "การใช้แอพพลิเคชันการสื่อสาร",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การใช้แพลตฟอร์มการเรียนรู้ออนไลน์สำหรับการฝึกอบรมและพัฒนาทักษะพนักงานในองค์กรเป็นตัวอย่างของการใช้เทคโนโลยีในการจัดการด้านใด?",
+              "answer_type": "choice",
+              "correct_answer": "การพัฒนาและการฝึกอบรม",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การใช้ข้อมูลการวิเคราะห์ผลการทำงานของพนักงานเพื่อการตัดสินใจในการปรับปรุงประสิทธิภาพเป็นตัวอย่างของการตัดสินใจด้วยข้อมูลประเภทใด?",
+              "answer_type": "choice",
+              "correct_answer": "การตัดสินใจด้วยข้อมูลดิจิตอล",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การเข้าร่วมคอร์สออนไลน์เพื่อพัฒนาทักษะใหม่เป็นตัวอย่างของกระบวนการเรียนรู้ประเภทใด?",
+              "answer_type": "choice",
+              "correct_answer": "การเรียนรู้ใหม่",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การสร้างโอกาสให้ทุกคนเข้าถึงเทคโนโลยีสารสนเทศและการศึกษาทางออนไลน์เป็นแนวทางในการส่งเสริมอะไรในยุคดิจิทัล?",
+              "answer_type": "choice",
+              "correct_answer": "การลดความเหลื่อมล้ำ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การใช้เครื่องมือการประเมินผลการทำงานที่ช่วยในการติดตามและประเมินผลพนักงานเป็นตัวอย่างของการใช้เทคโนโลยีในด้านใด?",
+              "answer_type": "choice",
+              "correct_answer": "การจัดการประสิทธิภาพ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การใช้การวิเคราะห์ข้อมูลเชิงสถิติเพื่อศึกษาความแตกต่างของการเข้าถึงบริการในพื้นที่ต่างๆเป็นตัวอย่างของการวัดอะไร?",
+              "answer_type": "choice",
+              "correct_answer": "การวัดความเหลื่อมล้ำ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "section": "บทที่ 7",
+          "notes": "10/10",
+          "questions": [
+            {
+              "question": "การเป็นพลเมืองดิจิทัลมีความสำคัญต่อการลดความเหลื่อมล้ำอย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "ถูกทุกข้อ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ความเหลื่อมล้ำด้านรายได้ของไทยมีลักษณะอย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "การรับเงินโอนจากภาครัฐและครัวเรือน",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "สัญญาณเน็ตเพื่อทุกคน (Good For All Connectivity) มีเป้าหมายหลักคืออะไร?",
+              "answer_type": "choice",
+              "correct_answer": "การให้บริการอินเทอร์เน็ตที่มีคุณภาพสำหรับทุกคน",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การเข้าถึงบริการอย่างเท่าเทียม (Affordable and Accessible Services) มีความสำคัญอย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "ถูกทุกข้อ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การเพิ่มทักษะดิจิทัล (Digital Upskilling) มีความสำคัญอย่างไรในการลดความเหลื่อมล้ำ?",
+              "answer_type": "choice",
+              "correct_answer": "ช่วยให้บุคคลมีโอกาสทางการงานที่ดีขึ้น",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ในภาวะที่เศรษฐกิจไทยอัตราเติบโตลดลงเรื่อย ๆ รายได้เติบโตเฉพาะในกลุ่มใด?",
+              "answer_type": "choice",
+              "correct_answer": "กลุ่มคนรวย",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ความเหลื่อมล้ำด้านความมั่นคั่งในไทยเป็นอย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "สูงที่สุดอันดับต้น ๆ ของโลกและเพิ่มขึ้นเร็ว",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อจำกัดด้านข้อมูลมีผลกระทบอย่างไรต่อการวัดความเหลื่อมล้ำด้านรายได้?",
+              "answer_type": "choice",
+              "correct_answer": "ทำให้ตัวเลขทางการอาจต่ำกว่าความเป็นจริง",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การปรับตัวทางเศรษฐกิจในประเทศไทยสามารถทำได้โดยวิธีใด?",
+              "answer_type": "choice",
+              "correct_answer": "ถูกทุกข้อ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การเรียนรู้เกี่ยวกับเครือข่ายการเรียนรู้ดิจิทัลมีประโยชน์อย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "ถูกทุกข้อ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "section": "บทที่ 8",
+          "notes": "10/10",
+          "questions": [
+            {
+              "question": "การคิดเชิงสร้างสรรค์มีความสำคัญอย่างไรสำหรับผู้นำในยุคดิจิทัล?",
+              "answer_type": "choice",
+              "correct_answer": "ช่วยให้ผู้นำสามารถมองเห็นโอกาสใหม่ ๆ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดคือลักษณะของการคิดเชิงสร้างสรรค์?",
+              "answer_type": "choice",
+              "correct_answer": "การคิดนอกกรอบ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ผู้นำที่มีการคิดเชิงสร้างสรรค์จะมีวิธีการจัดการปัญหาอย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "ค้นหาวิธีการใหม่ ๆ ที่แตกต่างและมีประสิทธิภาพ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ในยุคดิจิทัล การคิดเชิงสร้างสรรค์สามารถช่วยให้ผู้นำพัฒนาองค์กรได้อย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "ช่วยเพิ่มความสามารถในการปรับตัวต่อการเปลี่ยนแปลง",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "สิ่งใดที่สามารถช่วยส่งเสริมการคิดเชิงสร้างสรรค์ในทีมงาน?",
+              "answer_type": "choice",
+              "correct_answer": "การสร้างบรรยากาศที่เปิดกว้างและยอมรับความคิดเห็น",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ผู้นำที่คิดเชิงสร้างสรรค์ควรปฏิบัติอย่างไรเมื่อต้องเผชิญกับความล้มเหลว?",
+              "answer_type": "choice",
+              "correct_answer": "พิจารณาความล้มเหลวเป็นบทเรียนและปรับปรุงแนวทาง",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การคิดเชิงสร้างสรรค์มีความสัมพันธ์กับการจัดการการเปลี่ยนแปลงในองค์กรอย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "ช่วยให้ผู้นำสร้างแนวทางใหม่ ๆ สำหรับการเปลี่ยนแปลง",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ทักษะใดที่เป็นส่วนหนึ่งของการคิดเชิงสร้างสรรค์?",
+              "answer_type": "choice",
+              "correct_answer": "ความสามารถในการหาทางแก้ไขที่ไม่เหมือนใคร",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ผู้นำที่คิดเชิงสร้างสรรค์ควรทำอย่างไรเมื่อมีความคิดเห็นที่ขัดแย้งกันในทีม?",
+              "answer_type": "choice",
+              "correct_answer": "สนับสนุนการพูดคุยและแลกเปลี่ยนความคิดเห็นอย่างเปิดเผย",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การคิดเชิงสร้างสรรค์ช่วยให้ผู้นำในยุคดิจิทัลมีความได้เปรียบในการแข่งขันได้อย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "ช่วยให้ผู้นำสามารถสร้างนวัตกรรมและแนวทางใหม่",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "section": "แบบทดสอบหลังเรียน (Post-Test)",
+          "notes": "86/87 confirmed; Q31 inferred (3 wrong options eliminated).",
+          "questions": [
+            {
+              "question": "ผู้นำในยุคดิจิทัลควรเน้นทักษะใดมากที่สุดเพื่อรับมือกับการเปลี่ยนแปลงทางเทคโนโลยี?",
+              "answer_type": "choice",
+              "correct_answer": "การใช้ข้อมูลในการตัดสินใจ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การปรับตัวของผู้นำในยุคดิจิทัลควรเน้นที่การรับมือกับสิ่งใด?",
+              "answer_type": "choice",
+              "correct_answer": "การเปลี่ยนแปลงของตลาด",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "พลเมืองดิจิทัลต้องมีคุณสมบัติใดในการใช้เทคโนโลยี?",
+              "answer_type": "choice",
+              "correct_answer": "ความปลอดภัยในการใช้งาน",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การสร้างเครือข่ายการเรียนรู้ในยุคดิจิทัลมีประโยชน์อย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "ช่วยในการเรียนรู้และแบ่งปันความรู้",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "นวัตกรรมการเรียนรู้ในอนาคตจะเน้นใช้เทคโนโลยีใดมากที่สุด?",
+              "answer_type": "choice",
+              "correct_answer": "ปัญญาประดิษฐ์ (AI)",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การเปลี่ยนผ่านการเรียนรู้จากยุคดั้งเดิมสู่ยุคดิจิทัลควรเน้นอะไร?",
+              "answer_type": "choice",
+              "correct_answer": "การใช้เครื่องมือดิจิทัลเพื่อการศึกษา",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "บุคลิกภาพของผู้นำยุคดิจิทัลควรเน้นที่อะไร?",
+              "answer_type": "choice",
+              "correct_answer": "ความยืดหยุ่นและการสื่อสารได้ดี",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การสื่อสารในยุคดิจิทัลควรเน้นอย่างไรเพื่อความมีประสิทธิภาพ?",
+              "answer_type": "choice",
+              "correct_answer": "การสร้างข้อความที่ชัดเจนและน่าสนใจ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ผู้นำยุคดิจิทัลควรทำอย่างไรเพื่อปรับตัวให้ทันกับเทคโนโลยี?",
+              "answer_type": "choice",
+              "correct_answer": "เรียนรู้และพัฒนาทักษะใหม่ๆ อยู่เสมอ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การพัฒนาคนในยุคดิจิทัลควรเน้นที่อะไร?",
+              "answer_type": "choice",
+              "correct_answer": "การสร้างวัฒนธรรมการเรียนรู้",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "คุณสมบัติที่สำคัญที่สุดของผู้นำในยุคดิจิทัลคืออะไร?",
+              "answer_type": "choice",
+              "correct_answer": "การปรับตัวและการยืดหยุ่น",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การใช้ข้อมูลในการตัดสินใจในยุคดิจิทัลมีความสำคัญอย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "ช่วยให้ผู้นำสามารถตัดสินใจอย่างรวดเร็วและแม่นยำ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "สิ่งใดเป็นปัจจัยสำคัญที่ทำให้ผู้นำสามารถนำองค์กรผ่านการเปลี่ยนแปลงทางเทคโนโลยีได้สำเร็จ?",
+              "answer_type": "choice",
+              "correct_answer": "การให้ความสำคัญกับการพัฒนาบุคลากร",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "วัฒนธรรมการเรียนรู้และนวัตกรรมภายในองค์กรมีบทบาทอย่างไรต่อการเป็นผู้นำในยุคดิจิทัล?",
+              "answer_type": "choice",
+              "correct_answer": "ส่งเสริมการคิดเชิงสร้างสรรค์และการปรับตัวของทีมงาน",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ผู้นำในยุคดิจิทัลต้องพัฒนาทักษะใดเพื่อการบริหารงานที่มีประสิทธิภาพ?",
+              "answer_type": "choice",
+              "correct_answer": "การวิเคราะห์และใช้ข้อมูล",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การปรับตัวอย่างรวดเร็วในยุคดิจิทัลช่วยให้ผู้นำสามารถทำสิ่งใด?",
+              "answer_type": "choice",
+              "correct_answer": "ปรับตัวต่อความไม่แน่นอนและโอกาสใหม่ๆ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "วัฒนธรรมการเรียนรู้ในองค์กรมีผลอย่างไรต่อความสำเร็จในยุคดิจิทัล?",
+              "answer_type": "choice",
+              "correct_answer": "ช่วยให้ทีมงานปรับตัวได้ดีกับเทคโนโลยีใหม่ๆ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "สิ่งใดที่ผู้นำในยุคดิจิทัลควรหลีกเลี่ยงในการบริหารองค์กร?",
+              "answer_type": "choice",
+              "correct_answer": "การละเลยความสำคัญของการเรียนรู้และนวัตกรรม",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ผู้นำยุคดิจิทัลสามารถส่งเสริมการเปลี่ยนแปลงในองค์กรได้อย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "การสนับสนุนการเรียนรู้และพัฒนานวัตกรรม",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การส่งเสริมวัฒนธรรมการเรียนรู้ในองค์กรช่วยให้ผู้นำสามารถทำสิ่งใดได้บ้าง?",
+              "answer_type": "choice",
+              "correct_answer": "สร้างทีมงานที่พร้อมเผชิญกับการเปลี่ยนแปลง",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การปรับตัวในยุคดิจิทัลมีความสำคัญอย่างไรต่อความสำเร็จขององค์กร?",
+              "answer_type": "choice",
+              "correct_answer": "ทำให้องค์กรอยู่รอดในยุคที่มีการเปลี่ยนแปลงอย่างรวดเร็ว",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การรับมือกับเทคโนโลยีใหม่ๆ ต้องอาศัยทักษะใดมากที่สุด?",
+              "answer_type": "choice",
+              "correct_answer": "การเปิดรับและเรียนรู้เทคโนโลยีใหม่",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การปรับตัวในด้านทรัพยากรมนุษย์ควรมุ่งเน้นไปที่อะไร?",
+              "answer_type": "choice",
+              "correct_answer": "การพัฒนาทักษะและความรู้ของบุคลากร",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การเปลี่ยนแปลงของตลาดมีผลอย่างไรต่อการดำเนินงานขององค์กร?",
+              "answer_type": "choice",
+              "correct_answer": "ส่งผลให้ต้องมีการปรับกลยุทธ์อย่างรวดเร็ว",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ผู้นำควรทำอย่างไรเพื่อให้ทีมงานปรับตัวเข้ากับเทคโนโลยีใหม่ได้?",
+              "answer_type": "choice",
+              "correct_answer": "ส่งเสริมการฝึกอบรมและการเรียนรู้เกี่ยวกับเทคโนโลยีใหม่",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การปรับตัวให้ทันกับการเปลี่ยนแปลงของตลาดสามารถช่วยองค์กรได้อย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "ช่วยให้องค์กรสามารถขยายตัวในตลาดใหม่",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การปรับตัวในยุคดิจิทัลต้องอาศัยปัจจัยใดเป็นสำคัญ?",
+              "answer_type": "choice",
+              "correct_answer": "การยอมรับและนำเทคโนโลยีใหม่มาใช้",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การเปลี่ยนแปลงทางเทคโนโลยีที่รวดเร็วส่งผลอย่างไรต่อการจัดการทรัพยากรมนุษย์?",
+              "answer_type": "choice",
+              "correct_answer": "ส่งเสริมการพัฒนาทักษะใหม่ๆ ของบุคลากร",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ผู้นำที่สามารถปรับตัวให้เข้ากับการเปลี่ยนแปลงได้ดีจะมีลักษณะอย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "ยืดหยุ่นและพร้อมที่จะเรียนรู้สิ่งใหม่",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การปรับตัวในด้านทรัพยากรมนุษย์มีความสำคัญอย่างไรในยุคดิจิทัล?",
+              "answer_type": "choice",
+              "correct_answer": "ช่วยให้องค์กรสามารถปรับตัวให้เข้ากับการเปลี่ยนแปลงได้ดีขึ้น",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดต่อไปนี้เป็นคุณลักษณะที่สำคัญของพลเมืองดิจิทัล?",
+              "answer_type": "choice",
+              "correct_answer": "การละเมิดสิทธิของผู้อื่นในโลกออนไลน์",
+              "known_wrong_answers": [
+                "การใช้เทคโนโลยีอย่างมีความรับผิดชอบ",
+                "การใช้เทคโนโลยีดิจิทัลอย่างไม่ระมัดระวัง",
+                "การเผยแพร่ข้อมูลส่วนบุคคลอย่างเปิดเผย"
+              ],
+              "status": "inferred",
+              "notes": "UNCONFIRMED. Marked WRONG: การใช้เทคโนโลยีอย่างมีความรับผิดชอบ, การใช้เทคโนโลยีดิจิทัลอย่างไม่ระมัดระวัง, การเผยแพร่ข้อมูลส่วนบุคคลอย่างเปิดเผย. Only untried: การละเมิดสิทธิของผู้อื่นในโลกออนไลน์ (grader key likely wrong)"
+            },
+            {
+              "question": "การปกป้องข้อมูลส่วนบุคคลในโลกดิจิทัลมีความสำคัญอย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "เพื่อป้องกันการถูกแฮ็กหรือการโจรกรรมข้อมูล",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การมีส่วนร่วมในชุมชนออนไลน์อย่างสร้างสรรค์สามารถส่งผลต่อชุมชนได้อย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "สร้างความร่วมมือและการสนับสนุนซึ่งกันและกัน",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดเป็นแนวทางที่ดีในการรักษาความปลอดภัยทางออนไลน์?",
+              "answer_type": "choice",
+              "correct_answer": "หลีกเลี่ยงการใช้เครือข่าย Wi-Fi ที่ไม่ปลอดภัย",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การใช้เทคโนโลยีดิจิทัลอย่างมีจริยธรรมหมายถึงอะไร?",
+              "answer_type": "choice",
+              "correct_answer": "การเคารพสิทธิและความเป็นส่วนตัวของผู้อื่น",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดต่อไปนี้เป็นวิธีที่ดีที่สุดในการปกป้องข้อมูลส่วนบุคคลในโลกออนไลน์?",
+              "answer_type": "choice",
+              "correct_answer": "ใช้รหัสผ่านที่รัดกุมและเปลี่ยนรหัสผ่านเป็นประจำ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ทำไมการสร้างเครือข่ายการเรียนรู้จึงมีความสำคัญในยุคดิจิทัล?",
+              "answer_type": "choice",
+              "correct_answer": "เพื่อเชื่อมโยงและแลกเปลี่ยนความรู้กับผู้คนในวงการต่างๆ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดคือประโยชน์หลักของการมีเครือข่ายการเรียนรู้ที่ดี?",
+              "answer_type": "choice",
+              "correct_answer": "ส่งเสริมการพัฒนาทักษะใหม่และการเรียนรู้ตลอดชีวิต",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การรักษาเครือข่ายการเรียนรู้ต้องอาศัยอะไร?",
+              "answer_type": "choice",
+              "correct_answer": "การติดต่อและสื่อสารกับผู้คนในเครือข่ายอย่างสม่ำเสมอ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การสร้างเครือข่ายการเรียนรู้ที่หลากหลายมีผลดีอย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "ช่วยเปิดโอกาสให้เข้าถึงข้อมูลและมุมมองที่หลากหลาย",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "อะไรเป็นปัจจัยสำคัญในการเชื่อมโยงกับผู้คนในเครือข่ายการเรียนรู้?",
+              "answer_type": "choice",
+              "correct_answer": "การแบ่งปันและแลกเปลี่ยนความรู้",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "เครือข่ายการเรียนรู้ช่วยส่งเสริมการปรับตัวอย่างไรในยุคดิจิทัล?",
+              "answer_type": "choice",
+              "correct_answer": "ช่วยให้สามารถเรียนรู้จากการเปลี่ยนแปลงได้รวดเร็วขึ้น",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การเข้าร่วมเครือข่ายการเรียนรู้ควรมีลักษณะอย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "เปิดใจรับฟังและแบ่งปันข้อมูล",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การเชื่อมโยงกับผู้คนในวงการต่างๆ ช่วยในการพัฒนาทักษะอย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "เปิดโอกาสให้เรียนรู้ทักษะใหม่ๆ ที่อาจไม่เคยรู้มาก่อน",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การรักษาเครือข่ายการเรียนรู้ที่ดีต้องอาศัยอะไรบ้าง?",
+              "answer_type": "choice",
+              "correct_answer": "การติดต่อและรักษาความสัมพันธ์อย่างสม่ำเสมอ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "อะไรเป็นผลกระทบจากการไม่มีเครือข่ายการเรียนรู้ที่มีประสิทธิภาพ?",
+              "answer_type": "choice",
+              "correct_answer": "การเรียนรู้และพัฒนาทักษะใหม่ๆ ช้าลง",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "นวัตกรรมการเรียนรู้ในอนาคตจะเน้นการใช้เทคโนโลยีใดมากที่สุด?",
+              "answer_type": "choice",
+              "correct_answer": "ปัญญาประดิษฐ์ (AI)",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดคือลักษณะสำคัญของการเรียนรู้ในอนาคต?",
+              "answer_type": "choice",
+              "correct_answer": "การเรียนรู้ด้วยการใช้ข้อมูลในการพัฒนา",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การใช้ AI ในการเรียนรู้มีเป้าหมายหลักเพื่ออะไร?",
+              "answer_type": "choice",
+              "correct_answer": "ปรับประสบการณ์การเรียนรู้ให้เหมาะสมกับแต่ละบุคคล",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การเรียนรู้ด้วยระบบออนไลน์ในอนาคตจะช่วยอะไร?",
+              "answer_type": "choice",
+              "correct_answer": "เพิ่มโอกาสในการเรียนรู้ได้ทุกที่ทุกเวลา",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "นวัตกรรมใดต่อไปนี้ที่ช่วยให้การเรียนรู้ในอนาคตเป็นไปอย่างมีประสิทธิภาพ?",
+              "answer_type": "choice",
+              "correct_answer": "การใช้ข้อมูลในการพัฒนาการศึกษา",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ทำไมการปรับประสบการณ์การเรียนรู้ให้เหมาะสมกับแต่ละบุคคลจึงสำคัญ?",
+              "answer_type": "choice",
+              "correct_answer": "เพื่อให้ผู้เรียนสามารถเรียนรู้ได้ตามความต้องการและความถนัดของตนเอง",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดคือบทบาทสำคัญของ AI ในการศึกษายุคใหม่?",
+              "answer_type": "choice",
+              "correct_answer": "สร้างประสบการณ์การเรียนรู้ที่เหมาะสมกับผู้เรียนแต่ละคน",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การใช้เทคโนโลยีในอนาคตจะส่งผลอย่างไรต่อการเรียนรู้?",
+              "answer_type": "choice",
+              "correct_answer": "เพิ่มความสามารถในการปรับตัวให้ทันกับการเปลี่ยนแปลง",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การเรียนรู้ในโลกอนาคตจะเปลี่ยนไปในทิศทางใด?",
+              "answer_type": "choice",
+              "correct_answer": "เพิ่มการเรียนรู้ที่ปรับให้เหมาะสมกับผู้เรียนแต่ละคน",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การใช้ระบบออนไลน์ในการเรียนรู้มีประโยชน์อย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "ช่วยให้ผู้เรียนสามารถเรียนรู้ได้ทุกที่ทุกเวลา",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดคือลักษณะที่สำคัญที่สุดของการสื่อสารในยุคดิจิทัล?",
+              "answer_type": "choice",
+              "correct_answer": "การสร้างข้อความที่ชัดเจนและน่าสนใจ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ทำไมการสื่อสารบนโลกออนไลน์จึงมีความสำคัญในยุคดิจิทัล?",
+              "answer_type": "choice",
+              "correct_answer": "เพราะสามารถสร้างและส่งต่อข้อมูลได้อย่างรวดเร็ว",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ทักษะใดสำคัญที่สุดในการสื่อสารผ่านสื่อดิจิทัล?",
+              "answer_type": "choice",
+              "correct_answer": "การสื่อสารอย่างมีประสิทธิภาพ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การปรับตัวให้ทันกับเทคโนโลยีมีความสำคัญอย่างไรสำหรับผู้นำยุคดิจิทัล?",
+              "answer_type": "choice",
+              "correct_answer": "เพื่อทำให้ผู้นำสามารถนำพาองค์กรไปข้างหน้าอย่างมั่นคง",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดคือผลกระทบของการไม่ปรับตัวให้ทันกับเทคโนโลยีใหม่ๆ?",
+              "answer_type": "choice",
+              "correct_answer": "การขาดความสามารถในการแข่งขันในตลาด",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การเรียนรู้และพัฒนาทักษะใหม่ๆ ช่วยให้ผู้นำสามารถทำอะไรได้?",
+              "answer_type": "choice",
+              "correct_answer": "นำพาองค์กรให้ก้าวไปข้างหน้าอย่างมั่นคง",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดคือลักษณะของผู้นำที่ปรับตัวให้ทันกับเทคโนโลยีได้ดี?",
+              "answer_type": "choice",
+              "correct_answer": "เรียนรู้และพัฒนาทักษะใหม่ๆ อย่างต่อเนื่อง",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การใช้สื่อดิจิทัลในการสื่อสารมีข้อดีอย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "ช่วยให้สามารถส่งข้อมูลได้อย่างรวดเร็ว",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การสื่อสารในยุคดิจิทัลควรมีลักษณะอย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "ชัดเจนและน่าสนใจ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ทำไมการติดตามเทคโนโลยีที่เปลี่ยนแปลงอย่างรวดเร็วจึงเป็นสิ่งสำคัญสำหรับผู้นำ?",
+              "answer_type": "choice",
+              "correct_answer": "เพื่อเพิ่มความสามารถในการนำพาองค์กรไปข้างหน้า",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดคือเหตุผลสำคัญที่ทำให้การพัฒนาทักษะดิจิทัลของบุคลากรมีความสำคัญในยุคดิจิทัล?",
+              "answer_type": "choice",
+              "correct_answer": "เพื่อเตรียมองค์กรให้พร้อมสำหรับอนาคต",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การสร้างวัฒนธรรมการเรียนรู้ในองค์กรมีผลอย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "ช่วยส่งเสริมการพัฒนาทักษะใหม่ๆ ในองค์กร",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ในยุคดิจิทัล การพัฒนาบุคลากรควรเน้นไปที่ทักษะใดเป็นหลัก?",
+              "answer_type": "choice",
+              "correct_answer": "ทักษะดิจิทัลและการใช้เทคโนโลยี",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การสนับสนุนการพัฒนาทักษะใหม่ๆ ในองค์กรมีผลอย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "เพิ่มความแข็งแกร่งให้กับองค์กรในยุคดิจิทัล",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ผู้นำควรมีความสามารถใดเพื่อรับมือกับการเปลี่ยนแปลงในยุค Disruptions?",
+              "answer_type": "choice",
+              "correct_answer": "ความยืดหยุ่นในการตัดสินใจ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การปรับตัวให้ทันต่อสถานการณ์ที่เกิดขึ้นในยุค Disruptions มีความสำคัญอย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "เพื่อให้ผู้นำสามารถรับมือกับความไม่แน่นอนและการเปลี่ยนแปลงได้",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การเตรียมองค์กรให้พร้อมสำหรับอนาคตควรเน้นไปที่การพัฒนาในด้านใด?",
+              "answer_type": "choice",
+              "correct_answer": "การพัฒนาทักษะดิจิทัลและการสร้างวัฒนธรรมการเรียนรู้",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดคือสิ่งที่ผู้นำควรทำเมื่อเผชิญกับการเปลี่ยนแปลงในยุค Disruptions?",
+              "answer_type": "choice",
+              "correct_answer": "ปรับตัวให้ทันต่อสถานการณ์ที่เกิดขึ้น",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดคือสิ่งที่ผู้นำควรทำเมื่อเผชิญกับการเปลี่ยนแปลงในยุค Disruptions?",
+              "answer_type": "choice",
+              "correct_answer": "ปรับตัวให้ทันต่อสถานการณ์ที่เกิดขึ้น",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การสร้างวัฒนธรรมการเรียนรู้ในองค์กรจะช่วยให้องค์กรสามารถทำอะไรได้บ้าง?",
+              "answer_type": "choice",
+              "correct_answer": "พัฒนาบุคลากรให้มีทักษะใหม่ๆ ที่จำเป็นในยุคดิจิทัล",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การดำรงชีวิตในยุค Disruptions จำเป็นต้องมีความสามารถใดมากที่สุด?",
+              "answer_type": "choice",
+              "correct_answer": "ความสามารถในการรับมือกับความไม่แน่นอนและการเปลี่ยนแปลง",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดคือนิยามที่ถูกต้องของ \"อัตลักษณ์บุคคลในยุคดิจิทัล\"?",
+              "answer_type": "choice",
+              "correct_answer": "การสร้างและรักษาภาพลักษณ์ออนไลน์",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การสร้างอัตลักษณ์ที่ชัดเจนและเป็นบวกในสังคมออนไลน์มีผลอย่างไรต่อบุคคล?",
+              "answer_type": "choice",
+              "correct_answer": "ช่วยส่งเสริมโอกาสทางอาชีพและสังคม",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดคือสิ่งที่สำคัญที่สุดในการสร้างความน่าเชื่อถือในสังคมออนไลน์?",
+              "answer_type": "choice",
+              "correct_answer": "การสร้างอัตลักษณ์ที่สอดคล้องกับค่านิยมและจริยธรรม",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การคิดเชิงสร้างสรรค์สามารถช่วยแก้ปัญหาใดในสังคมไทย?",
+              "answer_type": "choice",
+              "correct_answer": "การสร้างโอกาสให้กับผู้ที่ขาดโอกาสในสังคม",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ผู้นำยุคดิจิทัลควรใช้เทคโนโลยีอย่างไรเพื่อส่งเสริมความเป็นธรรมทางสังคม?",
+              "answer_type": "choice",
+              "correct_answer": "การใช้เทคโนโลยีเพื่อส่งเสริมความเท่าเทียมและลดความเหลื่อมล้ำ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การจัดการข้อมูลส่วนบุคคลในยุคดิจิทัลมีความสำคัญอย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "ช่วยปกป้องความเป็นส่วนตัวและสร้างความน่าเชื่อถือในสังคมออนไลน์",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การคิดเชิงสร้างสรรค์เพื่อความเท่าเทียมในสังคมไทยสามารถทำได้อย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "การสร้างสรรค์โซลูชันที่ส่งเสริมความเท่าเทียมในสังคม",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ในยุคดิจิทัล ผู้นำควรทำอย่างไรเพื่อช่วยลดความเหลื่อมล้ำในสังคม?",
+              "answer_type": "choice",
+              "correct_answer": "การใช้เทคโนโลยีในการสร้างความเป็นธรรมและโอกาสที่เท่าเทียมกัน",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การสร้างภาพลักษณ์ออนไลน์ที่ดีมีผลอย่างไรต่อบุคคลในยุคดิจิทัล?",
+              "answer_type": "choice",
+              "correct_answer": "ส่งเสริมโอกาสในอาชีพและความน่าเชื่อถือในสังคม",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การใช้เทคโนโลยีอย่างสร้างสรรค์เพื่อความเท่าเทียมในสังคมไทยควรเป็นอย่างไร?",
+              "answer_type": "choice",
+              "correct_answer": "การสร้างโอกาสที่เท่าเทียมกันโดยใช้เทคโนโลยี",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            }
+          ]
+        }
+      ]
     }
   ]
 }

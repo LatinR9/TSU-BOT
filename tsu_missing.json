@@ -94,5 +94,13 @@
     "type": "choice",
     "wrong_answers": "Empathize เพราะเจนกำลังทำความเข้าใจลูกค้า",
     "hint": "Wrong in the chapter 5 quiz in both 2025_T1 and 2026_T1. Try next: 'Define เพราะเจนกำลังหาว่าลูกค้ามีปัญหาอะไร'. Warning: the 2025 Post-Test marked 'Empathize เพราะเจนกำลังทำความเข้าใจลูกค้า' as correct — treat chapter quiz and post-test separately."
+  },
+  {
+    "course": "TSUGE00156",
+    "section": "แบบทดสอบหลังเรียน (Post-Test)",
+    "question": "ข้อใดต่อไปนี้เป็นคุณลักษณะที่สำคัญของพลเมืองดิจิทัล?",
+    "type": "choice",
+    "wrong_answers": "การใช้เทคโนโลยีอย่างมีความรับผิดชอบ | การใช้เทคโนโลยีดิจิทัลอย่างไม่ระมัดระวัง | การเผยแพร่ข้อมูลส่วนบุคคลอย่างเปิดเผย",
+    "hint": "UNCONFIRMED: ตัดตัวเลือกที่ส่งแล้วผิดทั้ง 3 ข้อออก เหลือตัวเลือกที่ยังไม่เคยลองคือ การละเมิดสิทธิของผู้อื่นในโลกออนไลน์ (เฉลยของระบบน่าจะตั้งไว้ผิด)"
   }
 ]

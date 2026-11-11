@@ -321,8 +321,16 @@ class DBManager {
   }
 
   pageKeys(texts) {
-    return (Array.isArray(texts) ? texts : [texts]).filter(Boolean)
-      .map(t => String(t).replace(PAGE_BLANK_RE, ' ___ '))
+    const raw = (Array.isArray(texts) ? texts : [texts]).filter(Boolean);
+    const expanded = [];
+    for (const r of raw) {
+      const s = String(r);
+      expanded.push(s);
+      const stripped = s.replace(/^\s*(?:ข้อ(?:ที่)?\s*)?\d{1,3}\s*[.)]\s+/, '');
+      if (stripped !== s && stripped.trim().length >= 8) expanded.push(stripped);
+    }
+    return expanded
+      .map(t => t.replace(PAGE_BLANK_RE, ' ___ '))
       .map(t => ({ norm: normalizeText(t), loose: looseKey(t) })).filter(c => c.loose);
   }
 

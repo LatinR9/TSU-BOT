@@ -151,7 +151,7 @@ namespace TSUBotDesktop
         private bool updateInProgress = false;
         private Process loginProcess;
         private volatile bool resetInProgress = false;
-        private const string APP_VERSION = "1.1.0";
+        private const string APP_VERSION = "1.1.1";
         // Must match USER_DATA_DIR in worker.js / cli_worker.js / server.js (Playwright persistent profile).
         private const string PROFILE_DIR = "user_profile";
         private const string GITHUB_REPO = "LatinR9/TSU-BOT";
