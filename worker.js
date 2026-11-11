@@ -233,7 +233,10 @@ function parseCourseOutline() {
     // A content-type icon (play / file / pencil / book) is not a completion check — treat as open.
     if (/(?:^|[\s_-])(?:play|video|film|book|file|document|pencil|pen|edit|html|problem|question)(?:$|[\s_-])/.test(blob)
         && !/check/.test(blob)) {
-      return { done: false, how: 'content-type icon' };
+      const iconKind = /(?:^|[\s_-])(?:play|video|film)(?:$|[\s_-])/.test(blob) ? 'video'
+        : /(?:^|[\s_-])(?:book|file|document|html)(?:$|[\s_-])/.test(blob) ? 'doc'
+        : 'quiz';
+      return { done: false, how: 'content-type icon', iconKind };
     }
     if (/text-success|complete/.test(cls) && /check/.test(blob)) return { done: true, how: 'success icon class' };
     if (/text-success/.test(cls) && /check/.test(blob)) return { done: true, how: 'success icon class' };
@@ -257,17 +260,21 @@ function parseCourseOutline() {
     let st = null;
     if (/incomplete|not completed|ยังไม่/.test(sr)) st = { done: false, how: 'sr-only text' };
     else if (/\bcompleted?\b|เสร็จ/.test(sr) && !/incomplete|not completed/.test(sr)) st = { done: true, how: 'sr-only text' };
+    const icons = Array.from(row.querySelectorAll('svg, .fa, [class*="fa-"], [class*="pgn__icon"]'));
+    let typeIcon = null;
+    for (const icon of icons) {
+      const s = iconState(icon);
+      if (!s) continue;
+      if (s.how === 'content-type icon' && !typeIcon) typeIcon = s;
+    }
     if (!st) {
       // A completed video/sheet often keeps its type icon (play/file) *and* a filled check.
       // The first SVG is the type glyph — looking only at that would reopen a finished item.
-      const icons = Array.from(row.querySelectorAll('svg, .fa, [class*="fa-"], [class*="pgn__icon"]'));
-      let typeIcon = null;
       for (const icon of icons) {
         const s = iconState(icon);
         if (!s) continue;
         if (s.done === true) { st = s; break; }
-        if (s.how === 'content-type icon') typeIcon = typeIcon || s;
-        else if (!st) st = s;
+        if (s.how !== 'content-type icon' && !st) st = s;
       }
       if (!st) st = typeIcon;
     }
@@ -279,7 +286,8 @@ function parseCourseOutline() {
       href,
       hrefAttr: a.getAttribute('href'),
       done: st ? st.done : null,
-      how: st ? st.how : 'no icon'
+      how: st ? st.how : 'no icon',
+      iconKind: (typeIcon && typeIcon.iconKind) || ''
     });
   }
   return { items, rendered: true, waiting };
@@ -1159,6 +1167,7 @@ class AutomationWorker {
     this.prepareQuestionTexts(problems);
 
     let allCompleted = true;
+    this.lastQuizAllDone = false;
     const completedMap = new Map();
     for (const p of problems) {
       if (!p.slots.length) {
@@ -1171,6 +1180,7 @@ class AutomationWorker {
       if (!chk.completed) allCompleted = false;
     }
     if (allCompleted) {
+      this.lastQuizAllDone = true;
       this.log(`⏭️ [ข้ามทั้งแบบทดสอบ] แบบทดสอบทุกข้อในหน้านี้ได้คะแนนเต็ม/ทำเสร็จแล้ว (ติ๊กเขียว) ข้ามไปหน่วยถัดไปทันที...`);
       problems.forEach(p => this.leftovers.delete(this.leftoverKey(p)));
       return;
@@ -1243,10 +1253,13 @@ class AutomationWorker {
         this.log(`📤 กำลังกดส่งคำตอบรวม (Global Submit)...`);
         await globalSubmit.click().catch(() => {});
         await this.sleep(2500);
+        unsubmitted = 0;
       }
     }
     if (leftHere.length) {
       this.log(`📋 หน้านี้ยังค้าง ${leftHere.length} ข้อที่ไม่ได้ตอบ/ไม่ได้ส่ง (ไม่มีเฉลยที่ใช้ได้): ${leftHere.map(l => `ข้อ ${l.qNo} (${l.reason})`).join(', ')}`, 'warn');
+    } else if (unsubmitted === 0) {
+      this.lastQuizAllDone = true;
     }
   }
 
@@ -1470,7 +1483,8 @@ class AutomationWorker {
   }
 
   seqIdFromHref(href) {
-    const s = String(href || '');
+    let s = String(href || '');
+    try { s = decodeURIComponent(s); } catch (e) {}
     return (s.match(/type@(?:sequential|vertical)\+block@([^/?#&]+)/) || [])[1]
       || (s.match(/jump_to_id\/([^/?#]+)/) || [])[1]
       || (s.match(/\/courseware\/[^/]+\/([^/?#]+)/) || [])[1]
@@ -1663,6 +1677,12 @@ class AutomationWorker {
         foundQuiz = true;
         // Quiz outline/Progress item is done; do not Next into the next chapter's videos.
         if (expectQuiz) break;
+      }
+      // If we entered a non-quiz subsection and its unit is an unselected video/quiz (or two skipped
+      // units in a row), stop walking Next through the rest of the unselected subsection.
+      if (!expectQuiz && this.lastUnitOutcome && this.lastUnitOutcome.startsWith('skip:')) {
+        if (this.lastUnitOutcome === 'skip:video' || this.lastUnitOutcome === 'skip:quiz') break;
+        if (outcomes.length >= 2 && outcomes.every(o => o && o.startsWith('skip:'))) break;
       }
       if (this.shouldStop) break;
       const pos = await this.page.evaluate(sequencePosition).catch(() => ({ known: false }));
@@ -1912,19 +1932,21 @@ class AutomationWorker {
 
   // Mode an outline item belongs to, when its type is clear before opening it: graded subsections on
   // the Progress page, plus TSU naming ("Quiz :" / "Sheet :" on Language; แบบฝึก / แบบทดสอบ /
-  // Pre Test / วิดีโอ / เอกสาร on identity and other GE courses). '' = unknown (open it).
+  // Pre Test / วิดีโอ / เอกสาร / part N / แนะนำรายวิชา on identity and other GE courses). '' = unknown.
   outlineItemKind(item, progressData) {
-    const seqId = h => (String(h || '').match(/type@(?:sequential|vertical)\+block@([^/?#&]+)/) || [])[1]
-      || (String(h || '').match(/jump_to_id\/([^/?#]+)/) || [])[1]
-      || (String(h || '').match(/\/courseware\/[^/]+\/([^/?#]+)/) || [])[1]
-      || '';
+    const seqId = h => this.seqIdFromHref(h);
     const rows = (progressData && progressData.rows) || [];
     if (rows.some(r => (seqId(r.href) && seqId(r.href) === seqId(item.href))
       || (r.name && r.name === item.name && r.section && item.section && r.section === item.section))) return 'quiz';
     const name = String(item.name || '');
-    if (/(?:quiz|exercise|practice|pre[\s-]?test|post[\s-]?test|แบบทดสอบ|แบบฝึก(?:หัด)?|ก่อนเรียน|หลังเรียน)/i.test(name)) return 'quiz';
-    if (/(?:video|lecture|วิดีโอ|คลิป|บรรยาย)/i.test(name)) return 'video';
-    if (/(?:sheet|document|html|เอกสาร|ชีท|ใบงาน)/i.test(name)) return 'doc';
+    const section = String(item.section || '');
+    if (/(?:quiz|exercise|practice|exam|pre[\s-]?test|post[\s-]?test|แบบทดสอบ|แบบฝึก(?:หัด)?|ข้อสอบ|วัดผล|ก่อนเรียน|หลังเรียน)/i.test(name)
+      || /^(?:pre[\s-]?test|post[\s-]?test|แบบทดสอบ|ข้อสอบ)$/i.test(section.trim())) return 'quiz';
+    if (/(?:video|lecture|วิดีโอ|วีดีโอ|คลิป|บรรยาย)/i.test(name)
+      || /^(?:part|ตอนที่|ส่วนที่)\s*\d+\b/i.test(name)
+      || /^แนะนำรายวิชา$/i.test(name.trim())) return 'video';
+    if (/(?:sheet|document|html|pdf|slide|เอกสาร|ชีท|ใบงาน|สไลด์)/i.test(name)) return 'doc';
+    if (item && (item.iconKind === 'quiz' || item.iconKind === 'video' || item.iconKind === 'doc')) return item.iconKind;
     return '';
   }
 
@@ -1989,9 +2011,15 @@ class AutomationWorker {
           continue;
         }
         const kind = this.outlineItemKind(item, progressData);
+        const quizOnly = this.modes.has('quiz') && !this.modes.has('video') && !this.modes.has('doc');
         if (kind && !this.modes.has(kind)) {
           givenUp.set(key, `ไม่ได้เลือกให้ทำ${NAMES[kind]}`);
           this.log(`⏭️ [ข้ามตามที่เลือก] ${label(item)} — เป็น${NAMES[kind]} แต่ไม่ได้เลือกให้ทำ${NAMES[kind]}`);
+          continue;
+        }
+        if (quizOnly && kind !== 'quiz') {
+          givenUp.set(key, 'ไม่ได้เลือกให้ทำวิดีโอ/เอกสาร');
+          this.log(`⏭️ [ข้ามตามที่เลือก] ${label(item)} — ไม่ใช่แบบฝึก (เลือกทำเฉพาะแบบฝึก จึงไม่เปิดเข้าหน้านี้)`);
           continue;
         }
         opens.set(key, (opens.get(key) || 0) + 1);
@@ -2005,6 +2033,8 @@ class AutomationWorker {
         const stuckQs = [...this.leftovers.values()].filter(l => (res.urls || new Set()).has(String(l.url).split('#')[0]));
         if (stuckQs.length) {
           givenUp.set(key, `แบบฝึกมี ${stuckQs.length} ข้อที่ไม่มีเฉลยที่ใช้ได้ (ไม่สุ่มตอบ/ไม่ส่ง)`);
+        } else if (didQuiz && this.lastQuizAllDone) {
+          givenUp.set(key, `ทำและส่งคำตอบครบทุกข้อในแบบทดสอบนี้แล้ว — เปิดทำแล้ว ${opens.get(key)} ครั้ง`);
         } else if (kind === 'quiz' && !didQuiz) {
           notes.set(key, 'เปิดแล้วยังไม่พบช่องตอบแบบทดสอบ (ชีท/วิดีโอนำ) — จะเปิดใหม่');
           if ((opens.get(key) || 0) >= maxPasses) {

@@ -220,14 +220,15 @@ const part3 = {
   ]
 };
 
-let ok, stuck, atlakAll, atlakQuizOnly, part3Run;
+let ok, stuck, atlakAll, atlakQuizOnly, part3Run, part3QuizOnly;
 before(async () => {
-  [ok, stuck, atlakAll, atlakQuizOnly, part3Run] = await Promise.all([
+  [ok, stuck, atlakAll, atlakQuizOnly, part3Run, part3QuizOnly] = await Promise.all([
     run(resumed, 'quiz,video,doc', 'q21quiz'),
     run(blocked, 'quiz,doc', 'lastQuiz'),
     run(atlak, 'quiz,video,doc', 'postU'),
     run(atlak, 'quiz', 'postU'),
-    run(part3, 'quiz,video,doc', 'doneSoloU')
+    run(part3, 'quiz,video,doc', 'doneSoloU'),
+    run(part3, 'quiz', 'doneSoloU')
   ]);
 });
 after(() => { playwright.chromium.launchPersistentContext = realLaunch; });
@@ -334,6 +335,14 @@ test('identity course: mode picker skips video/doc by Thai title; quizzes still 
   assert.ok(r.logs.some(l => l.includes('วิดีโอ บทที่ 1') && l.includes('ไม่ได้เลือกให้ทำวิดีโอ')), failMsg(r));
   assert.ok(r.logs.some(l => l.includes('เอกสารประกอบ บทที่ 1') && l.includes('ไม่ได้เลือกให้ทำเอกสาร')), failMsg(r));
   assert.ok(r.logs[r.logs.length - 1].includes('ยังไม่ครบ 100%'), failMsg(r));
+
+  // part3QuizOnly: part 3 (video subsection without "วิดีโอ" in title) must NEVER be opened when only quiz is selected.
+  const pq = part3QuizOnly;
+  assert.strictEqual(pq.status, 'completed', failMsg(pq));
+  assert.strictEqual(seqOpens(pq, 'part3'), 0, `part 3 must never be opened when only quiz is selected${failMsg(pq)}`);
+  assert.ok(!pq.srv.state.events.some(e => e.type === 'video-play'), failMsg(pq));
+  ['q1', 'q2', 'q4', 'q5', 'q6', 'post'].forEach(s =>
+    assert.strictEqual(seqOpens(pq, s), 1, `quiz ${s} should be opened exactly once${failMsg(pq)}`));
 });
 
 test('outlineItemKind: Thai แบบฝึก / แบบทดสอบ / Pre Test and mixed hrefs', () => {
@@ -348,9 +357,14 @@ test('outlineItemKind: Thai แบบฝึก / แบบทดสอบ / Pre 
   assert.strictEqual(kind('Quiz : Unit 1 : Chapter 1'), 'quiz');
   assert.strictEqual(kind('Practice : Unit 1 : Chapter 1'), 'quiz');
   assert.strictEqual(kind('วิดีโอ บทที่ 1'), 'video');
+  assert.strictEqual(kind('part 1'), 'video');
+  assert.strictEqual(kind('part 10'), 'video');
+  assert.strictEqual(kind('แนะนำรายวิชา'), 'video');
   assert.strictEqual(kind('เอกสารประกอบ บทที่ 1'), 'doc');
   assert.strictEqual(kind('Sheet : Movies Vocabulary'), 'doc');
   assert.strictEqual(kind('Movies Vocabulary'), '');
+  assert.strictEqual(w.outlineItemKind({ name: 'Movies Vocabulary', href: '', iconKind: 'video' }), 'video');
+  assert.strictEqual(w.seqIdFromHref('/courses/course-v1:TSU+X+Y/jump_to/block-v1%3ATSU%2BX%2BY%2Btype%40sequential%2Bblock%40q99'), 'q99');
   assert.strictEqual(w.courseCodeFromId('course-v1:Language_and_Communication+TSUGE00152+2026_T2'), 'TSUGE00152');
   assert.strictEqual(w.courseCodeFromId('course-v1:Life_skills_and_Personal_development+TSUGE000111+2024_T2'), 'TSUGE000111');
   const redirected = w.resolveTargetUrl(
