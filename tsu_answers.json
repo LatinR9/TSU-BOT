@@ -7150,6 +7150,705 @@
           ]
         }
       ]
+    },
+    {
+      "course_code": "TSUPT00014",
+      "course_name": "ฟาร์มสุขปลูกเอง",
+      "org": "Life_skills_and_Personal_development",
+      "course_id_url_if_known": "https://apps.course.tsu.ac.th/learning/course/course-v1:Life_skills_and_Personal_development+TSUPT00014+2024_T2/home",
+      "terms_seen": [
+        "2024_T2"
+      ],
+      "pretest_policy": "random",
+      "notes": "First run: account yotwarislukoaroon200351, 2026-11-16. Pre-test (30 Q, weight 0%) answered randomly, not recorded. Grading: Ch1-5 quizzes 12% each (10 Q), Post-test 40% (30 Q), pass 70%.",
+      "sections": [
+        {
+          "section": "บทที่ 1",
+          "notes": "10/10",
+          "questions": [
+            {
+              "question": "ประวัติความเป็นมาของภาคการเกษตรแบ่งออกเป็นกี่ยุค",
+              "answer_type": "choice",
+              "correct_answer": "2 ยุค",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดคือลักษณะการเปลี่ยนแปลงที่เกิดขึ้นในยุคการปฏิวัติเขียว",
+              "answer_type": "choice",
+              "correct_answer": "ใช้เครื่องมือและเครื่องจักรกลมาทำการเกษตร",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดไม่ใช่ประโยชน์ของการเกษตรหรือปลูกผัก",
+              "answer_type": "choice",
+              "correct_answer": "ประโยชน์ของญาติมิตร",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "Microgreen คืออะไร",
+              "answer_type": "choice",
+              "correct_answer": "การเลี้ยงไก่",
+              "known_wrong_answers": [
+                "การปลูกผักต้นอ่อน",
+                "การปลูกผักกินยอด"
+              ],
+              "status": "confirmed",
+              "notes": "grader quirk; wrong: การปลูกผักต้นอ่อน, การปลูกผักกินยอด"
+            },
+            {
+              "question": "ข้อใดคือ ต้นอ่อนผักงอก (sprouts)",
+              "answer_type": "choice",
+              "correct_answer": "ปลูกถั่วเขียวเพื่อทำถั่วงอก",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ในการเพาะถั่วลันเตาควรมีระยะระหว่างเมล็ดกี่เซนติเมตร",
+              "answer_type": "choice",
+              "correct_answer": "1 เซนติเมตร",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดคือประโยชน์ของต้นอ่อนงอก",
+              "answer_type": "choice",
+              "correct_answer": "จ. ถูกทุกข้อ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "วัสดุใดที่สามารถนำมาประยุกต์ในการปลูกพืชแบบไม่ใช้ดินได้ ยกเว้น",
+              "answer_type": "choice",
+              "correct_answer": "จานแตก",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดคือประจุ Cation ที่พืชนำไปใช้",
+              "answer_type": "choice",
+              "correct_answer": "NH3+",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "อุปกรณ์ที่ใช้ในการเก็บเกี่ยวต้นอ่อนถั่วลันเตาคืออะไร",
+              "answer_type": "choice",
+              "correct_answer": "มีด และกรรไกร",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "section": "บทที่ 2",
+          "notes": "10/10",
+          "questions": [
+            {
+              "question": "หลักการสำคัญในการออกแบบสวนกินได้มีอะไรบ้าง",
+              "answer_type": "choice",
+              "correct_answer": "สวยงาม ใช้งานสะดวก และอยู่สบาย",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดเป็นองค์ประกอบของสวนที่เป็นพื้นผิวอ่อน",
+              "answer_type": "choice",
+              "correct_answer": "ต้นฝรั่ง",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใด ไม่ ถูกต้องเกี่ยวกับการเขียนชื่อต้นไม้เป็นกลุ่ม",
+              "answer_type": "choice",
+              "correct_answer": "ถ้าเป็นพืชที่อยู่ใกล้กันสามารถลากเส้นเชื่อมกันได้",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดเป็นองค์ประกอบของสวนที่เป็นพื้นผิวแข็ง",
+              "answer_type": "choice",
+              "correct_answer": "กระถาง",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใด ไม่ถูกต้องเกี่ยวกับหลักการของการออกแบบสวนให้สามารถใช้งานได้สะดวก",
+              "answer_type": "choice",
+              "correct_answer": "ความกว้างทางเดินที่ต้องใช้รถเข็นด้วยควรกว้าง 0.30-0.60 เมตร",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใด ไม่ เป็นการวางองค์ประกอบภายในสวนให้สมดุล",
+              "answer_type": "choice",
+              "correct_answer": "การปลูกต้นไม้จำนวนเท่ากันทั้ง 2 ฝั่งของสวน",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดไม่ถูกต้องเกี่ยวกับหลักการออกแบบสวนให้สวย",
+              "answer_type": "choice",
+              "correct_answer": "ต้นไม้ที่ที่มีรูปทรงที่โดดเด่นหรืออยู่ในกระถางที่โดดเด่นสามารถใช้เป็นจุดเด่นของสวนได้เช่นกัน",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดถูกต้องเกี่ยวกับการออกแบบสวนให้อยู่สบาย",
+              "answer_type": "choice",
+              "correct_answer": "ควรมีมุมนั่งผ่อน",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใด ไม่ ถูกต้องเกี่ยวกับศิลปะการออกแบบ",
+              "answer_type": "choice",
+              "correct_answer": "การวางจุดเด่นในสวนต้องเป็นวัสดุที่เป็นพื้นผิวแข็งเท่านั้น",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใด ไม่ถูกต้องเกี่ยวกับการเลือกพืชกินได้มาปลูกในสวน",
+              "answer_type": "choice",
+              "correct_answer": "ควรใช้ดินร่วนปนทรายที่มีปุ๋ยคอกผสม",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "section": "บทที่ 3",
+          "notes": "10/10",
+          "questions": [
+            {
+              "question": "การรับประทานเห็ดจะได้รับวิตามินชนิดใด",
+              "answer_type": "choice",
+              "correct_answer": "วิตามิน B",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ผลิตภัณฑ์ก้อนซุปทำจากเห็ดชนิดใด",
+              "answer_type": "choice",
+              "correct_answer": "เห็ดเข็มทอง",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "สัญลักษ์ตามภาพแสดงถึงการเกิดพิษลักษณะใค",
+              "answer_type": "choice",
+              "correct_answer": "อาการมึนเมา",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดเป็นวิธีการปฐมพยาบาลที่ถูกต้องเมื่อรับประทานเห็ดพิษ",
+              "answer_type": "choice",
+              "correct_answer": "รับประทานสมุนไพรล้างพิษ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": "grader quirk"
+            },
+            {
+              "question": "วัสดุเศษเหลือทางการเกษตรข้อใดสามารถนำมาเพาะเห็ดได้",
+              "answer_type": "choice",
+              "correct_answer": "ข้อ ก และ ข ถูกต้อง",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การเพาะเห็ดฟางรูปแบบใดให้ผลผลิตเห็ดดีที่สุด",
+              "answer_type": "choice",
+              "correct_answer": "การเพาะเห็ดฟางในตะกร้า",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "แมลงเป็นอาหารที่มีความโดเด่นในเรื่องใด",
+              "answer_type": "choice",
+              "correct_answer": "โปรตีนสูง",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อควรระวังในการปริโภคแมลงคือข้อใด",
+              "answer_type": "choice",
+              "correct_answer": "ถูกทุกข้อ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใด ไม่ ถูกต้องเกี่ยวกับศิลปะการออกแบบ",
+              "answer_type": "choice",
+              "correct_answer": "การวางจุดเด่นในสวนต้องเป็นวัสดุที่เป็นพื้นผิวแข็งเท่านั้น",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใด ไม่ถูกต้องเกี่ยวกับการเลือกพืชกินได้มาปลูกในสวน",
+              "answer_type": "choice",
+              "correct_answer": "ควรใช้ดินร่วนปนทรายที่มีปุ๋ยคอกผสม",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "section": "บทที่ 4",
+          "notes": "10/10",
+          "questions": [
+            {
+              "question": "เมล็ดพืชชนิดใดมีขนาดใหญ่ที่สุด",
+              "answer_type": "choice",
+              "correct_answer": "มะนาว",
+              "known_wrong_answers": [
+                "มะพร้าว",
+                "มะม่วง",
+                "มะขาม",
+                "มะกอก"
+              ],
+              "status": "confirmed",
+              "notes": "grader quirk; wrong: มะพร้าว, มะม่วง, มะขาม, มะกอก"
+            },
+            {
+              "question": "เมล็ดพืชชนิดใดมีขนาดเล็กที่สุด",
+              "answer_type": "choice",
+              "correct_answer": "เมล็ดยาสูบ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ลักษณะใดไม่ใช่ลักษณะเชิงคุณภาพของเมล็ดพันธุ์",
+              "answer_type": "choice",
+              "correct_answer": "น้ำหนักของเมล็ด",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ลักษณะใดไม่ใช่ลักษณะเชิงปริมาณของเมล็ดพันธุ์",
+              "answer_type": "choice",
+              "correct_answer": "รูปร่างเมล็ด",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดเปรียบเทียบขนาดของเมล็ดโดยเรียงลำดับจากเมล็ดเล็กไปหาเมล็ดใหญ่ได้ถูกต้อง",
+              "answer_type": "choice",
+              "correct_answer": "เมล็ดยาสูบ เมล็ดพริกไทย เมล็ดมะขาม เมล็ดมะพร้าว",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดเปรียบเทียบขนาดของเมล็ดโดยเรียงลำดับจากเมล็ดเล็กไปหาเมล็ดใหญ่ถูกต้อง",
+              "answer_type": "choice",
+              "correct_answer": "เมล็ดยาสูบ เมล็ดคะน้า เมล็ดผักชี เมล็ดฟักทอง เมล็ดมะเขือ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ในซองเมล็ดพันธุ์สิ่งที่ควรระบุให้กับผู้บริโภคได้รู้ตามพระราชบัญญัติคุ้มครองพันธุ์พืช พ.ศ. 2542 คือข้อใด",
+              "answer_type": "choice",
+              "correct_answer": "ชื่อพืช และ เลขทะเบียนขออนุญาตจำหน่ายพืชควบคุม พพ.xxx/xxxx",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": "In Ch4 quiz this option is graded correct; in Post-test the same stem accepts เปอร์เซ็นต์ความงอก และความบริสุทธิ์ของเมล็ดพันธุ์."
+            },
+            {
+              "question": "พืชชนิดใดไม่ใช่พืชที่ใช้เป็นผักตกแต่งบนจานอาหาร",
+              "answer_type": "choice",
+              "correct_answer": "ฟักเขียว",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "จากคลิปวิดีโอเมล็ดพันธุ์พืชชนิดใดที่มีการพัฒนาและปรับปรุงพันธุ์อย่างต่อเนื่อง",
+              "answer_type": "choice",
+              "correct_answer": "ข้าว",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "จากคลิปวิดีโอเมล็ดเขือเทศสายพันธุ์อะไรที่มีการปรับปรุงพันธุ์ด้วยให้มียีนต้านทานโรคใบหยิกเหลือง",
+              "answer_type": "choice",
+              "correct_answer": "ถูกทุกข้อ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "section": "บทที่ 5",
+          "notes": "10/10",
+          "questions": [
+            {
+              "question": "ข้อใดไม่สอดคล้องตามหลักการทำฟาร์มสัตว์",
+              "answer_type": "choice",
+              "correct_answer": "การคำนึงถึงกำไรควรมากที่สุด",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "โรคใดต่อไปนี้เป็นโรคติดต่อจากสัตว์สู่คน",
+              "answer_type": "choice",
+              "correct_answer": "ก ข และ ค ถูก",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดกล่าวถึงนิยามของคำว่า “One Health” ได้ถูกต้องที่สุด",
+              "answer_type": "choice",
+              "correct_answer": "การคำนึงถึงสุขภาพคน สุขภาพสัตว์และสุขภาพสิ่งแวดล้อม",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ทุกข้อต่อไปนี้คือการแสดงความรู้สึกจากคนไปถึงความรู้สึกของสัตว์ ยกเว้น ข้อใด",
+              "answer_type": "choice",
+              "correct_answer": "การฉีดยาให้สัตว์",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใด ไม่ใช้ การป้องกันโรคในสัตว์",
+              "answer_type": "choice",
+              "correct_answer": "การอาบน้ำให้สัตว์ทุกวัน",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดกล่าวถึงพฤติกรรมที่ดีของผู้เลี้ยงสัตว์เพื่อ “การดูแลสัตว์ให้มีสุขภาพที่ดี”",
+              "answer_type": "choice",
+              "correct_answer": "ถูกทุกข้อ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดคำนึงถึงหลักความปลอดภัยทางชีวภาพในฟาร์มสัตว์",
+              "answer_type": "choice",
+              "correct_answer": "ถูกทุกข้อ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใด ไม่ใช้ โปรแกรมสุขภาพในสัตว์",
+              "answer_type": "choice",
+              "correct_answer": "การงดน้ำงดอาหารในสัตว์ป่วย",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดกล่าวถึงพฤติกรรมที่คำนึงถึง สวัสดิภาพสัตว์ของผู้เลี้ยง",
+              "answer_type": "choice",
+              "correct_answer": "ขอไข่ ทำการศึกษาคู่มือการสร้างโรงเรือนสำหรับสัตว์ตามหลักกฎหมาย",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดคือแนวคิดที่ดีของเจ้าของฟาร์มสัตว์",
+              "answer_type": "choice",
+              "correct_answer": "ต้นกล้า พบสัตว์ป่วยในฟาร์มรีบทำการรักษาทันที",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            }
+          ]
+        },
+        {
+          "section": "แบบทดสอบหลังเรียน (Post-Test)",
+          "notes": "30/30, weight 40%",
+          "questions": [
+            {
+              "question": "ประวัติความเป็นมาของภาคการเกษตรแบ่งออกเป็นกี่ยุค",
+              "answer_type": "choice",
+              "correct_answer": "2 ยุค",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "พืชชนิดใดไม่เหมาะสำหรับการปลูกในสารละลายหรือการปลูกแบบไฮโดรโปนิกส์",
+              "answer_type": "choice",
+              "correct_answer": "ต้นพะยอม",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "พืชชนิดใดเหมาะสำหรับการปลูกในสารละลายหรือการปลูกแบบไฮโดรโปนิกส์",
+              "answer_type": "choice",
+              "correct_answer": "คะน้า",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การปลูกผักงอก (ถั่วลันเตา) นิยมแช่น้ำก่อนปลูกกี่คืน",
+              "answer_type": "choice",
+              "correct_answer": "แช่น้ำก่อนปลูก 1 คืน",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การปลูกผักไฮโดรโปนิกส์แบบใดที่นิยมปลูกเป็นการค้าและใช้มากที่สุดในปัจจุบัน",
+              "answer_type": "choice",
+              "correct_answer": "Nutrient Film Technique (NFT)",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การเก็บเกี่ยวต้นอ่อนงอกจะเก็บเมื่อเพาะไปแล้วกี่วัน",
+              "answer_type": "choice",
+              "correct_answer": "10-14 วัน",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "หลักการสำคัญในการออกแบบสวนกินได้มีอะไรบ้าง",
+              "answer_type": "choice",
+              "correct_answer": "สวยงาม ใช้งานสะดวก และอยู่สบาย",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดเป็นองค์ประกอบของสวนที่เป็นพื้นผิวอ่อน",
+              "answer_type": "choice",
+              "correct_answer": "ต้นฝรั่ง",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใด ไม่ ถูกต้องเกี่ยวกับการเขียนชื่อต้นไม้เป็นกลุ่ม",
+              "answer_type": "choice",
+              "correct_answer": "ถ้าเป็นพืชที่อยู่ใกล้กันสามารถลากเส้นเชื่อมกันได้",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใด ไม่ เป็นการวางองค์ประกอบภายในสวนให้สมดุล",
+              "answer_type": "choice",
+              "correct_answer": "การปลูกต้นไม้จำนวนเท่ากันทั้ง 2 ฝั่งของสวน",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดถูกต้องเกี่ยวกับการออกแบบสวนให้อยู่สบาย",
+              "answer_type": "choice",
+              "correct_answer": "ควรมีมุมนั่งผ่อน",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การดูแลสวนให้สวยงามเสมอต้องดูแลเรื่องอะไรบ้าง",
+              "answer_type": "choice",
+              "correct_answer": "ถูกทุกข้อ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "เมล็ดพืชชนิดใดมีขนาดเล็กที่สุด",
+              "answer_type": "choice",
+              "correct_answer": "เมล็ดยาสูบ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ลักษณะใดไม่ใช่ลักษณะเชิงคุณภาพของเมล็ดพันธุ์",
+              "answer_type": "choice",
+              "correct_answer": "น้ำหนักของเมล็ด",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ลักษณะใดไม่ใช่ลักษณะเชิงปริมาณของเมล็ดพันธุ์",
+              "answer_type": "choice",
+              "correct_answer": "รูปร่างเมล็ด",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "พืชชนิดใดไม่ใช่พืชที่ใช้เป็นผักตกแต่งบนจานอาหาร",
+              "answer_type": "choice",
+              "correct_answer": "ฟักเขียว",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ในซองเมล็ดพันธุ์สิ่งที่ควรระบุให้กับผู้บริโภคได้รู้ตามพระราชบัญญัติคุ้มครองพันธุ์พืช พ.ศ. 2542 คือข้อใด",
+              "answer_type": "choice",
+              "correct_answer": "เปอร์เซ็นต์ความงอก และความบริสุทธิ์ของเมล็ดพันธุ์",
+              "known_wrong_answers": [
+                "ชื่อพืช และ เลขทะเบียนขออนุญาตจำหน่ายพืชควบคุม พพ.xxx/xxxx"
+              ],
+              "status": "confirmed",
+              "notes": "In Post-test this option is graded correct; ชื่อพืช และ เลขทะเบียน... is wrong here."
+            },
+            {
+              "question": "ข้อใดเปรียบเทียบขนาดของเมล็ดโดยเรียงลำดับจากเมล็ดเล็กไปหาเมล็ดใหญ่ถูกต้อง",
+              "answer_type": "choice",
+              "correct_answer": "เมล็ดยาสูบ เมล็ดคะน้า เมล็ดผักชี เมล็ดฟักทอง เมล็ดมะเขือ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การรับประทานเห็ดจะได้รับวิตามินชนิดใด",
+              "answer_type": "choice",
+              "correct_answer": "วิตามิน B",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "วัสดุเศษเหลือทางการเกษตรข้อใดสามารถนำมาเพาะเห็ดได้",
+              "answer_type": "choice",
+              "correct_answer": "ข้อ ก และ ข ถูกต้อง",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "การเพาะเห็ดฟางรูปแบบใดให้ผลผลิตเห็ดดีที่สุด",
+              "answer_type": "choice",
+              "correct_answer": "การเพาะเห็ดฟางในตะกร้า",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "แมลงเป็นอาหารที่มีความโดเด่นในเรื่องใด",
+              "answer_type": "choice",
+              "correct_answer": "โปรตีนสูง",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อควรระวังในการปริโภคแมลงคือข้อใด",
+              "answer_type": "choice",
+              "correct_answer": "ถูกทุกข้อ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "โรคใดต่อไปนี้เป็นโรคติดต่อจากสัตว์สู่คน",
+              "answer_type": "choice",
+              "correct_answer": "ก ข และ ค ถูก",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ทุกข้อต่อไปนี้คือการแสดงความรู้สึกจากคนไปถึงความรู้สึกของสัตว์ ยกเว้น ข้อใด",
+              "answer_type": "choice",
+              "correct_answer": "การฉีดยาให้สัตว์",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใด ไม่ใช้ การป้องกันโรคในสัตว์",
+              "answer_type": "choice",
+              "correct_answer": "การอาบน้ำให้สัตว์ทุกวัน",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดคำนึงถึงหลักความปลอดภัยทางชีวภาพในฟาร์มสัตว์",
+              "answer_type": "choice",
+              "correct_answer": "ถูกทุกข้อ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดจัดเป็นการสร้างฟาร์มสัตว์แนวสมัยใหม่",
+              "answer_type": "choice",
+              "correct_answer": "ถูกทุกข้อ",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดไม่สอดคล้องตามหลักการทำฟาร์มสัตว์",
+              "answer_type": "choice",
+              "correct_answer": "การคำนึงถึงกำไรควรมากที่สุด",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            },
+            {
+              "question": "ข้อใดคือแนวคิดที่ดีของเจ้าของฟาร์มสัตว์",
+              "answer_type": "choice",
+              "correct_answer": "ต้นกล้า พบสัตว์ป่วยในฟาร์มรีบทำการรักษาทันที",
+              "known_wrong_answers": [],
+              "status": "confirmed",
+              "notes": ""
+            }
+          ]
+        }
+      ]
     }
   ]
 }

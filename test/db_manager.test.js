@@ -202,3 +202,62 @@ test('TSUGE00156 (ภาวะผู้นำยุคดิจิทัล): al
   assert.strictEqual(q31.choiceText, 'การละเมิดสิทธิของผู้อื่นในโลกออนไลน์');
   assert.strictEqual(q31.inferred, true);
 });
+
+test('TSUPT00014 (ฟาร์มสุขปลูกเอง): all 5 chapters (50 Qs), Post-Test (30 Qs), URL, and Ch4 vs Post-Test seed packet item resolve accurately', () => {
+  const course = db.courses.find(c => c.course_code === 'TSUPT00014');
+  assert.ok(course, 'TSUPT00014 must exist in tsu_answers.json');
+  assert.strictEqual(course.course_name, 'ฟาร์มสุขปลูกเอง');
+  assert.ok(db.courseUrl('TSUPT00014').includes('Life_skills_and_Personal_development+TSUPT00014+2024_T2'));
+
+  const counts = Object.fromEntries(course.sections.map(s => [s.section, (s.questions || []).length]));
+  for (let b = 1; b <= 5; b++) {
+    assert.strictEqual(counts[`บทที่ ${b}`], 10, `บทที่ ${b} must have 10 questions`);
+    assert.strictEqual(db.resolveSection('TSUPT00014', `บทที่ ${b} | แบบทดสอบ`), `บทที่ ${b}`);
+    assert.strictEqual(db.resolveSection('TSUPT00014', `Chapter ${b} | Quiz`), `บทที่ ${b}`);
+    assert.strictEqual(db.resolveSection('TSUPT00014', `Unit ${b} | Quiz`), `บทที่ ${b}`);
+  }
+  assert.strictEqual(counts['แบบทดสอบหลังเรียน (Post-Test)'], 30);
+  assert.strictEqual(db.resolveSection('TSUPT00014', 'Post-test'), 'แบบทดสอบหลังเรียน (Post-Test)');
+
+  // Verify every question in every section matches its own answer
+  for (const sec of course.sections) {
+    for (const q of sec.questions) {
+      const choices = ['ตัวเลือกหลอก 1', q.correct_answer, 'ตัวเลือกหลอก 2'];
+      const d = db.decideResponse({ courseCode: 'TSUPT00014', section: sec.section, texts: [q.question], choices });
+      assert.strictEqual(d.action, 'choice', `${sec.section}: ${q.question}`);
+      assert.strictEqual(d.choiceText, q.correct_answer, `${sec.section}: ${q.question}`);
+    }
+  }
+
+  // Ch1 Q7: "จ. ถูกทุกข้อ" also matches plain "ถูกทุกข้อ"
+  const ch1q7 = db.decideResponse({
+    courseCode: 'TSUPT00014',
+    section: 'บทที่ 1',
+    texts: ['ข้อใดคือประโยชน์ของต้นอ่อนงอก'],
+    choices: ['ก. มีวิตามินสูง', 'ถูกทุกข้อ']
+  });
+  assert.strictEqual(ch1q7.choiceText, 'ถูกทุกข้อ');
+
+  // Ch4 Q7 vs Post-test Q17: same stem, different graded answer per section
+  const seedStem = 'ในซองเมล็ดพันธุ์สิ่งที่ควรระบุให้กับผู้บริโภคได้รู้ตามพระราชบัญญัติคุ้มครองพันธุ์พืช พ.ศ. 2542 คือข้อใด';
+  const seedChoices = [
+    'ชื่อพืช และ เลขทะเบียนขออนุญาตจำหน่ายพืชควบคุม พพ.xxx/xxxx',
+    'เปอร์เซ็นต์ความงอก และความบริสุทธิ์ของเมล็ดพันธุ์',
+    'ราคาและสถานที่ผลิต'
+  ];
+  const ch4Seed = db.decideResponse({
+    courseCode: 'TSUPT00014',
+    section: db.resolveSection('TSUPT00014', 'Chapter 4'),
+    texts: [seedStem],
+    choices: seedChoices
+  });
+  assert.strictEqual(ch4Seed.choiceText, 'ชื่อพืช และ เลขทะเบียนขออนุญาตจำหน่ายพืชควบคุม พพ.xxx/xxxx');
+
+  const postSeed = db.decideResponse({
+    courseCode: 'TSUPT00014',
+    section: db.resolveSection('TSUPT00014', 'Post-test'),
+    texts: [seedStem],
+    choices: seedChoices
+  });
+  assert.strictEqual(postSeed.choiceText, 'เปอร์เซ็นต์ความงอก และความบริสุทธิ์ของเมล็ดพันธุ์');
+});

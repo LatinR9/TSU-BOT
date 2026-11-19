@@ -276,17 +276,28 @@ class DBManager {
     const ctx = sectionTokens(contextText);
     if (ctx.size === 0) return '';
     const allowed = this.coursesFor(courseCode);
-    let best = '', bestLen = 0, tie = false;
-    for (const course of this.courses) {
-      if (allowed && !allowed.has(course.course_code)) continue;
-      for (const section of (course.sections || [])) {
-        const st = sectionTokens(section.section || '');
-        if (st.size === 0 || ![...st].every(t => ctx.has(t))) continue;
-        if (st.size > bestLen) { best = section.section; bestLen = st.size; tie = false; }
-        else if (st.size === bestLen && section.section !== best) tie = true;
+    const matchWith = tokens => {
+      let best = '', bestLen = 0, tie = false;
+      for (const course of this.courses) {
+        if (allowed && !allowed.has(course.course_code)) continue;
+        for (const section of (course.sections || [])) {
+          const st = sectionTokens(section.section || '');
+          if (st.size === 0 || ![...st].every(t => tokens.has(t))) continue;
+          if (st.size > bestLen) { best = section.section; bestLen = st.size; tie = false; }
+          else if (st.size === bestLen && section.section !== best) tie = true;
+        }
       }
+      return tie ? '' : best;
+    };
+    const direct = matchWith(ctx);
+    if (direct) return direct;
+    // Fallback for Thai courses whose LMS page labels chapters as "Chapter N" or "Unit N" instead of "บทที่ N".
+    const mapped = new Set(ctx);
+    for (const t of ctx) {
+      const m = t.match(/^[cu](\d+)$/);
+      if (m) mapped.add('b' + m[1]);
     }
-    return tie ? '' : best;
+    return mapped.size > ctx.size ? matchWith(mapped) : '';
   }
 
   /**
