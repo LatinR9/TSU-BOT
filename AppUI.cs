@@ -109,8 +109,29 @@ namespace TSUBotDesktop
         }
     }
 
+    public class ProfileItem
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string CourseCode { get; set; }
+        public string CustomUrl { get; set; }
+        public string Speed { get; set; }
+        public string Modes { get; set; }
+        public bool EnabledForRunAll { get; set; }
+
+        public override string ToString()
+        {
+            return string.IsNullOrEmpty(CourseCode) ? Name : string.Format("{0} [{1}]", Name, CourseCode);
+        }
+    }
+
     public class MainForm : Form
     {
+        private ComboBox comboProfile;
+        private Button btnAddProfile;
+        private Button btnManageProfiles;
+        private Button btnStartAll;
+        private bool suppressProfileEvents = false;
         private ComboBox comboCourse;
         private ComboBox comboSpeed;
         private CheckBox chkModeQuiz;
@@ -140,8 +161,11 @@ namespace TSUBotDesktop
         private SplitContainer splitMain;
 
         private List<CourseItem> courses = new List<CourseItem>();
+        private List<ProfileItem> profiles = new List<ProfileItem>();
         private Dictionary<string, Process> runningWorkers = new Dictionary<string, Process>();
+        private Dictionary<string, string> workerProfiles = new Dictionary<string, string>();
         private Dictionary<string, bool> workerPausedStates = new Dictionary<string, bool>();
+        private List<Process> loginProcesses = new List<Process>();
         private int workerCounter = 1;
         private string appDir;
         private string nodePath;
@@ -151,9 +175,11 @@ namespace TSUBotDesktop
         private bool updateInProgress = false;
         private Process loginProcess;
         private volatile bool resetInProgress = false;
-        private const string APP_VERSION = "1.1.2";
+        private const string APP_VERSION = "1.2.0";
         // Must match USER_DATA_DIR in worker.js / cli_worker.js / server.js (Playwright persistent profile).
         private const string PROFILE_DIR = "user_profile";
+        private const string PROFILES_ROOT_DIR = "user_profiles";
+        private const string PROFILES_CONFIG_FILE = "profiles_config.json";
         private const string GITHUB_REPO = "LatinR9/TSU-BOT";
         private const string EXE_NAME = "TSU-BOT-Pro.exe";
         private const string SETTINGS_FILE = "desktop_settings.json";
@@ -217,6 +243,7 @@ namespace TSUBotDesktop
             InitializeComponent();
             LoadCourses();
             LoadModeSettings();
+            LoadProfiles();
             this.Shown += (s, e) => CheckUpdateAsync(false);
         }
 
@@ -367,47 +394,67 @@ namespace TSUBotDesktop
             this.Controls.Add(pnlHeader);
 
             // —— Launch / controls ——
-            Panel pnlControls = CreateSurfacePanel(DockStyle.Top, 188);
-            pnlControls.Padding = new Padding(18, 14, 18, 14);
+            Panel pnlControls = CreateSurfacePanel(DockStyle.Top, 194);
+            pnlControls.Padding = new Padding(18, 12, 18, 12);
             pnlControls.Paint += PaintSurfaceCard;
             pnlControls.Margin = new Padding(0, 10, 0, 0);
 
             Label lblSetup = new Label
             {
-                Text = "ตั้งค่าและเริ่มทำงาน",
-                Font = UiTheme.UiFont(11f, FontStyle.Bold),
+                Text = "ตั้งค่าและเริ่มทำงาน (รองรับหลายโปรไฟล์ Chrome แยกบัญชี & แยกวิชา)",
+                Font = UiTheme.UiFont(10.5f, FontStyle.Bold),
                 ForeColor = UiTheme.BrandDeep,
                 AutoSize = true,
-                Location = new Point(18, 12),
+                Location = new Point(18, 10),
                 BackColor = Color.Transparent
             };
             pnlControls.Controls.Add(lblSetup);
 
-            btnLogin = CreateButton("เปิด Chrome เข้าสู่ระบบ", UiTheme.Success, 220, 36, true);
-            btnLogin.Location = new Point(18, 42);
+            Label lblProfile = CreateFieldLabel("โปรไฟล์:", new Point(18, 46));
+            pnlControls.Controls.Add(lblProfile);
+
+            comboProfile = CreateCombo(new Point(78, 42), 200);
+            comboProfile.SelectedIndexChanged += ComboProfile_SelectedIndexChanged;
+            pnlControls.Controls.Add(comboProfile);
+
+            btnAddProfile = CreateButton("+ โปรไฟล์", UiTheme.Brand, 88, 32, false);
+            btnAddProfile.Location = new Point(284, 39);
+            btnAddProfile.Click += BtnAddProfile_Click;
+            new ToolTip().SetToolTip(btnAddProfile, "สร้างโปรไฟล์ Chrome ใหม่แยกคุกกี้และบัญชีล็อกอิน");
+            pnlControls.Controls.Add(btnAddProfile);
+
+            btnManageProfiles = CreateButton("จัดการทุกโปรไฟล์", UiTheme.Info, 134, 32, false);
+            btnManageProfiles.Location = new Point(378, 39);
+            btnManageProfiles.Click += BtnManageProfiles_Click;
+            new ToolTip().SetToolTip(btnManageProfiles, "ตั้งค่าวิชาแยกแต่ละโปรไฟล์ ล็อกอินแยกบัญชี และเลือกรันพร้อมกัน");
+            pnlControls.Controls.Add(btnManageProfiles);
+
+            btnLogin = CreateButton("ล็อกอินโปรไฟล์นี้", UiTheme.Success, 148, 32, true);
+            btnLogin.Location = new Point(518, 39);
             btnLogin.Click += BtnLogin_Click;
+            new ToolTip().SetToolTip(btnLogin, "เปิด Chrome ของโปรไฟล์ที่เลือกอยู่เพื่อล็อกอินบัญชี TSU");
             pnlControls.Controls.Add(btnLogin);
 
-            btnSettings = CreateButton("ตั้งค่ารายวิชา & URL", UiTheme.Info, 180, 36, false);
-            btnSettings.Location = new Point(248, 42);
+            btnSettings = CreateButton("ตั้งค่าวิชา & URL", UiTheme.Info, 132, 32, false);
+            btnSettings.Location = new Point(672, 39);
             btnSettings.Click += BtnSettings_Click;
             pnlControls.Controls.Add(btnSettings);
 
-            btnAddCourse = CreateButton("เพิ่มวิชาด่วน", UiTheme.Brand, 130, 36, false);
-            btnAddCourse.Location = new Point(438, 42);
+            btnAddCourse = CreateButton("เพิ่มวิชา", UiTheme.Brand, 76, 32, false);
+            btnAddCourse.Location = new Point(810, 39);
             btnAddCourse.Click += BtnSettings_Click;
             pnlControls.Controls.Add(btnAddCourse);
 
-            btnResetBrowser = CreateButton("ล้างแคชเบราว์เซอร์", UiTheme.Danger, 170, 36, false);
-            btnResetBrowser.Location = new Point(578, 42);
+            btnResetBrowser = CreateButton("ล้างแคช", UiTheme.Danger, 96, 32, false);
+            btnResetBrowser.Location = new Point(892, 39);
             btnResetBrowser.Click += BtnResetBrowser_Click;
-            new ToolTip().SetToolTip(btnResetBrowser, "ลบแคช คุกกี้ ข้อมูลเว็บ และการล็อกอินที่บันทึกไว้ของเบราว์เซอร์บอท");
+            new ToolTip().SetToolTip(btnResetBrowser, "ลบแคช คุกกี้ และการล็อกอินของโปรไฟล์ที่เลือก (หรือล้างทุกโปรไฟล์)");
             pnlControls.Controls.Add(btnResetBrowser);
 
-            Label lblCourse = CreateFieldLabel("เลือกวิชาที่จะทำ", new Point(18, 92));
+            Label lblCourse = CreateFieldLabel("เลือกวิชาที่จะทำ (สำหรับโปรไฟล์ที่เลือก)", new Point(18, 86));
             pnlControls.Controls.Add(lblCourse);
 
-            comboCourse = CreateCombo(new Point(18, 114), 460);
+            comboCourse = CreateCombo(new Point(18, 108), 460);
             comboCourse.SelectedIndexChanged += (s, ev) =>
             {
                 CourseItem ci = comboCourse.SelectedItem as CourseItem;
@@ -415,45 +462,55 @@ namespace TSUBotDesktop
                 {
                     txtUrl.Text = ci.Url;
                 }
+                SyncCurrentControlsToSelectedProfile();
             };
             pnlControls.Controls.Add(comboCourse);
 
-            Label lblSpeed = CreateFieldLabel("ความเร็ว", new Point(498, 92));
+            Label lblSpeed = CreateFieldLabel("ความเร็ว", new Point(498, 86));
             pnlControls.Controls.Add(lblSpeed);
 
-            comboSpeed = CreateCombo(new Point(498, 114), 160);
+            comboSpeed = CreateCombo(new Point(498, 108), 160);
             comboSpeed.Items.AddRange(new object[] { "turbo (สายฟ้า)", "normal (สมดุล)", "safe (ปลอดภัย)" });
             comboSpeed.SelectedIndex = 1;
+            comboSpeed.SelectedIndexChanged += (s, ev) => SyncCurrentControlsToSelectedProfile();
             pnlControls.Controls.Add(comboSpeed);
 
-            Label lblModes = CreateFieldLabel("ให้บอททำ (เลือกอย่างน้อย 1)", new Point(680, 92));
+            Label lblModes = CreateFieldLabel("ให้บอททำ (เลือกอย่างน้อย 1)", new Point(680, 86));
             pnlControls.Controls.Add(lblModes);
 
-            chkModeQuiz = CreateModeCheckBox("แบบฝึก", new Point(680, 115));
-            chkModeVideo = CreateModeCheckBox("วิดีโอ", new Point(770, 115));
-            chkModeDoc = CreateModeCheckBox("เอกสาร", new Point(855, 115));
+            chkModeQuiz = CreateModeCheckBox("แบบฝึก", new Point(680, 109));
+            chkModeVideo = CreateModeCheckBox("วิดีโอ", new Point(770, 109));
+            chkModeDoc = CreateModeCheckBox("เอกสาร", new Point(855, 109));
             pnlControls.Controls.Add(chkModeQuiz);
             pnlControls.Controls.Add(chkModeVideo);
             pnlControls.Controls.Add(chkModeDoc);
 
-            Label lblUrl = CreateFieldLabel("URL เจาะจง (ถ้ามี)", new Point(18, 148));
+            Label lblUrl = CreateFieldLabel("URL เจาะจง (ถ้ามี)", new Point(18, 150));
             pnlControls.Controls.Add(lblUrl);
 
-            txtUrl = CreateTextBox(new Point(150, 144), 300);
+            txtUrl = CreateTextBox(new Point(138, 146), 240);
+            txtUrl.TextChanged += (s, ev) => SyncCurrentControlsToSelectedProfile();
             pnlControls.Controls.Add(txtUrl);
 
-            btnStart = CreateButton("เริ่มบอท (+ New)", UiTheme.Brand, 168, 36, true);
-            btnStart.Location = new Point(468, 142);
+            btnStart = CreateButton("เริ่มโปรไฟล์นี้", UiTheme.Brand, 142, 36, true);
+            btnStart.Location = new Point(388, 142);
             btnStart.Click += BtnStart_Click;
+            new ToolTip().SetToolTip(btnStart, "เปิด Chrome รันบอทเฉพาะโปรไฟล์ที่เลือกอยู่ (ทำงานแยกโปรไฟล์)");
             pnlControls.Controls.Add(btnStart);
 
-            btnPause = CreateButton("หยุดชั่วคราว", UiTheme.Warning, 128, 36, false);
-            btnPause.Location = new Point(646, 142);
+            btnStartAll = CreateButton("รันทุกโปรไฟล์พร้อมกัน", UiTheme.Accent, 184, 36, true);
+            btnStartAll.Location = new Point(538, 142);
+            btnStartAll.Click += BtnStartAll_Click;
+            new ToolTip().SetToolTip(btnStartAll, "เปิดทุกโปรไฟล์พร้อมกันในคลิกเดียว โดยแต่ละโปรไฟล์ทำวิชาที่ตั้งไว้ของตัวเอง");
+            pnlControls.Controls.Add(btnStartAll);
+
+            btnPause = CreateButton("หยุดชั่วคราว", UiTheme.Warning, 118, 36, false);
+            btnPause.Location = new Point(730, 142);
             btnPause.Click += BtnPause_Click;
             pnlControls.Controls.Add(btnPause);
 
-            btnCancel = CreateButton("ยกเลิกการทำงาน", UiTheme.Danger, 148, 36, false);
-            btnCancel.Location = new Point(784, 142);
+            btnCancel = CreateButton("ยกเลิก", UiTheme.Danger, 132, 36, false);
+            btnCancel.Location = new Point(856, 142);
             btnCancel.Click += BtnCancel_Click;
             pnlControls.Controls.Add(btnCancel);
 
@@ -591,6 +648,10 @@ namespace TSUBotDesktop
                 {
                     try { if (!p.HasExited) p.Kill(); } catch { }
                 }
+                foreach (var lp in loginProcesses)
+                {
+                    try { if (lp != null && !lp.HasExited) lp.Kill(); } catch { }
+                }
                 try { if (loginProcess != null && !loginProcess.HasExited) loginProcess.Kill(); } catch { }
             };
         }
@@ -629,10 +690,10 @@ namespace TSUBotDesktop
             if (lvWorkers != null && lvWorkers.Columns.Count >= 4 && lvWorkers.ClientSize.Width > 100)
             {
                 int w = lvWorkers.ClientSize.Width;
-                lvWorkers.Columns[0].Width = 120;
+                lvWorkers.Columns[0].Width = 170;
                 lvWorkers.Columns[1].Width = 140;
                 lvWorkers.Columns[2].Width = 100;
-                lvWorkers.Columns[3].Width = Math.Max(200, w - 370);
+                lvWorkers.Columns[3].Width = Math.Max(200, w - 420);
             }
         }
 
@@ -720,6 +781,7 @@ namespace TSUBotDesktop
                 return;
             }
             SaveModeSettings();
+            SyncCurrentControlsToSelectedProfile();
         }
 
         private string GetSelectedModes()
@@ -777,6 +839,258 @@ namespace TSUBotDesktop
             {
                 AppendLog("บันทึกการตั้งค่าโหมดไม่สำเร็จ: " + ex.Message, UiTheme.Warning);
             }
+        }
+
+        private string GetProfileDataDir(ProfileItem p)
+        {
+            if (p == null || string.IsNullOrEmpty(p.Id) || p.Id == "profile_1")
+            {
+                return Path.GetFullPath(Path.Combine(appDir, PROFILE_DIR));
+            }
+            string safe = Regex.Replace(p.Id, "[^a-zA-Z0-9_-]", "_");
+            return Path.GetFullPath(Path.Combine(appDir, PROFILES_ROOT_DIR, safe));
+        }
+
+        private bool IsProfileLoggedIn(ProfileItem p)
+        {
+            try
+            {
+                string dir = GetProfileDataDir(p);
+                return Directory.Exists(Path.Combine(dir, "Default"));
+            }
+            catch { return false; }
+        }
+
+        private CourseItem FindCourseByCode(string code)
+        {
+            if (string.IsNullOrEmpty(code)) return null;
+            foreach (var c in courses)
+            {
+                if (string.Equals(c.Code, code, StringComparison.OrdinalIgnoreCase)) return c;
+            }
+            return null;
+        }
+
+        private void LoadProfiles()
+        {
+            profiles.Clear();
+            string cfgPath = Path.Combine(appDir, PROFILES_CONFIG_FILE);
+            string defaultCourse = courses.Count > 0 ? courses[0].Code : "TSUGE000111";
+            string defaultUrl = courses.Count > 0 ? (courses[0].Url ?? "") : "";
+            string defaultModes = GetSelectedModes();
+
+            if (File.Exists(cfgPath))
+            {
+                try
+                {
+                    string json = File.ReadAllText(cfgPath, Encoding.UTF8);
+                    MatchCollection blocks = Regex.Matches(json, "\\{[^{}]*\"id\"\\s*:\\s*\"([^\"]+)\"[^{}]*\\}");
+                    foreach (Match b in blocks)
+                    {
+                        string obj = b.Value;
+                        string id = Regex.Match(obj, "\"id\"\\s*:\\s*\"([^\"]+)\"").Groups[1].Value;
+                        Match mName = Regex.Match(obj, "\"name\"\\s*:\\s*\"([^\"]+)\"");
+                        Match mCourse = Regex.Match(obj, "\"course\"\\s*:\\s*\"([^\"]*)\"");
+                        Match mUrl = Regex.Match(obj, "\"url\"\\s*:\\s*\"([^\"]*)\"");
+                        Match mSpeed = Regex.Match(obj, "\"speed\"\\s*:\\s*\"([^\"]*)\"");
+                        Match mModes = Regex.Match(obj, "\"modes\"\\s*:\\s*\"([^\"]*)\"");
+                        Match mRunAll = Regex.Match(obj, "\"run_all\"\\s*:\\s*(true|false)", RegexOptions.IgnoreCase);
+
+                        string cCode = mCourse.Success && !string.IsNullOrEmpty(mCourse.Groups[1].Value) ? mCourse.Groups[1].Value : defaultCourse;
+                        CourseItem ci = FindCourseByCode(cCode);
+                        string cUrl = mUrl.Success && !string.IsNullOrEmpty(mUrl.Groups[1].Value) ? mUrl.Groups[1].Value : (ci != null ? (ci.Url ?? "") : defaultUrl);
+
+                        profiles.Add(new ProfileItem
+                        {
+                            Id = id,
+                            Name = mName.Success ? mName.Groups[1].Value : id,
+                            CourseCode = cCode,
+                            CustomUrl = cUrl,
+                            Speed = mSpeed.Success && !string.IsNullOrEmpty(mSpeed.Groups[1].Value) ? mSpeed.Groups[1].Value : "normal",
+                            Modes = mModes.Success && !string.IsNullOrEmpty(mModes.Groups[1].Value) ? mModes.Groups[1].Value : defaultModes,
+                            EnabledForRunAll = !mRunAll.Success || string.Equals(mRunAll.Groups[1].Value, "true", StringComparison.OrdinalIgnoreCase)
+                        });
+                    }
+                }
+                catch { }
+            }
+
+            if (profiles.Count == 0)
+            {
+                profiles.Add(new ProfileItem { Id = "profile_1", Name = "Profile 1 (หลัก)", CourseCode = defaultCourse, CustomUrl = defaultUrl, Speed = "normal", Modes = defaultModes, EnabledForRunAll = true });
+                profiles.Add(new ProfileItem { Id = "profile_2", Name = "Profile 2", CourseCode = defaultCourse, CustomUrl = defaultUrl, Speed = "normal", Modes = defaultModes, EnabledForRunAll = true });
+                profiles.Add(new ProfileItem { Id = "profile_3", Name = "Profile 3", CourseCode = defaultCourse, CustomUrl = defaultUrl, Speed = "normal", Modes = defaultModes, EnabledForRunAll = true });
+                SaveProfiles();
+            }
+
+            RefreshProfileCombo(0);
+        }
+
+        private static string EscapeJsonString(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return "";
+            return s.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\r", "").Replace("\n", " ");
+        }
+
+        private void SaveProfiles()
+        {
+            try
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine("[");
+                for (int i = 0; i < profiles.Count; i++)
+                {
+                    ProfileItem p = profiles[i];
+                    sb.AppendFormat(
+                        "  {{ \"id\": \"{0}\", \"name\": \"{1}\", \"course\": \"{2}\", \"url\": \"{3}\", \"speed\": \"{4}\", \"modes\": \"{5}\", \"run_all\": {6} }}{7}\r\n",
+                        EscapeJsonString(p.Id),
+                        EscapeJsonString(p.Name),
+                        EscapeJsonString(p.CourseCode),
+                        EscapeJsonString(p.CustomUrl),
+                        EscapeJsonString(p.Speed),
+                        EscapeJsonString(p.Modes),
+                        p.EnabledForRunAll ? "true" : "false",
+                        i < profiles.Count - 1 ? "," : "");
+                }
+                sb.AppendLine("]");
+                File.WriteAllText(Path.Combine(appDir, PROFILES_CONFIG_FILE), sb.ToString(), new UTF8Encoding(false));
+            }
+            catch { }
+        }
+
+        private void RefreshProfileCombo(int selectIndex)
+        {
+            if (comboProfile == null) return;
+            suppressProfileEvents = true;
+            comboProfile.Items.Clear();
+            foreach (var p in profiles)
+            {
+                comboProfile.Items.Add(p);
+            }
+            if (comboProfile.Items.Count > 0)
+            {
+                int idx = Math.Max(0, Math.Min(selectIndex, comboProfile.Items.Count - 1));
+                comboProfile.SelectedIndex = idx;
+            }
+            suppressProfileEvents = false;
+            ApplySelectedProfileToControls();
+        }
+
+        private void ComboProfile_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (suppressProfileEvents) return;
+            ApplySelectedProfileToControls();
+        }
+
+        private void ApplySelectedProfileToControls()
+        {
+            ProfileItem p = comboProfile != null ? comboProfile.SelectedItem as ProfileItem : null;
+            if (p == null) return;
+
+            suppressProfileEvents = true;
+            suppressModeEvents = true;
+            try
+            {
+                if (!string.IsNullOrEmpty(p.CourseCode))
+                {
+                    for (int i = 0; i < comboCourse.Items.Count; i++)
+                    {
+                        CourseItem ci = comboCourse.Items[i] as CourseItem;
+                        if (ci != null && string.Equals(ci.Code, p.CourseCode, StringComparison.OrdinalIgnoreCase))
+                        {
+                            comboCourse.SelectedIndex = i;
+                            break;
+                        }
+                    }
+                }
+
+                CourseItem selCourse = comboCourse.SelectedItem as CourseItem;
+                txtUrl.Text = !string.IsNullOrEmpty(p.CustomUrl) ? p.CustomUrl : (selCourse != null ? (selCourse.Url ?? "") : "");
+
+                string spd = (p.Speed ?? "normal").ToLowerInvariant();
+                if (spd.StartsWith("turbo")) comboSpeed.SelectedIndex = 0;
+                else if (spd.StartsWith("safe")) comboSpeed.SelectedIndex = 2;
+                else comboSpeed.SelectedIndex = 1;
+
+                string[] ms = (p.Modes ?? "quiz,video,doc").ToLowerInvariant().Split(new char[] { ',' });
+                bool q = Array.IndexOf(ms, "quiz") >= 0;
+                bool v = Array.IndexOf(ms, "video") >= 0;
+                bool d = Array.IndexOf(ms, "doc") >= 0;
+                if (!q && !v && !d) { q = true; v = true; d = true; }
+                chkModeQuiz.Checked = q;
+                chkModeVideo.Checked = v;
+                chkModeDoc.Checked = d;
+            }
+            finally
+            {
+                suppressModeEvents = false;
+                suppressProfileEvents = false;
+            }
+        }
+
+        private void SyncCurrentControlsToSelectedProfile()
+        {
+            if (suppressProfileEvents || comboProfile == null) return;
+            ProfileItem p = comboProfile.SelectedItem as ProfileItem;
+            if (p == null) return;
+
+            CourseItem ci = comboCourse != null ? comboCourse.SelectedItem as CourseItem : null;
+            if (ci != null) p.CourseCode = ci.Code;
+
+            if (txtUrl != null) p.CustomUrl = txtUrl.Text.Trim();
+            if (comboSpeed != null && comboSpeed.SelectedItem != null)
+            {
+                p.Speed = comboSpeed.SelectedItem.ToString().Split(new char[] { ' ' })[0];
+            }
+            p.Modes = GetSelectedModes();
+            SaveProfiles();
+
+            // Refresh display text in comboProfile without firing selection change
+            int idx = comboProfile.SelectedIndex;
+            if (idx >= 0)
+            {
+                suppressProfileEvents = true;
+                comboProfile.Items[idx] = p;
+                comboProfile.SelectedIndex = idx;
+                suppressProfileEvents = false;
+            }
+        }
+
+        private ProfileItem CreateNewProfile(string customName)
+        {
+            int nextNum = profiles.Count + 1;
+            string id = "profile_" + nextNum;
+            while (profiles.Exists(x => string.Equals(x.Id, id, StringComparison.OrdinalIgnoreCase)))
+            {
+                nextNum++;
+                id = "profile_" + nextNum;
+            }
+            CourseItem ci = comboCourse.SelectedItem as CourseItem;
+            string code = ci != null ? ci.Code : (courses.Count > 0 ? courses[0].Code : "TSUGE000111");
+            string url = ci != null && !string.IsNullOrEmpty(ci.Url) ? ci.Url : txtUrl.Text.Trim();
+            string spd = comboSpeed.SelectedItem != null ? comboSpeed.SelectedItem.ToString().Split(new char[] { ' ' })[0] : "normal";
+            string mds = GetSelectedModes();
+
+            ProfileItem np = new ProfileItem
+            {
+                Id = id,
+                Name = string.IsNullOrEmpty(customName) ? ("Profile " + nextNum) : customName.Trim(),
+                CourseCode = code,
+                CustomUrl = url,
+                Speed = spd,
+                Modes = string.IsNullOrEmpty(mds) ? "quiz,video,doc" : mds,
+                EnabledForRunAll = true
+            };
+            profiles.Add(np);
+            SaveProfiles();
+            return np;
+        }
+
+        private void BtnAddProfile_Click(object sender, EventArgs e)
+        {
+            ProfileItem np = CreateNewProfile(null);
+            RefreshProfileCombo(profiles.Count - 1);
+            AppendLog(string.Format("เพิ่มโปรไฟล์ใหม่ [{0}] เรียบร้อยแล้ว — กด \"ล็อกอินโปรไฟล์นี้\" เพื่อล็อกอินบัญชี TSU ของโปรไฟล์นี้ได้เลย", np.Name), UiTheme.Success);
         }
 
         private TextBox CreateTextBox(Point location, int width)
@@ -966,15 +1280,25 @@ namespace TSUBotDesktop
         private void BtnLogin_Click(object sender, EventArgs e)
         {
             if (resetInProgress) return;
-            AppendLog("กำลังตรวจสอบระบบและเปิดหน้าต่าง Chrome สำหรับล็อกอินเข้าสู่ระบบ TSU...", UiTheme.Success);
+            ProfileItem prof = (comboProfile != null ? comboProfile.SelectedItem as ProfileItem : null)
+                ?? (profiles.Count > 0 ? profiles[0] : new ProfileItem { Id = "profile_1", Name = "Profile 1" });
+            OpenLoginForProfile(prof);
+        }
+
+        private void OpenLoginForProfile(ProfileItem prof)
+        {
+            if (resetInProgress || prof == null) return;
+            string profileDir = GetProfileDataDir(prof);
+            AppendLog(string.Format("กำลังเปิดหน้าต่าง Chrome สำหรับล็อกอิน [{0}] (โฟลเดอร์แยก: {1})...", prof.Name, Path.GetFileName(profileDir)), UiTheme.Success);
             Thread t = new Thread(() =>
             {
                 EnsureDependencies();
                 string script = Path.Combine(appDir, "cli_worker.js");
+                string args = string.Format("\"{0}\" --action login --profile \"{1}\" --profile-dir \"{2}\"", script, prof.Name, profileDir);
                 ProcessStartInfo psi = new ProcessStartInfo
                 {
                     FileName = nodePath,
-                    Arguments = string.Format("\"{0}\" --action login", script),
+                    Arguments = args,
                     WorkingDirectory = appDir,
                     CreateNoWindow = true,
                     UseShellExecute = false,
@@ -988,54 +1312,143 @@ namespace TSUBotDesktop
                 {
                     Process p = Process.Start(psi);
                     loginProcess = p;
+                    lock (loginProcesses) { loginProcesses.Add(p); }
                     p.OutputDataReceived += (s, ev) =>
                     {
                         if (!string.IsNullOrEmpty(ev.Data))
-                            AppendLog(ev.Data);
+                            AppendLog(string.Format("[Login {0}] {1}", prof.Name, ev.Data));
                     };
                     p.ErrorDataReceived += (s, ev) =>
                     {
                         if (!string.IsNullOrEmpty(ev.Data))
-                            AppendLog("[ERROR] " + ev.Data, UiTheme.Danger);
+                            AppendLog(string.Format("[Login {0} ERROR] {1}", prof.Name, ev.Data), UiTheme.Danger);
                     };
                     p.BeginOutputReadLine();
                     p.BeginErrorReadLine();
                     p.WaitForExit();
+                    lock (loginProcesses) { loginProcesses.Remove(p); }
                     if (loginProcess == p) loginProcess = null;
                     if (!resetInProgress)
-                        AppendLog("ปิดหน้าต่างล็อกอินแล้ว บัญชีถูกบันทึกในระบบเรียบร้อย", UiTheme.Success);
+                        AppendLog(string.Format("ปิดหน้าต่างล็อกอิน [{0}] แล้ว บัญชีถูกบันทึกแยกในโปรไฟล์นี้เรียบร้อย", prof.Name), UiTheme.Success);
                 }
                 catch (Exception ex)
                 {
-                    AppendLog("ข้อผิดพลาดในการเปิดล็อกอิน: " + ex.Message, UiTheme.Danger);
+                    AppendLog(string.Format("ข้อผิดพลาดในการเปิดล็อกอิน [{0}]: {1}", prof.Name, ex.Message), UiTheme.Danger);
                 }
             });
             t.IsBackground = true;
             t.Start();
         }
 
+        private bool IsProfileRunning(ProfileItem prof)
+        {
+            if (prof == null) return false;
+            foreach (var kvp in workerProfiles)
+            {
+                if (string.Equals(kvp.Value, prof.Id, StringComparison.OrdinalIgnoreCase) && runningWorkers.ContainsKey(kvp.Key))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         private void BtnStart_Click(object sender, EventArgs e)
         {
             if (resetInProgress) return;
-            CourseItem ci = comboCourse.SelectedItem as CourseItem;
-            string courseCode = ci != null ? ci.Code : (comboCourse.SelectedItem != null ? comboCourse.SelectedItem.ToString() : "");
-            if (courseCode.Contains(" - ")) courseCode = courseCode.Split(new string[] { " - " }, StringSplitOptions.None)[0];
+            SyncCurrentControlsToSelectedProfile();
+            ProfileItem prof = (comboProfile != null ? comboProfile.SelectedItem as ProfileItem : null)
+                ?? (profiles.Count > 0 ? profiles[0] : new ProfileItem { Id = "profile_1", Name = "Profile 1" });
 
-            string speed = comboSpeed.SelectedItem.ToString().Split(new char[] { ' ' })[0];
-            string customUrl = txtUrl.Text.Trim();
-            if (string.IsNullOrEmpty(customUrl) && ci != null && !string.IsNullOrEmpty(ci.Url))
+            if (IsProfileRunning(prof))
             {
-                customUrl = ci.Url;
-            }
-
-            string modes = GetSelectedModes();
-            if (string.IsNullOrEmpty(modes))
-            {
-                AppendLog("กรุณาเลือกอย่างน้อย 1 อย่าง: แบบฝึก / วิดีโอ / เอกสาร", UiTheme.Warning);
+                MessageBox.Show(
+                    string.Format("โปรไฟล์ \"{0}\" กำลังเปิดทำงานอยู่แล้ว!\n\nหากต้องการเปิดอีกหน้าต่างพร้อมกัน กรุณาเลือกโปรไฟล์อื่น (เช่น Profile 2, Profile 3) หรือกด \"+ โปรไฟล์\" เพื่อแยกเซสชัน Chrome ไม่ให้ชนกัน", prof.Name),
+                    "โปรไฟล์นี้กำลังทำงานอยู่",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
                 return;
             }
 
-            string workerId = "Worker-" + (workerCounter++);
+            StartWorkerForProfile(prof);
+        }
+
+        private void BtnStartAll_Click(object sender, EventArgs e)
+        {
+            if (resetInProgress) return;
+            SyncCurrentControlsToSelectedProfile();
+
+            List<ProfileItem> targets = new List<ProfileItem>();
+            foreach (var p in profiles)
+            {
+                if (p.EnabledForRunAll && !IsProfileRunning(p))
+                {
+                    targets.Add(p);
+                }
+            }
+
+            if (targets.Count == 0)
+            {
+                MessageBox.Show(
+                    "ไม่มีโปรไฟล์ที่พร้อมเริ่มทำงานใหม่ (ทุกโปรไฟล์ที่เลือกกำลังทำงานอยู่แล้ว หรือยังไม่ได้ติ๊กเปิดใช้งานในหน้าจัดการโปรไฟล์)",
+                    "รันทุกโปรไฟล์พร้อมกัน",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+                return;
+            }
+
+            StringBuilder summary = new StringBuilder();
+            summary.AppendFormat("ต้องการเปิดรันพร้อมกัน {0} โปรไฟล์ (แยกหน้าต่าง Chrome และแยกวิชาตามที่ตั้งไว้) ใช่หรือไม่?\n\n", targets.Count);
+            foreach (var p in targets)
+            {
+                summary.AppendFormat("• {0}  →  วิชา: {1}  |  ความเร็ว: {2}  |  ทำ: {3}\n",
+                    p.Name,
+                    string.IsNullOrEmpty(p.CourseCode) ? "(ยังไม่เลือก)" : p.CourseCode,
+                    string.IsNullOrEmpty(p.Speed) ? "normal" : p.Speed,
+                    DescribeModes(string.IsNullOrEmpty(p.Modes) ? "quiz,video,doc" : p.Modes));
+            }
+            summary.AppendLine("\n(สามารถปรับเปลี่ยนวิชาของแต่ละโปรไฟล์ได้โดยสลับช่องโปรไฟล์ หรือกดปุ่ม \"จัดการทุกโปรไฟล์\")");
+
+            if (MessageBox.Show(summary.ToString(), "ยืนยันรันทุกโปรไฟล์พร้อมกัน", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+                return;
+
+            AppendLog(string.Format("🚀 เริ่มรันพร้อมกันทั้งหมด {0} โปรไฟล์...", targets.Count), UiTheme.Success);
+            foreach (var p in targets)
+            {
+                StartWorkerForProfile(p);
+            }
+        }
+
+        private void StartWorkerForProfile(ProfileItem prof)
+        {
+            if (resetInProgress || prof == null) return;
+
+            string courseCode = prof.CourseCode;
+            if (string.IsNullOrEmpty(courseCode))
+            {
+                CourseItem ci = comboCourse.SelectedItem as CourseItem;
+                courseCode = ci != null ? ci.Code : (courses.Count > 0 ? courses[0].Code : "");
+            }
+            if (courseCode.Contains(" - ")) courseCode = courseCode.Split(new string[] { " - " }, StringSplitOptions.None)[0];
+
+            CourseItem matchedCourse = FindCourseByCode(courseCode);
+            string speed = !string.IsNullOrEmpty(prof.Speed) ? prof.Speed : "normal";
+            string customUrl = !string.IsNullOrEmpty(prof.CustomUrl) ? prof.CustomUrl.Trim() : "";
+            if (string.IsNullOrEmpty(customUrl) && matchedCourse != null && !string.IsNullOrEmpty(matchedCourse.Url))
+            {
+                customUrl = matchedCourse.Url;
+            }
+
+            string modes = !string.IsNullOrEmpty(prof.Modes) ? prof.Modes : GetSelectedModes();
+            if (string.IsNullOrEmpty(modes))
+            {
+                AppendLog(string.Format("[{0}] กรุณาเลือกอย่างน้อย 1 อย่าง: แบบฝึก / วิดีโอ / เอกสาร", prof.Name), UiTheme.Warning);
+                return;
+            }
+
+            string profileDir = GetProfileDataDir(prof);
+            string workerId = string.Format("Worker-{0} ({1})", workerCounter++, prof.Name);
+            workerProfiles[workerId] = prof.Id;
 
             AppendLog(string.Format("เริ่มต้น {0} | วิชา: {1} | โหมด: {2} | ทำ: {3}", workerId, courseCode, speed, DescribeModes(modes)), UiTheme.Info);
 
@@ -1050,7 +1463,8 @@ namespace TSUBotDesktop
             {
                 EnsureDependencies();
                 string script = Path.Combine(appDir, "cli_worker.js");
-                string args = string.Format("\"{0}\" --action run --id \"{1}\" --course \"{2}\" --speed \"{3}\" --modes \"{4}\"", script, workerId, courseCode, speed, modes);
+                string args = string.Format("\"{0}\" --action run --id \"{1}\" --course \"{2}\" --speed \"{3}\" --modes \"{4}\" --profile \"{5}\" --profile-dir \"{6}\"",
+                    script, workerId, courseCode, speed, modes, prof.Name, profileDir);
                 if (!string.IsNullOrEmpty(customUrl))
                 {
                     args += string.Format(" --url \"{0}\"", customUrl);
@@ -1099,10 +1513,12 @@ namespace TSUBotDesktop
 
                     UpdateWorkerStatus(workerId, "เสร็จสิ้น / ปิดหน้าต่างแล้ว");
                     runningWorkers.Remove(workerId);
+                    workerProfiles.Remove(workerId);
                 }
                 catch (Exception ex)
                 {
                     AppendLog(string.Format("[{0}] Error: {1}", workerId, ex.Message), UiTheme.Danger);
+                    workerProfiles.Remove(workerId);
                 }
             });
             t.IsBackground = true;
@@ -1291,6 +1707,7 @@ namespace TSUBotDesktop
                 AppendLog(string.Format("[ยกเลิก] {0} ได้รับคำสั่งยกเลิกการทำงานและกำลังปิดหน้าต่าง", workerId), UiTheme.Danger);
                 UpdateWorkerStatus(workerId, "ยกเลิกการทำงานแล้ว (Stopped)");
                 runningWorkers.Remove(workerId);
+                workerProfiles.Remove(workerId);
                 if (workerPausedStates.ContainsKey(workerId)) workerPausedStates.Remove(workerId);
             }
             catch (Exception ex)
@@ -1303,23 +1720,30 @@ namespace TSUBotDesktop
         {
             if (resetInProgress) return;
 
-            string profileDir = Path.GetFullPath(Path.Combine(appDir, PROFILE_DIR));
+            ProfileItem selectedProf = (comboProfile != null ? comboProfile.SelectedItem as ProfileItem : null)
+                ?? (profiles.Count > 0 ? profiles[0] : new ProfileItem { Id = "profile_1", Name = "Profile 1" });
+            string profileDir = GetProfileDataDir(selectedProf);
             List<string> workerIds = new List<string>(runningWorkers.Keys);
-            Process login = loginProcess;
-            bool loginOpen = false;
-            try { loginOpen = login != null && !login.HasExited; } catch { }
-            int activeCount = workerIds.Count + (loginOpen ? 1 : 0);
+            int activeLogins = 0;
+            lock (loginProcesses)
+            {
+                foreach (var lp in loginProcesses)
+                {
+                    try { if (lp != null && !lp.HasExited) activeLogins++; } catch { }
+                }
+            }
+            int activeCount = workerIds.Count + activeLogins;
 
             string msg =
-                "ล้างแคชเบราว์เซอร์ของบอท?\n\n" +
-                "จะลบ: แคช คุกกี้ ข้อมูลเว็บ และการล็อกอิน TSU ที่บันทึกไว้\n(" + profileDir + ")\n\n" +
-                "ไม่ลบ: ฐานเฉลย การตั้งค่า บันทึกการทำงาน และตัวเบราว์เซอร์ที่ดาวน์โหลดไว้\n\n" +
-                "หลังล้างแล้วต้องกด \"เปิด Chrome เข้าสู่ระบบ\" เพื่อล็อกอินใหม่";
+                string.Format("ล้างแคชเบราว์เซอร์ของโปรไฟล์ \"{0}\"?\n\n", selectedProf.Name) +
+                "จะลบ: แคช คุกกี้ ข้อมูลเว็บ และการล็อกอิน TSU ที่บันทึกไว้ของโปรไฟล์นี้\n(" + profileDir + ")\n\n" +
+                "ไม่ลบ: โปรไฟล์อื่น ฐานเฉลย การตั้งค่า และบันทึกการทำงาน\n\n" +
+                "หลังล้างแล้วต้องกด \"ล็อกอินโปรไฟล์นี้\" เพื่อล็อกอินใหม่";
             if (activeCount > 0)
             {
-                msg = string.Format("ขณะนี้มีบอทหรือหน้าต่างล็อกอินทำงานอยู่ {0} หน้าต่าง\nโปรแกรมจะหยุดและปิด Chrome ทั้งหมดก่อนล้าง\n\n", activeCount) + msg;
+                msg = string.Format("ขณะนี้มีบอทหรือหน้าต่างล็อกอินทำงานอยู่ {0} หน้าต่าง\nโปรแกรมจะหยุดและปิด Chrome ที่เกี่ยวข้องก่อนล้าง\n\n", activeCount) + msg;
             }
-            if (MessageBox.Show(msg, "ยืนยันล้างแคชเบราว์เซอร์", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) != DialogResult.Yes)
+            if (MessageBox.Show(msg, "ยืนยันล้างแคชโปรไฟล์ " + selectedProf.Name, MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) != DialogResult.Yes)
                 return;
 
             resetInProgress = true;
@@ -1333,12 +1757,20 @@ namespace TSUBotDesktop
                 try { p.StandardInput.WriteLine("stop"); } catch { }
                 toStop.Add(p);
                 runningWorkers.Remove(id);
+                workerProfiles.Remove(id);
                 if (workerPausedStates.ContainsKey(id)) workerPausedStates.Remove(id);
                 UpdateWorkerStatus(id, "หยุดเพื่อล้างแคชเบราว์เซอร์");
             }
-            if (loginOpen) toStop.Add(login);
+            lock (loginProcesses)
+            {
+                foreach (var lp in loginProcesses)
+                {
+                    try { if (lp != null && !lp.HasExited) toStop.Add(lp); } catch { }
+                }
+                loginProcesses.Clear();
+            }
             UpdatePauseButtons(false);
-            AppendLog(activeCount > 0 ? "กำลังหยุดบอท/ปิด Chrome และล้างแคชเบราว์เซอร์..." : "กำลังล้างแคชเบราว์เซอร์...", UiTheme.Warning);
+            AppendLog(activeCount > 0 ? "กำลังหยุดบอท/ปิด Chrome และล้างแคชโปรไฟล์ " + selectedProf.Name + "..." : "กำลังล้างแคชโปรไฟล์ " + selectedProf.Name + "...", UiTheme.Warning);
 
             Thread t = new Thread(() =>
             {
@@ -1362,8 +1794,8 @@ namespace TSUBotDesktop
                     if (error == null)
                     {
                         string done = removed
-                            ? "ล้างแคชเบราว์เซอร์เรียบร้อยแล้ว กรุณากด \"เปิด Chrome เข้าสู่ระบบ\" เพื่อล็อกอิน TSU ใหม่ก่อนเริ่มบอท"
-                            : "ไม่มีแคชเบราว์เซอร์ให้ล้าง (ยังไม่เคยเปิดเบราว์เซอร์ หรือถูกล้างไปแล้ว)";
+                            ? string.Format("ล้างแคชของ [{0}] เรียบร้อยแล้ว กรุณากด \"ล็อกอินโปรไฟล์นี้\" เพื่อล็อกอิน TSU ใหม่ก่อนเริ่มบอท", selectedProf.Name)
+                            : string.Format("โปรไฟล์ [{0}] ยังไม่มีแคชให้ล้าง (ยังไม่เคยเปิดเบราว์เซอร์ หรือถูกล้างไปแล้ว)", selectedProf.Name);
                         AppendLog(done, UiTheme.Success);
                         MessageBox.Show(done, "สำเร็จ", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
@@ -1384,8 +1816,9 @@ namespace TSUBotDesktop
         private void SetResetBusy(bool busy)
         {
             btnResetBrowser.Enabled = !busy;
-            btnResetBrowser.Text = busy ? "กำลังล้าง..." : "ล้างแคชเบราว์เซอร์";
+            btnResetBrowser.Text = busy ? "กำลังล้าง..." : "ล้างแคช";
             btnStart.Enabled = !busy;
+            if (btnStartAll != null) btnStartAll.Enabled = !busy;
             btnLogin.Enabled = !busy;
         }
 
@@ -1452,8 +1885,11 @@ namespace TSUBotDesktop
             string full = Path.GetFullPath(profileDir).TrimEnd(new char[] { '\\', '/' });
             string parent = Path.GetDirectoryName(full);
             string expectedParent = Path.GetFullPath(appDir).TrimEnd(new char[] { '\\', '/' });
-            if (!string.Equals(Path.GetFileName(full), PROFILE_DIR, StringComparison.OrdinalIgnoreCase) ||
-                !string.Equals(parent, expectedParent, StringComparison.OrdinalIgnoreCase))
+            string expectedProfilesRoot = Path.GetFullPath(Path.Combine(appDir, PROFILES_ROOT_DIR)).TrimEnd(new char[] { '\\', '/' });
+            bool isMainProfile = string.Equals(Path.GetFileName(full), PROFILE_DIR, StringComparison.OrdinalIgnoreCase) &&
+                                 string.Equals(parent, expectedParent, StringComparison.OrdinalIgnoreCase);
+            bool isMultiProfile = string.Equals(parent, expectedProfilesRoot, StringComparison.OrdinalIgnoreCase);
+            if (!isMainProfile && !isMultiProfile)
             {
                 throw new InvalidOperationException("ไม่ลบโฟลเดอร์ที่ไม่ใช่โปรไฟล์เบราว์เซอร์ของบอท: " + full);
             }
@@ -1476,6 +1912,300 @@ namespace TSUBotDesktop
                 Thread.Sleep(750);
             }
             throw new IOException("ยังมีไฟล์ถูกใช้งานอยู่ ลบโฟลเดอร์ " + full + " ไม่หมด" + (last != null ? " (" + last.Message + ")" : ""));
+        }
+
+        private void BtnManageProfiles_Click(object sender, EventArgs e)
+        {
+            SyncCurrentControlsToSelectedProfile();
+
+            Form dlg = new Form
+            {
+                Text = "จัดการโปรไฟล์ Chrome แยกบัญชี & ตั้งค่าวิชาแยกแต่ละโปรไฟล์",
+                Size = new Size(920, 620),
+                StartPosition = FormStartPosition.CenterParent,
+                BackColor = UiTheme.BgWash,
+                ForeColor = UiTheme.Text,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                MaximizeBox = false,
+                MinimizeBox = false,
+                Font = UiTheme.UiFont(9.5f, FontStyle.Regular)
+            };
+
+            Panel card = new Panel
+            {
+                Location = new Point(16, 16),
+                Size = new Size(872, 548),
+                BackColor = UiTheme.Surface
+            };
+            card.Paint += PaintSurfaceCard;
+            dlg.Controls.Add(card);
+
+            Label lblH = new Label
+            {
+                Text = "จัดการโปรไฟล์ Chrome (แยกบัญชีล็อกอิน & แยกรายวิชา)",
+                Font = UiTheme.UiFont(15f, FontStyle.Bold),
+                ForeColor = UiTheme.Brand,
+                Location = new Point(20, 14),
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+            card.Controls.Add(lblH);
+
+            Label lblSub = new Label
+            {
+                Text = "ติ๊กช่องหน้าโปรไฟล์ที่ต้องการรวมเมื่อกด \"รันทุกโปรไฟล์พร้อมกัน\" • คลิกเลือกแถวเพื่อตั้งค่าวิชาแยกของแต่ละโปรไฟล์ หรือกดรันแยกเฉพาะโปรไฟล์",
+                Font = UiTheme.UiFont(9f, FontStyle.Regular),
+                ForeColor = UiTheme.TextMuted,
+                Location = new Point(22, 44),
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+            card.Controls.Add(lblSub);
+
+            ListView lv = new ListView
+            {
+                Location = new Point(20, 72),
+                Size = new Size(832, 220),
+                View = View.Details,
+                FullRowSelect = true,
+                CheckBoxes = true,
+                HideSelection = false,
+                BackColor = UiTheme.SurfaceSoft,
+                ForeColor = UiTheme.Text,
+                BorderStyle = BorderStyle.FixedSingle,
+                Font = UiTheme.UiFont(9.5f, FontStyle.Regular)
+            };
+            lv.Columns.Add("รันพร้อมกัน", 90);
+            lv.Columns.Add("ชื่อโปรไฟล์ (บัญชี)", 170);
+            lv.Columns.Add("วิชาที่เลือกไว้", 220);
+            lv.Columns.Add("ความเร็ว", 85);
+            lv.Columns.Add("สิ่งที่ทำ", 145);
+            lv.Columns.Add("สถานะเซสชัน", 110);
+            card.Controls.Add(lv);
+
+            bool suppressLvCheck = false;
+            Action<int> populateProfiles = (selIdx) =>
+            {
+                suppressLvCheck = true;
+                lv.Items.Clear();
+                foreach (var p in profiles)
+                {
+                    CourseItem ci = FindCourseByCode(p.CourseCode);
+                    string courseDisplay = ci != null ? string.Format("{0} - {1}", ci.Code, ci.Name) : (p.CourseCode ?? "");
+                    ListViewItem it = new ListViewItem(p.EnabledForRunAll ? "เปิด" : "ปิด");
+                    it.Checked = p.EnabledForRunAll;
+                    it.SubItems.Add(p.Name);
+                    it.SubItems.Add(courseDisplay);
+                    it.SubItems.Add(p.Speed ?? "normal");
+                    it.SubItems.Add(DescribeModes(string.IsNullOrEmpty(p.Modes) ? "quiz,video,doc" : p.Modes));
+                    it.SubItems.Add(IsProfileRunning(p) ? "กำลังรันอยู่" : (IsProfileLoggedIn(p) ? "มีเซสชันแล้ว" : "ยังไม่ล็อกอิน"));
+                    it.Tag = p;
+                    lv.Items.Add(it);
+                }
+                if (lv.Items.Count > 0)
+                {
+                    int idx = Math.Max(0, Math.Min(selIdx, lv.Items.Count - 1));
+                    lv.Items[idx].Selected = true;
+                }
+                suppressLvCheck = false;
+            };
+
+            lv.ItemChecked += (s, ev) =>
+            {
+                if (suppressLvCheck) return;
+                ProfileItem p = ev.Item.Tag as ProfileItem;
+                if (p != null)
+                {
+                    p.EnabledForRunAll = ev.Item.Checked;
+                    ev.Item.Text = p.EnabledForRunAll ? "เปิด" : "ปิด";
+                    SaveProfiles();
+                }
+            };
+
+            // Edit controls for selected profile
+            Label lName = CreateFieldLabel("ชื่อโปรไฟล์ / ชื่อบัญชี:", new Point(20, 306));
+            TextBox tName = CreateTextBox(new Point(20, 328), 200);
+            card.Controls.Add(lName); card.Controls.Add(tName);
+
+            Label lCourse = CreateFieldLabel("วิชาที่โปรไฟล์นี้จะทำ:", new Point(236, 306));
+            ComboBox cbCourse = CreateCombo(new Point(236, 328), 320);
+            foreach (var c in courses) cbCourse.Items.Add(c);
+            card.Controls.Add(lCourse); card.Controls.Add(cbCourse);
+
+            Label lSpeed = CreateFieldLabel("ความเร็ว:", new Point(572, 306));
+            ComboBox cbSpeed = CreateCombo(new Point(572, 328), 120);
+            cbSpeed.Items.AddRange(new object[] { "turbo", "normal", "safe" });
+            cbSpeed.SelectedIndex = 1;
+            card.Controls.Add(lSpeed); card.Controls.Add(cbSpeed);
+
+            Label lModes = CreateFieldLabel("ให้ทำ:", new Point(706, 306));
+            CheckBox ckQ = new CheckBox { Text = "ฝึก", Location = new Point(706, 330), AutoSize = true, Checked = true };
+            CheckBox ckV = new CheckBox { Text = "คลิป", Location = new Point(756, 330), AutoSize = true, Checked = true };
+            CheckBox ckD = new CheckBox { Text = "ชีท", Location = new Point(810, 330), AutoSize = true, Checked = true };
+            card.Controls.Add(lModes); card.Controls.Add(ckQ); card.Controls.Add(ckV); card.Controls.Add(ckD);
+
+            Label lUrl = CreateFieldLabel("ลิงก์ URL ของโปรไฟล์นี้ (ว่างไว้ = ใช้ลิงก์เริ่มต้นของวิชา):", new Point(20, 366));
+            TextBox tUrl = CreateTextBox(new Point(20, 388), 672);
+            card.Controls.Add(lUrl); card.Controls.Add(tUrl);
+
+            cbCourse.SelectedIndexChanged += (s, ev) =>
+            {
+                CourseItem ci = cbCourse.SelectedItem as CourseItem;
+                if (ci != null && !string.IsNullOrEmpty(ci.Url))
+                {
+                    tUrl.Text = ci.Url;
+                }
+            };
+
+            Button btnSaveRow = CreateButton("บันทึกค่าโปรไฟล์นี้", UiTheme.Brand, 144, 32, true);
+            btnSaveRow.Location = new Point(708, 385);
+            card.Controls.Add(btnSaveRow);
+
+            lv.SelectedIndexChanged += (s, ev) =>
+            {
+                if (lv.SelectedItems.Count == 0) return;
+                ProfileItem p = lv.SelectedItems[0].Tag as ProfileItem;
+                if (p == null) return;
+                tName.Text = p.Name;
+                for (int i = 0; i < cbCourse.Items.Count; i++)
+                {
+                    CourseItem ci = cbCourse.Items[i] as CourseItem;
+                    if (ci != null && string.Equals(ci.Code, p.CourseCode, StringComparison.OrdinalIgnoreCase))
+                    {
+                        cbCourse.SelectedIndex = i;
+                        break;
+                    }
+                }
+                tUrl.Text = p.CustomUrl ?? "";
+                string spd = (p.Speed ?? "normal").ToLowerInvariant();
+                cbSpeed.SelectedIndex = spd.StartsWith("turbo") ? 0 : (spd.StartsWith("safe") ? 2 : 1);
+                string[] ms = (p.Modes ?? "quiz,video,doc").ToLowerInvariant().Split(new char[] { ',' });
+                ckQ.Checked = Array.IndexOf(ms, "quiz") >= 0;
+                ckV.Checked = Array.IndexOf(ms, "video") >= 0;
+                ckD.Checked = Array.IndexOf(ms, "doc") >= 0;
+            };
+
+            Action saveCurrentRow = () =>
+            {
+                if (lv.SelectedItems.Count == 0) return;
+                ProfileItem p = lv.SelectedItems[0].Tag as ProfileItem;
+                if (p == null) return;
+                if (!string.IsNullOrEmpty(tName.Text.Trim())) p.Name = tName.Text.Trim();
+                CourseItem ci = cbCourse.SelectedItem as CourseItem;
+                if (ci != null) p.CourseCode = ci.Code;
+                p.CustomUrl = tUrl.Text.Trim();
+                p.Speed = cbSpeed.SelectedItem != null ? cbSpeed.SelectedItem.ToString() : "normal";
+                List<string> mList = new List<string>();
+                if (ckQ.Checked) mList.Add("quiz");
+                if (ckV.Checked) mList.Add("video");
+                if (ckD.Checked) mList.Add("doc");
+                if (mList.Count == 0) { mList.Add("quiz"); ckQ.Checked = true; }
+                p.Modes = string.Join(",", mList.ToArray());
+                SaveProfiles();
+                int idx = lv.SelectedIndices[0];
+                populateProfiles(idx);
+                RefreshProfileCombo(comboProfile != null ? comboProfile.SelectedIndex : 0);
+            };
+
+            btnSaveRow.Click += (s, ev) =>
+            {
+                saveCurrentRow();
+                AppendLog("บันทึกการตั้งค่าโปรไฟล์เรียบร้อยแล้ว", UiTheme.Success);
+            };
+
+            // Bottom action buttons
+            Button bAdd = CreateButton("+ เพิ่มโปรไฟล์ใหม่", UiTheme.Brand, 140, 36, false);
+            bAdd.Location = new Point(20, 442);
+            bAdd.Click += (s, ev) =>
+            {
+                ProfileItem np = CreateNewProfile(null);
+                populateProfiles(profiles.Count - 1);
+                RefreshProfileCombo(profiles.Count - 1);
+            };
+            card.Controls.Add(bAdd);
+
+            Button bDel = CreateButton("ลบโปรไฟล์ที่เลือก", UiTheme.Danger, 134, 36, false);
+            bDel.Location = new Point(168, 442);
+            bDel.Click += (s, ev) =>
+            {
+                if (lv.SelectedItems.Count == 0) return;
+                if (profiles.Count <= 1)
+                {
+                    MessageBox.Show("ต้องมีอย่างน้อย 1 โปรไฟล์ในระบบ", "แจ้งเตือน", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                ProfileItem p = lv.SelectedItems[0].Tag as ProfileItem;
+                if (p == null) return;
+                if (MessageBox.Show(string.Format("ต้องการลบโปรไฟล์ \"{0}\" ออกจากรายการหรือไม่?", p.Name), "ยืนยันการลบ", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    profiles.Remove(p);
+                    SaveProfiles();
+                    populateProfiles(0);
+                    RefreshProfileCombo(0);
+                }
+            };
+            card.Controls.Add(bDel);
+
+            Button bLoginOne = CreateButton("เปิด Chrome ล็อกอินโปรไฟล์นี้", UiTheme.Success, 200, 36, true);
+            bLoginOne.Location = new Point(312, 442);
+            bLoginOne.Click += (s, ev) =>
+            {
+                saveCurrentRow();
+                if (lv.SelectedItems.Count == 0) return;
+                ProfileItem p = lv.SelectedItems[0].Tag as ProfileItem;
+                if (p != null) OpenLoginForProfile(p);
+            };
+            card.Controls.Add(bLoginOne);
+
+            Button bRunOne = CreateButton("รันเฉพาะโปรไฟล์นี้", UiTheme.Info, 152, 36, true);
+            bRunOne.Location = new Point(522, 442);
+            bRunOne.Click += (s, ev) =>
+            {
+                saveCurrentRow();
+                if (lv.SelectedItems.Count == 0) return;
+                ProfileItem p = lv.SelectedItems[0].Tag as ProfileItem;
+                if (p == null) return;
+                if (IsProfileRunning(p))
+                {
+                    MessageBox.Show(string.Format("โปรไฟล์ \"{0}\" กำลังทำงานอยู่แล้ว", p.Name), "แจ้งเตือน", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+                StartWorkerForProfile(p);
+                populateProfiles(lv.SelectedIndices[0]);
+            };
+            card.Controls.Add(bRunOne);
+
+            Button bRunAll = CreateButton("รันทุกโปรไฟล์ที่ติ๊ก", UiTheme.Accent, 168, 36, true);
+            bRunAll.Location = new Point(684, 442);
+            bRunAll.Click += (s, ev) =>
+            {
+                saveCurrentRow();
+                List<ProfileItem> targets = new List<ProfileItem>();
+                foreach (var p in profiles)
+                {
+                    if (p.EnabledForRunAll && !IsProfileRunning(p)) targets.Add(p);
+                }
+                if (targets.Count == 0)
+                {
+                    MessageBox.Show("ไม่มีโปรไฟล์ที่ติ๊กเลือกไว้หรือทุกโปรไฟล์กำลังรันอยู่แล้ว", "แจ้งเตือน", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+                foreach (var p in targets) StartWorkerForProfile(p);
+                dlg.Close();
+            };
+            card.Controls.Add(bRunAll);
+
+            Button bClose = CreateButton("ปิดหน้าต่าง", UiTheme.TextMuted, 120, 34, false);
+            bClose.Location = new Point(732, 496);
+            bClose.Click += (s, ev) =>
+            {
+                saveCurrentRow();
+                dlg.Close();
+            };
+            card.Controls.Add(bClose);
+
+            populateProfiles(comboProfile != null && comboProfile.SelectedIndex >= 0 ? comboProfile.SelectedIndex : 0);
+            dlg.ShowDialog(this);
         }
 
         private void BtnSettings_Click(object sender, EventArgs e)

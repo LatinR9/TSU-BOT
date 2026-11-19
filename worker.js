@@ -377,6 +377,8 @@ class AutomationWorker {
     this.courseCode = options.courseCode || '';
     this.targetUrl = options.targetUrl || '';
     this.speedMode = options.speedMode || 'normal'; // turbo, normal, safe
+    this.profileName = options.profileName || '';
+    this.userDataDir = options.userDataDir || USER_DATA_DIR;
     const modeList = String(options.modes || '').toLowerCase().split(',').map(m => m.trim())
       .filter(m => m === 'quiz' || m === 'video' || m === 'doc');
     this.modes = new Set(modeList.length ? modeList : ['quiz', 'video', 'doc']);
@@ -448,10 +450,11 @@ class AutomationWorker {
     this.shouldStop = false;
     this.isPaused = false;
     this.setStatus('running', 'Starting Browser');
-    this.log(`🚀 Starting Worker [${this.id}] for course ${this.courseCode || 'General'} (Mode: ${this.speedMode}, Tasks: ${[...this.modes].join(',')})`);
+    const profTag = this.profileName ? ` [Profile: ${this.profileName}]` : '';
+    this.log(`🚀 Starting Worker [${this.id}]${profTag} for course ${this.courseCode || 'General'} (Mode: ${this.speedMode}, Tasks: ${[...this.modes].join(',')})`);
 
     try {
-      this.browserContext = await chromium.launchPersistentContext(USER_DATA_DIR, {
+      this.browserContext = await chromium.launchPersistentContext(this.userDataDir || USER_DATA_DIR, {
         headless: false,
         viewport: null,
         args: ['--disable-blink-features=AutomationControlled', '--mute-audio', '--start-maximized']
