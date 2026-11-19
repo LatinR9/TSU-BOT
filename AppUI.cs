@@ -15,33 +15,33 @@ using System.Windows.Forms;
 namespace TSUBotDesktop
 {
     /// <summary>
-    /// Visual tokens aligned with the polished web control panel
-    /// (teal mist atmosphere, brand-first hierarchy).
+    /// Modern Blue-Grey (ฟ้าเทา) SaaS Dashboard visual tokens.
     /// </summary>
     internal static class UiTheme
     {
-        public static readonly Color BgWash = Color.FromArgb(238, 247, 242);
-        public static readonly Color BgMist = Color.FromArgb(217, 235, 228);
+        public static readonly Color BgWash = Color.FromArgb(241, 245, 249);
+        public static readonly Color BgMist = Color.FromArgb(226, 232, 240);
         public static readonly Color Surface = Color.FromArgb(255, 255, 255);
-        public static readonly Color SurfaceSoft = Color.FromArgb(247, 252, 249);
-        public static readonly Color Line = Color.FromArgb(198, 216, 208);
-        public static readonly Color Text = Color.FromArgb(22, 53, 44);
-        public static readonly Color TextMuted = Color.FromArgb(90, 115, 105);
-        public static readonly Color Brand = Color.FromArgb(11, 95, 75);
-        public static readonly Color BrandDeep = Color.FromArgb(8, 69, 54);
-        public static readonly Color BrandSoft = Color.FromArgb(215, 238, 229);
-        public static readonly Color Accent = Color.FromArgb(196, 122, 26);
-        public static readonly Color Success = Color.FromArgb(31, 138, 91);
-        public static readonly Color SuccessSoft = Color.FromArgb(225, 245, 234);
-        public static readonly Color Warning = Color.FromArgb(183, 121, 31);
-        public static readonly Color WarningSoft = Color.FromArgb(248, 236, 214);
-        public static readonly Color Danger = Color.FromArgb(192, 57, 43);
-        public static readonly Color DangerSoft = Color.FromArgb(248, 228, 225);
-        public static readonly Color Info = Color.FromArgb(29, 107, 138);
-        public static readonly Color InfoSoft = Color.FromArgb(223, 241, 247);
-        public static readonly Color LogBg = Color.FromArgb(18, 48, 40);
-        public static readonly Color LogFg = Color.FromArgb(196, 224, 212);
-        public static readonly Color LogDefault = Color.FromArgb(168, 210, 194);
+        public static readonly Color SurfaceSoft = Color.FromArgb(248, 250, 252);
+        public static readonly Color Line = Color.FromArgb(226, 232, 240);
+        public static readonly Color Text = Color.FromArgb(15, 23, 42);
+        public static readonly Color TextMuted = Color.FromArgb(100, 116, 139);
+        public static readonly Color Brand = Color.FromArgb(37, 99, 235);
+        public static readonly Color BrandDeep = Color.FromArgb(30, 58, 138);
+        public static readonly Color BrandDark = Color.FromArgb(15, 23, 42);
+        public static readonly Color BrandSoft = Color.FromArgb(239, 246, 255);
+        public static readonly Color Accent = Color.FromArgb(14, 165, 233);
+        public static readonly Color Success = Color.FromArgb(16, 185, 129);
+        public static readonly Color SuccessSoft = Color.FromArgb(236, 253, 245);
+        public static readonly Color Warning = Color.FromArgb(217, 119, 6);
+        public static readonly Color WarningSoft = Color.FromArgb(255, 251, 235);
+        public static readonly Color Danger = Color.FromArgb(220, 38, 38);
+        public static readonly Color DangerSoft = Color.FromArgb(254, 242, 242);
+        public static readonly Color Info = Color.FromArgb(51, 65, 85);
+        public static readonly Color InfoSoft = Color.FromArgb(241, 245, 249);
+        public static readonly Color LogBg = Color.FromArgb(15, 23, 42);
+        public static readonly Color LogFg = Color.FromArgb(226, 232, 240);
+        public static readonly Color LogDefault = Color.FromArgb(148, 163, 184);
 
         public static Font UiFont(float size, FontStyle style)
         {
@@ -166,6 +166,25 @@ namespace TSUBotDesktop
         private Label lblUpdateStatus;
         private ProgressBar progUpdate;
         private Panel pnlHeader;
+        private Panel pnlSidebar;
+        private Panel pnlMainArea;
+        private Panel pnlTopRow;
+        private Panel pnlKpiRow;
+        private Panel pnlMiddleRow;
+        private Panel pnlControlCard;
+        private Panel pnlGaugeCard;
+        private Panel pnlTrackerCard;
+        private Label lblKpiTotalProfiles;
+        private Label lblKpiRunning;
+        private Label lblKpiCourses;
+        private Label lblKpiErrors;
+        private Label lblTopProfileBadge;
+        private Label lblTimerDisplay;
+        private TextBox txtSearchCourse;
+        private System.Windows.Forms.Timer uiTimer;
+        private DateTime? trackerStartTime = null;
+        private Dictionary<string, int> workerProgressPct = new Dictionary<string, int>();
+        private int averageProgressPct = 0;
         private Panel pnlWorkersHeader;
         private SplitContainer splitMain;
 
@@ -184,7 +203,7 @@ namespace TSUBotDesktop
         private bool updateInProgress = false;
         private Process loginProcess;
         private volatile bool resetInProgress = false;
-        private const string APP_VERSION = "1.2.1";
+        private const string APP_VERSION = "1.3.0";
         // Must match USER_DATA_DIR in worker.js / cli_worker.js / server.js (Playwright persistent profile).
         private const string PROFILE_DIR = "user_profile";
         private const string PROFILES_ROOT_DIR = "user_profiles";
@@ -253,6 +272,7 @@ namespace TSUBotDesktop
             LoadCourses();
             LoadModeSettings();
             LoadProfiles();
+            RefreshDashboardMetrics();
             this.Shown += (s, e) => CheckUpdateAsync(false);
         }
 
@@ -288,295 +308,739 @@ namespace TSUBotDesktop
                 base.OnPaintBackground(e);
                 return;
             }
-
-            using (LinearGradientBrush wash = new LinearGradientBrush(
-                rect,
-                UiTheme.BgWash,
-                UiTheme.BgMist,
-                LinearGradientMode.Vertical))
+            using (SolidBrush br = new SolidBrush(UiTheme.BgWash))
             {
-                e.Graphics.FillRectangle(wash, rect);
+                e.Graphics.FillRectangle(br, rect);
             }
+        }
 
-            using (GraphicsPath path = new GraphicsPath())
+        private static GraphicsPath CreateRoundedPath(Rectangle rect, int radius)
+        {
+            GraphicsPath path = new GraphicsPath();
+            int d = radius * 2;
+            if (d > rect.Width) d = rect.Width;
+            if (d > rect.Height) d = rect.Height;
+            if (d <= 0)
             {
-                path.AddEllipse(-120, -160, 520, 360);
-                using (PathGradientBrush glow = new PathGradientBrush(path))
+                path.AddRectangle(rect);
+                return path;
+            }
+            path.AddArc(rect.X, rect.Y, d, d, 180, 90);
+            path.AddArc(rect.Right - d, rect.Y, d, d, 270, 90);
+            path.AddArc(rect.Right - d, rect.Bottom - d, d, d, 0, 90);
+            path.AddArc(rect.X, rect.Bottom - d, d, d, 90, 90);
+            path.CloseFigure();
+            return path;
+        }
+
+        private void PaintRoundedCard(object sender, PaintEventArgs e)
+        {
+            Control c = sender as Control;
+            if (c == null || c.Width < 4 || c.Height < 4) return;
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            Rectangle r = new Rectangle(0, 0, c.Width - 1, c.Height - 1);
+            using (GraphicsPath path = CreateRoundedPath(r, 14))
+            using (SolidBrush bg = new SolidBrush(UiTheme.Surface))
+            using (Pen pen = new Pen(UiTheme.Line, 1f))
+            {
+                e.Graphics.FillPath(bg, path);
+                e.Graphics.DrawPath(pen, path);
+            }
+        }
+
+        private void PaintGradientBlueCard(object sender, PaintEventArgs e)
+        {
+            Control c = sender as Control;
+            if (c == null || c.Width < 4 || c.Height < 4) return;
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            Rectangle r = new Rectangle(0, 0, c.Width - 1, c.Height - 1);
+            using (GraphicsPath path = CreateRoundedPath(r, 14))
+            using (LinearGradientBrush br = new LinearGradientBrush(r, UiTheme.BrandDeep, UiTheme.Brand, LinearGradientMode.ForwardDiagonal))
+            {
+                e.Graphics.FillPath(br, path);
+            }
+        }
+
+        private void PaintDarkTrackerCard(object sender, PaintEventArgs e)
+        {
+            Control c = sender as Control;
+            if (c == null || c.Width < 4 || c.Height < 4) return;
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            Rectangle r = new Rectangle(0, 0, c.Width - 1, c.Height - 1);
+            using (GraphicsPath path = CreateRoundedPath(r, 14))
+            using (LinearGradientBrush br = new LinearGradientBrush(r, Color.FromArgb(15, 23, 42), Color.FromArgb(30, 41, 59), LinearGradientMode.ForwardDiagonal))
+            {
+                e.Graphics.FillPath(br, path);
+                e.Graphics.SetClip(path);
+                using (Pen wave = new Pen(Color.FromArgb(32, 56, 189, 248), 2f))
                 {
-                    glow.CenterColor = Color.FromArgb(70, 36, 140, 112);
-                    glow.SurroundColors = new Color[] { Color.FromArgb(0, 36, 140, 112) };
-                    e.Graphics.FillPath(glow, path);
+                    for (int i = 0; i < 4; i++)
+                    {
+                        e.Graphics.DrawEllipse(wave, c.Width - 120 - i * 18, -30 + i * 16, 180, 180);
+                    }
+                }
+                e.Graphics.ResetClip();
+            }
+        }
+
+        private void PaintProgressGauge(object sender, PaintEventArgs e)
+        {
+            Panel p = sender as Panel;
+            if (p == null) return;
+            PaintRoundedCard(sender, e);
+
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            int pct = Math.Max(0, Math.Min(100, averageProgressPct));
+            int size = Math.Min(p.Width - 48, 128);
+            if (size < 60) size = 60;
+            int x = (p.Width - size) / 2;
+            int y = 38;
+            Rectangle arcRect = new Rectangle(x, y, size, size);
+
+            using (Pen bgArc = new Pen(UiTheme.BgMist, 14f))
+            {
+                bgArc.StartCap = LineCap.Round;
+                bgArc.EndCap = LineCap.Round;
+                e.Graphics.DrawArc(bgArc, arcRect, 180, 180);
+            }
+            if (pct > 0)
+            {
+                using (Pen fgArc = new Pen(UiTheme.Brand, 14f))
+                {
+                    fgArc.StartCap = LineCap.Round;
+                    fgArc.EndCap = LineCap.Round;
+                    e.Graphics.DrawArc(fgArc, arcRect, 180, (180f * pct) / 100f);
                 }
             }
-
-            using (GraphicsPath path2 = new GraphicsPath())
+            string pctStr = pct + "%";
+            using (Font fPct = UiTheme.UiFont(18f, FontStyle.Bold))
+            using (Font fSub = UiTheme.UiFont(8f, FontStyle.Regular))
+            using (SolidBrush bTxt = new SolidBrush(UiTheme.Text))
+            using (SolidBrush bMut = new SolidBrush(UiTheme.TextMuted))
             {
-                path2.AddEllipse(rect.Width - 380, -40, 460, 300);
-                using (PathGradientBrush glow2 = new PathGradientBrush(path2))
-                {
-                    glow2.CenterColor = Color.FromArgb(42, 196, 122, 26);
-                    glow2.SurroundColors = new Color[] { Color.FromArgb(0, 196, 122, 26) };
-                    e.Graphics.FillPath(glow2, path2);
-                }
+                SizeF sz = e.Graphics.MeasureString(pctStr, fPct);
+                e.Graphics.DrawString(pctStr, fPct, bTxt, (p.Width - sz.Width) / 2f, y + size * 0.25f);
+                string sub = runningWorkers.Count > 0 ? "กำลังทำงาน" : "พร้อมใช้งาน";
+                SizeF sz2 = e.Graphics.MeasureString(sub, fSub);
+                e.Graphics.DrawString(sub, fSub, bMut, (p.Width - sz2.Width) / 2f, y + size * 0.25f + 26);
             }
+        }
+
+        private Panel CreateSidebarMenuButton(string iconText, string title, bool active, EventHandler onClick)
+        {
+            Panel row = new Panel
+            {
+                Height = 36,
+                Dock = DockStyle.Top,
+                Cursor = Cursors.Hand,
+                BackColor = active ? UiTheme.BrandSoft : Color.Transparent,
+                Padding = new Padding(12, 0, 10, 0)
+            };
+            if (active)
+            {
+                Panel bar = new Panel
+                {
+                    Width = 4,
+                    Dock = DockStyle.Left,
+                    BackColor = UiTheme.Brand
+                };
+                row.Controls.Add(bar);
+            }
+            Label lbl = new Label
+            {
+                Text = iconText + "   " + title,
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.MiddleLeft,
+                Font = UiTheme.UiFont(9.5f, active ? FontStyle.Bold : FontStyle.Regular),
+                ForeColor = active ? UiTheme.BrandDeep : UiTheme.TextMuted,
+                BackColor = Color.Transparent,
+                Cursor = Cursors.Hand,
+                Padding = new Padding(8, 0, 0, 0)
+            };
+            lbl.Click += onClick;
+            row.Click += onClick;
+            row.Controls.Add(lbl);
+            return row;
+        }
+
+        private Panel CreateKpiCard(string title, out Label lblValue, string subtext, bool isHero)
+        {
+            Panel card = new Panel
+            {
+                BackColor = Color.Transparent,
+                Padding = new Padding(14, 12, 14, 12)
+            };
+            if (isHero) card.Paint += PaintGradientBlueCard;
+            else card.Paint += PaintRoundedCard;
+
+            Label lblTitle = new Label
+            {
+                Text = title,
+                Font = UiTheme.UiFont(9.5f, FontStyle.Bold),
+                ForeColor = isHero ? Color.FromArgb(219, 234, 254) : UiTheme.TextMuted,
+                Location = new Point(14, 12),
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+            card.Controls.Add(lblTitle);
+
+            Label lblArrow = new Label
+            {
+                Text = "↗",
+                Font = UiTheme.UiFont(10f, FontStyle.Bold),
+                ForeColor = isHero ? UiTheme.BrandDeep : UiTheme.Text,
+                BackColor = isHero ? Color.White : UiTheme.SurfaceSoft,
+                Size = new Size(24, 24),
+                TextAlign = ContentAlignment.MiddleCenter,
+                Anchor = AnchorStyles.Top | AnchorStyles.Right,
+                Location = new Point(card.Width - 36, 10)
+            };
+            card.Controls.Add(lblArrow);
+
+            lblValue = new Label
+            {
+                Text = "0",
+                Font = UiTheme.UiFont(22f, FontStyle.Bold),
+                ForeColor = isHero ? Color.White : UiTheme.Text,
+                Location = new Point(12, 34),
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+            card.Controls.Add(lblValue);
+
+            Label lblSub = new Label
+            {
+                Text = subtext,
+                Font = UiTheme.UiFont(8f, FontStyle.Regular),
+                ForeColor = isHero ? Color.FromArgb(191, 219, 254) : UiTheme.TextMuted,
+                Location = new Point(14, 72),
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+            card.Controls.Add(lblSub);
+
+            return card;
         }
 
         private void InitializeComponent()
         {
             this.Text = "TSU-BOT Pro — Desktop Suite";
-            this.Size = new Size(1040, 760);
-            this.MinimumSize = new Size(960, 680);
+            this.Size = new Size(1220, 820);
+            this.MinimumSize = new Size(1060, 740);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.BackColor = UiTheme.BgWash;
             this.ForeColor = UiTheme.Text;
             this.Font = UiTheme.UiFont(9.5f, FontStyle.Regular);
             this.DoubleBuffered = true;
-            this.Padding = new Padding(16, 12, 16, 16);
+            this.Padding = new Padding(12);
 
-            // —— Brand header ——
-            pnlHeader = CreateSurfacePanel(DockStyle.Top, 118);
-            pnlHeader.Padding = new Padding(22, 14, 22, 12);
-            pnlHeader.Paint += PaintSurfaceCard;
+            // —— Left Sidebar ——
+            pnlSidebar = new Panel
+            {
+                Dock = DockStyle.Left,
+                Width = 212,
+                BackColor = Color.Transparent,
+                Padding = new Padding(12, 16, 12, 12)
+            };
+            pnlSidebar.Paint += PaintRoundedCard;
+
+            Panel pnlLogoBox = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 56,
+                BackColor = Color.Transparent
+            };
+            pnlLogoBox.Paint += (s, e) =>
+            {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                using (LinearGradientBrush br = new LinearGradientBrush(new Rectangle(4, 8, 34, 34), UiTheme.BrandDeep, UiTheme.Brand, LinearGradientMode.ForwardDiagonal))
+                using (GraphicsPath gp = CreateRoundedPath(new Rectangle(4, 8, 34, 34), 10))
+                {
+                    e.Graphics.FillPath(br, gp);
+                }
+                using (Pen pw = new Pen(Color.White, 2.2f))
+                {
+                    e.Graphics.DrawEllipse(pw, 12, 16, 18, 18);
+                    e.Graphics.DrawLine(pw, 17, 25, 21, 29);
+                    e.Graphics.DrawLine(pw, 21, 29, 26, 21);
+                }
+            };
 
             lblBrand = new Label
             {
                 Text = "TSU-BOT",
-                Font = UiTheme.UiFont(28f, FontStyle.Bold),
-                ForeColor = UiTheme.Brand,
+                Font = UiTheme.UiFont(15f, FontStyle.Bold),
+                ForeColor = UiTheme.Text,
                 AutoSize = true,
-                Location = new Point(22, 12),
+                Location = new Point(44, 8),
                 BackColor = Color.Transparent
             };
-            pnlHeader.Controls.Add(lblBrand);
-
-            lblTagline = new Label
-            {
-                Text = "Pro Desktop Suite  ·  Multi-Browser Workers",
-                Font = UiTheme.UiFont(10f, FontStyle.Regular),
-                ForeColor = UiTheme.TextMuted,
-                AutoSize = true,
-                Location = new Point(26, 52),
-                BackColor = Color.Transparent
-            };
-            pnlHeader.Controls.Add(lblTagline);
+            pnlLogoBox.Controls.Add(lblBrand);
 
             lblVersion = new Label
             {
                 Text = "v" + APP_VERSION,
-                Font = UiTheme.UiFont(9f, FontStyle.Bold),
+                Font = UiTheme.UiFont(7.5f, FontStyle.Bold),
                 ForeColor = UiTheme.Brand,
                 BackColor = UiTheme.BrandSoft,
                 AutoSize = true,
-                Padding = new Padding(10, 4, 10, 4),
-                Location = new Point(210, 22)
+                Padding = new Padding(5, 2, 5, 2),
+                Location = new Point(46, 33)
             };
-            pnlHeader.Controls.Add(lblVersion);
+            pnlLogoBox.Controls.Add(lblVersion);
+
+            lblTagline = new Label
+            {
+                Text = "Multi-Profile Suite",
+                Font = UiTheme.UiFont(7.5f, FontStyle.Regular),
+                ForeColor = UiTheme.TextMuted,
+                AutoSize = true,
+                Location = new Point(98, 35),
+                BackColor = Color.Transparent
+            };
+            pnlLogoBox.Controls.Add(lblTagline);
+
+            // Bottom update card inside sidebar
+            Panel pnlSideUpdate = new Panel
+            {
+                Dock = DockStyle.Bottom,
+                Height = 128,
+                BackColor = Color.Transparent,
+                Padding = new Padding(12)
+            };
+            pnlSideUpdate.Paint += PaintDarkTrackerCard;
+
+            Label lblUpdTitle = new Label
+            {
+                Text = "GitHub Auto-Sync",
+                Font = UiTheme.UiFont(9.5f, FontStyle.Bold),
+                ForeColor = Color.White,
+                Location = new Point(12, 10),
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+            pnlSideUpdate.Controls.Add(lblUpdTitle);
 
             lblUpdateStatus = new Label
             {
-                Text = "อัปเดต: กำลังตรวจสอบจาก GitHub...",
-                Font = UiTheme.UiFont(8.5f, FontStyle.Regular),
-                ForeColor = UiTheme.TextMuted,
-                AutoSize = true,
-                Location = new Point(26, 78),
-                BackColor = Color.Transparent,
-                MaximumSize = new Size(620, 0)
+                Text = "กำลังตรวจสอบอัปเดต...",
+                Font = UiTheme.UiFont(7.5f, FontStyle.Regular),
+                ForeColor = Color.FromArgb(148, 163, 184),
+                Location = new Point(12, 32),
+                Size = new Size(164, 34),
+                BackColor = Color.Transparent
             };
-            pnlHeader.Controls.Add(lblUpdateStatus);
+            pnlSideUpdate.Controls.Add(lblUpdateStatus);
 
             progUpdate = new ProgressBar
             {
-                Location = new Point(26, 98),
-                Size = new Size(420, 10),
+                Location = new Point(12, 68),
+                Size = new Size(164, 8),
                 Minimum = 0,
                 Maximum = 100,
                 Value = 0,
                 Visible = false,
                 Style = ProgressBarStyle.Continuous
             };
-            pnlHeader.Controls.Add(progUpdate);
+            pnlSideUpdate.Controls.Add(progUpdate);
 
-            btnCheckUpdate = CreateButton("เช็คอัปเดต", UiTheme.Info, 128, 36, false);
+            btnCheckUpdate = CreateButton("เช็คอัปเดต", UiTheme.Brand, 164, 32, false);
+            btnCheckUpdate.Location = new Point(12, 84);
             btnCheckUpdate.Click += (s, e) => CheckUpdateAsync(true);
-            pnlHeader.Controls.Add(btnCheckUpdate);
+            pnlSideUpdate.Controls.Add(btnCheckUpdate);
 
-            this.Controls.Add(pnlHeader);
-
-            // —— Launch / controls ——
-            Panel pnlControls = CreateSurfacePanel(DockStyle.Top, 194);
-            pnlControls.Padding = new Padding(18, 12, 18, 12);
-            pnlControls.Paint += PaintSurfaceCard;
-            pnlControls.Margin = new Padding(0, 10, 0, 0);
-
-            Label lblSetup = new Label
+            // Menu items inside sidebar
+            Panel pnlSideMenu = new Panel
             {
-                Text = "ตั้งค่าและเริ่มทำงาน (รองรับหลายโปรไฟล์ Chrome แยกบัญชี & แยกวิชา)",
-                Font = UiTheme.UiFont(10.5f, FontStyle.Bold),
-                ForeColor = UiTheme.BrandDeep,
-                AutoSize = true,
-                Location = new Point(18, 10),
+                Dock = DockStyle.Fill,
+                BackColor = Color.Transparent,
+                Padding = new Padding(0, 8, 0, 8)
+            };
+
+            Label lblGenHdr = new Label
+            {
+                Text = "GENERAL",
+                Font = UiTheme.UiFont(7.5f, FontStyle.Bold),
+                ForeColor = UiTheme.TextMuted,
+                Dock = DockStyle.Top,
+                Height = 24,
+                TextAlign = ContentAlignment.BottomLeft,
+                Padding = new Padding(10, 0, 0, 4),
                 BackColor = Color.Transparent
             };
-            pnlControls.Controls.Add(lblSetup);
+            Label lblMenuHdr = new Label
+            {
+                Text = "MENU",
+                Font = UiTheme.UiFont(7.5f, FontStyle.Bold),
+                ForeColor = UiTheme.TextMuted,
+                Dock = DockStyle.Top,
+                Height = 24,
+                TextAlign = ContentAlignment.BottomLeft,
+                Padding = new Padding(10, 0, 0, 4),
+                BackColor = Color.Transparent
+            };
 
-            Label lblProfile = CreateFieldLabel("โปรไฟล์:", new Point(18, 46));
-            pnlControls.Controls.Add(lblProfile);
+            Panel navReset = CreateSidebarMenuButton("🧹", "ล้างแคชโปรไฟล์", false, (s, e) => BtnResetBrowser_Click(s, e));
+            Panel navUpdate = CreateSidebarMenuButton("🔄", "ซิงค์ / อัปเดต", false, (s, e) => CheckUpdateAsync(true));
+            Panel navLogs = CreateSidebarMenuButton("📋", "ดู Log & Error", false, (s, e) => { if (tabLogs != null && tabErrorPage != null) tabLogs.SelectedTab = tabErrorPage; });
+            Panel navCourses = CreateSidebarMenuButton("📚", "ตั้งค่าวิชา & URL", false, (s, e) => BtnSettings_Click(s, e));
+            Panel navProfiles = CreateSidebarMenuButton("👥", "จัดการทุกโปรไฟล์", false, (s, e) => BtnManageProfiles_Click(s, e));
+            Panel navDash = CreateSidebarMenuButton("⊞", "Dashboard", true, (s, e) => { if (tabLogs != null && tabLogs.TabPages.Count > 0) tabLogs.SelectedIndex = 0; });
 
-            comboProfile = CreateCombo(new Point(78, 42), 200);
-            comboProfile.SelectedIndexChanged += ComboProfile_SelectedIndexChanged;
-            pnlControls.Controls.Add(comboProfile);
+            // Dock.Top stacks bottom-to-top, so add in reverse visual order
+            pnlSideMenu.Controls.Add(navReset);
+            pnlSideMenu.Controls.Add(navUpdate);
+            pnlSideMenu.Controls.Add(lblGenHdr);
+            pnlSideMenu.Controls.Add(navLogs);
+            pnlSideMenu.Controls.Add(navCourses);
+            pnlSideMenu.Controls.Add(navProfiles);
+            pnlSideMenu.Controls.Add(navDash);
+            pnlSideMenu.Controls.Add(lblMenuHdr);
 
-            btnAddProfile = CreateButton("+ โปรไฟล์", UiTheme.Brand, 88, 32, false);
-            btnAddProfile.Location = new Point(284, 39);
+            pnlSidebar.Controls.Add(pnlSideMenu);
+            pnlSidebar.Controls.Add(pnlSideUpdate);
+            pnlSidebar.Controls.Add(pnlLogoBox);
+
+            // —— Right Main Area ——
+            pnlMainArea = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.Transparent,
+                Padding = new Padding(12, 0, 0, 0)
+            };
+
+            // Top bar (Search + Profile Badge)
+            pnlHeader = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 56,
+                BackColor = Color.Transparent,
+                Padding = new Padding(14, 10, 14, 10)
+            };
+            pnlHeader.Paint += PaintRoundedCard;
+
+            Label lblSearchIcon = new Label
+            {
+                Text = "🔍",
+                Font = UiTheme.UiFont(10f, FontStyle.Regular),
+                ForeColor = UiTheme.TextMuted,
+                Location = new Point(14, 17),
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+            pnlHeader.Controls.Add(lblSearchIcon);
+
+            txtSearchCourse = new TextBox
+            {
+                Location = new Point(40, 15),
+                Width = 280,
+                BorderStyle = BorderStyle.None,
+                BackColor = UiTheme.Surface,
+                ForeColor = UiTheme.Text,
+                Font = UiTheme.UiFont(9.5f, FontStyle.Regular),
+                Text = ""
+            };
+            txtSearchCourse.TextChanged += (s, ev) => FilterCourseCombo(txtSearchCourse.Text);
+            pnlHeader.Controls.Add(txtSearchCourse);
+
+            Label lblSearchHint = new Label
+            {
+                Text = "พิมพ์รหัส/ชื่อวิชา เพื่อค้นหาเร็ว",
+                Font = UiTheme.UiFont(8f, FontStyle.Regular),
+                ForeColor = UiTheme.TextMuted,
+                Location = new Point(328, 19),
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+            pnlHeader.Controls.Add(lblSearchHint);
+
+            lblTopProfileBadge = new Label
+            {
+                Text = "Profile 1 (หลัก)",
+                Font = UiTheme.UiFont(9f, FontStyle.Bold),
+                ForeColor = UiTheme.BrandDeep,
+                BackColor = UiTheme.BrandSoft,
+                AutoSize = true,
+                Padding = new Padding(10, 5, 10, 5),
+                Anchor = AnchorStyles.Top | AnchorStyles.Right,
+                Location = new Point(720, 14)
+            };
+            pnlHeader.Controls.Add(lblTopProfileBadge);
+
+            // Title row ("Dashboard" + "+ รันทุกโปรไฟล์พร้อมกัน" + "+ เพิ่มโปรไฟล์")
+            pnlTopRow = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 62,
+                BackColor = Color.Transparent
+            };
+            Label lblDashTitle = new Label
+            {
+                Text = "Dashboard",
+                Font = UiTheme.UiFont(20f, FontStyle.Bold),
+                ForeColor = UiTheme.Text,
+                Location = new Point(2, 6),
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+            pnlTopRow.Controls.Add(lblDashTitle);
+
+            Label lblDashSub = new Label
+            {
+                Text = "จัดการหลายโปรไฟล์ Chrome แยกบัญชี แยกวิชา และติดตามความคืบหน้าเรียลไทม์",
+                Font = UiTheme.UiFont(9f, FontStyle.Regular),
+                ForeColor = UiTheme.TextMuted,
+                Location = new Point(4, 38),
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+            pnlTopRow.Controls.Add(lblDashSub);
+
+            btnStartAll = CreateButton("+ รันทุกโปรไฟล์พร้อมกัน", UiTheme.Brand, 184, 36, true);
+            btnStartAll.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnStartAll.Click += BtnStartAll_Click;
+            pnlTopRow.Controls.Add(btnStartAll);
+
+            btnAddProfile = CreateButton("+ เพิ่มโปรไฟล์", UiTheme.Surface, 128, 36, false);
+            btnAddProfile.ForeColor = UiTheme.Text;
+            btnAddProfile.FlatAppearance.BorderSize = 1;
+            btnAddProfile.FlatAppearance.BorderColor = UiTheme.Line;
+            btnAddProfile.Tag = UiTheme.Surface;
+            btnAddProfile.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnAddProfile.Click += BtnAddProfile_Click;
-            new ToolTip().SetToolTip(btnAddProfile, "สร้างโปรไฟล์ Chrome ใหม่แยกคุกกี้และบัญชีล็อกอิน");
-            pnlControls.Controls.Add(btnAddProfile);
+            pnlTopRow.Controls.Add(btnAddProfile);
 
-            btnManageProfiles = CreateButton("จัดการทุกโปรไฟล์", UiTheme.Info, 134, 32, false);
-            btnManageProfiles.Location = new Point(378, 39);
+            // KPI Row (4 cards)
+            pnlKpiRow = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 102,
+                BackColor = Color.Transparent,
+                Padding = new Padding(0, 2, 0, 8)
+            };
+            Panel kpi1 = CreateKpiCard("โปรไฟล์ทั้งหมด", out lblKpiTotalProfiles, "แยกเซสชัน Chrome อิสระ", true);
+            Panel kpi2 = CreateKpiCard("กำลังทำงาน", out lblKpiRunning, "หน้าต่าง Chrome ที่เปิดอยู่", false);
+            Panel kpi3 = CreateKpiCard("วิชาในฐานข้อมูล", out lblKpiCourses, "TSUGE / TSUPT พร้อมเฉลย", false);
+            Panel kpi4 = CreateKpiCard("Error / คำเตือน", out lblKpiErrors, "ดูรายละเอียดในแท็บ Error", false);
+            pnlKpiRow.Controls.Add(kpi1);
+            pnlKpiRow.Controls.Add(kpi2);
+            pnlKpiRow.Controls.Add(kpi3);
+            pnlKpiRow.Controls.Add(kpi4);
+
+            // Middle Row (Control Panel + Progress Gauge + Dark Time Tracker)
+            pnlMiddleRow = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 196,
+                BackColor = Color.Transparent,
+                Padding = new Padding(0, 0, 0, 10)
+            };
+
+            pnlControlCard = new Panel { BackColor = Color.Transparent };
+            pnlControlCard.Paint += PaintRoundedCard;
+
+            Label lblCtrlHdr = new Label
+            {
+                Text = "ควบคุมโปรไฟล์ & เลือกรายวิชา",
+                Font = UiTheme.UiFont(10.5f, FontStyle.Bold),
+                ForeColor = UiTheme.Text,
+                Location = new Point(14, 10),
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+            pnlControlCard.Controls.Add(lblCtrlHdr);
+
+            Label lblProfile = CreateFieldLabel("โปรไฟล์:", new Point(14, 42));
+            pnlControlCard.Controls.Add(lblProfile);
+            comboProfile = CreateCombo(new Point(74, 38), 186);
+            comboProfile.SelectedIndexChanged += ComboProfile_SelectedIndexChanged;
+            pnlControlCard.Controls.Add(comboProfile);
+
+            btnManageProfiles = CreateButton("จัดการทุกโปรไฟล์", UiTheme.InfoSoft, 126, 30, false);
+            btnManageProfiles.ForeColor = UiTheme.Text;
+            btnManageProfiles.Tag = UiTheme.InfoSoft;
+            btnManageProfiles.Location = new Point(268, 36);
             btnManageProfiles.Click += BtnManageProfiles_Click;
-            new ToolTip().SetToolTip(btnManageProfiles, "ตั้งค่าวิชาแยกแต่ละโปรไฟล์ ล็อกอินแยกบัญชี และเลือกรันพร้อมกัน");
-            pnlControls.Controls.Add(btnManageProfiles);
+            pnlControlCard.Controls.Add(btnManageProfiles);
 
-            btnLogin = CreateButton("ล็อกอินโปรไฟล์นี้", UiTheme.Success, 148, 32, true);
-            btnLogin.Location = new Point(518, 39);
+            btnLogin = CreateButton("ล็อกอินโปรไฟล์นี้", UiTheme.Success, 134, 30, true);
+            btnLogin.Location = new Point(402, 36);
             btnLogin.Click += BtnLogin_Click;
-            new ToolTip().SetToolTip(btnLogin, "เปิด Chrome ของโปรไฟล์ที่เลือกอยู่เพื่อล็อกอินบัญชี TSU");
-            pnlControls.Controls.Add(btnLogin);
+            pnlControlCard.Controls.Add(btnLogin);
 
-            btnSettings = CreateButton("ตั้งค่าวิชา & URL", UiTheme.Info, 132, 32, false);
-            btnSettings.Location = new Point(672, 39);
-            btnSettings.Click += BtnSettings_Click;
-            pnlControls.Controls.Add(btnSettings);
-
-            btnAddCourse = CreateButton("เพิ่มวิชา", UiTheme.Brand, 76, 32, false);
-            btnAddCourse.Location = new Point(810, 39);
-            btnAddCourse.Click += BtnSettings_Click;
-            pnlControls.Controls.Add(btnAddCourse);
-
-            btnResetBrowser = CreateButton("ล้างแคช", UiTheme.Danger, 96, 32, false);
-            btnResetBrowser.Location = new Point(892, 39);
-            btnResetBrowser.Click += BtnResetBrowser_Click;
-            new ToolTip().SetToolTip(btnResetBrowser, "ลบแคช คุกกี้ และการล็อกอินของโปรไฟล์ที่เลือก (หรือล้างทุกโปรไฟล์)");
-            pnlControls.Controls.Add(btnResetBrowser);
-
-            Label lblCourse = CreateFieldLabel("เลือกวิชาที่จะทำ (สำหรับโปรไฟล์ที่เลือก)", new Point(18, 86));
-            pnlControls.Controls.Add(lblCourse);
-
-            comboCourse = CreateCombo(new Point(18, 108), 460);
+            Label lblCourse = CreateFieldLabel("วิชาที่ทำ:", new Point(14, 78));
+            pnlControlCard.Controls.Add(lblCourse);
+            comboCourse = CreateCombo(new Point(74, 74), 310);
             comboCourse.SelectedIndexChanged += (s, ev) =>
             {
                 CourseItem ci = comboCourse.SelectedItem as CourseItem;
-                if (ci != null && !string.IsNullOrEmpty(ci.Url))
-                {
-                    txtUrl.Text = ci.Url;
-                }
+                if (ci != null && !string.IsNullOrEmpty(ci.Url)) txtUrl.Text = ci.Url;
                 SyncCurrentControlsToSelectedProfile();
             };
-            pnlControls.Controls.Add(comboCourse);
+            pnlControlCard.Controls.Add(comboCourse);
 
-            Label lblSpeed = CreateFieldLabel("ความเร็ว", new Point(498, 86));
-            pnlControls.Controls.Add(lblSpeed);
-
-            comboSpeed = CreateCombo(new Point(498, 108), 160);
+            comboSpeed = CreateCombo(new Point(392, 74), 144);
             comboSpeed.Items.AddRange(new object[] { "turbo (สายฟ้า)", "normal (สมดุล)", "safe (ปลอดภัย)" });
             comboSpeed.SelectedIndex = 1;
             comboSpeed.SelectedIndexChanged += (s, ev) => SyncCurrentControlsToSelectedProfile();
-            pnlControls.Controls.Add(comboSpeed);
+            pnlControlCard.Controls.Add(comboSpeed);
 
-            Label lblModes = CreateFieldLabel("ให้บอททำ (เลือกอย่างน้อย 1)", new Point(680, 86));
-            pnlControls.Controls.Add(lblModes);
+            Label lblModes = CreateFieldLabel("ให้บอททำ:", new Point(14, 112));
+            pnlControlCard.Controls.Add(lblModes);
+            chkModeQuiz = CreateModeCheckBox("แบบฝึก", new Point(80, 110));
+            chkModeVideo = CreateModeCheckBox("วิดีโอ", new Point(158, 110));
+            chkModeDoc = CreateModeCheckBox("เอกสาร", new Point(230, 110));
+            pnlControlCard.Controls.Add(chkModeQuiz);
+            pnlControlCard.Controls.Add(chkModeVideo);
+            pnlControlCard.Controls.Add(chkModeDoc);
 
-            chkModeQuiz = CreateModeCheckBox("แบบฝึก", new Point(680, 109));
-            chkModeVideo = CreateModeCheckBox("วิดีโอ", new Point(770, 109));
-            chkModeDoc = CreateModeCheckBox("เอกสาร", new Point(855, 109));
-            pnlControls.Controls.Add(chkModeQuiz);
-            pnlControls.Controls.Add(chkModeVideo);
-            pnlControls.Controls.Add(chkModeDoc);
+            btnSettings = CreateButton("ตั้งค่าวิชา", UiTheme.InfoSoft, 96, 26, false);
+            btnSettings.ForeColor = UiTheme.Text;
+            btnSettings.Tag = UiTheme.InfoSoft;
+            btnSettings.Location = new Point(332, 108);
+            btnSettings.Click += BtnSettings_Click;
+            pnlControlCard.Controls.Add(btnSettings);
 
-            Label lblUrl = CreateFieldLabel("URL เจาะจง (ถ้ามี)", new Point(18, 150));
-            pnlControls.Controls.Add(lblUrl);
+            btnResetBrowser = CreateButton("ล้างแคช", UiTheme.DangerSoft, 96, 26, false);
+            btnResetBrowser.ForeColor = UiTheme.Danger;
+            btnResetBrowser.Tag = UiTheme.DangerSoft;
+            btnResetBrowser.Location = new Point(436, 108);
+            btnResetBrowser.Click += BtnResetBrowser_Click;
+            pnlControlCard.Controls.Add(btnResetBrowser);
 
-            txtUrl = CreateTextBox(new Point(138, 146), 240);
+            Label lblUrl = CreateFieldLabel("URL:", new Point(14, 148));
+            pnlControlCard.Controls.Add(lblUrl);
+            txtUrl = CreateTextBox(new Point(54, 144), 328);
             txtUrl.TextChanged += (s, ev) => SyncCurrentControlsToSelectedProfile();
-            pnlControls.Controls.Add(txtUrl);
+            pnlControlCard.Controls.Add(txtUrl);
 
-            btnStart = CreateButton("เริ่มโปรไฟล์นี้", UiTheme.Brand, 142, 36, true);
-            btnStart.Location = new Point(388, 142);
+            btnStart = CreateButton("▶ เริ่มโปรไฟล์นี้", UiTheme.Brand, 146, 34, true);
+            btnStart.Location = new Point(390, 140);
             btnStart.Click += BtnStart_Click;
-            new ToolTip().SetToolTip(btnStart, "เปิด Chrome รันบอทเฉพาะโปรไฟล์ที่เลือกอยู่ (ทำงานแยกโปรไฟล์)");
-            pnlControls.Controls.Add(btnStart);
+            pnlControlCard.Controls.Add(btnStart);
 
-            btnStartAll = CreateButton("รันทุกโปรไฟล์พร้อมกัน", UiTheme.Accent, 184, 36, true);
-            btnStartAll.Location = new Point(538, 142);
-            btnStartAll.Click += BtnStartAll_Click;
-            new ToolTip().SetToolTip(btnStartAll, "เปิดทุกโปรไฟล์พร้อมกันในคลิกเดียว โดยแต่ละโปรไฟล์ทำวิชาที่ตั้งไว้ของตัวเอง");
-            pnlControls.Controls.Add(btnStartAll);
+            // Hidden/alias btnAddCourse for compatibility
+            btnAddCourse = btnSettings;
 
-            btnPause = CreateButton("หยุดชั่วคราว", UiTheme.Warning, 118, 36, false);
-            btnPause.Location = new Point(730, 142);
-            btnPause.Click += BtnPause_Click;
-            pnlControls.Controls.Add(btnPause);
-
-            btnCancel = CreateButton("ยกเลิก", UiTheme.Danger, 132, 36, false);
-            btnCancel.Location = new Point(856, 142);
-            btnCancel.Click += BtnCancel_Click;
-            pnlControls.Controls.Add(btnCancel);
-
-            // Spacer between header/controls and content
-            Panel spacer = new Panel
+            // Gauge Card
+            pnlGaugeCard = new Panel { BackColor = Color.Transparent };
+            pnlGaugeCard.Paint += PaintProgressGauge;
+            Label lblGaugeTitle = new Label
             {
-                Dock = DockStyle.Top,
-                Height = 12,
+                Text = "ความคืบหน้ารวม",
+                Font = UiTheme.UiFont(10f, FontStyle.Bold),
+                ForeColor = UiTheme.Text,
+                Location = new Point(14, 10),
+                AutoSize = true,
                 BackColor = Color.Transparent
             };
+            pnlGaugeCard.Controls.Add(lblGaugeTitle);
+
+            Label lblGaugeLegend = new Label
+            {
+                Text = "● ทำแล้ว   ○ รอดำเนินการ",
+                Font = UiTheme.UiFont(8f, FontStyle.Regular),
+                ForeColor = UiTheme.Brand,
+                Location = new Point(14, 158),
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+            pnlGaugeCard.Controls.Add(lblGaugeLegend);
+
+            // Dark Time Tracker Card
+            pnlTrackerCard = new Panel { BackColor = Color.Transparent };
+            pnlTrackerCard.Paint += PaintDarkTrackerCard;
+            Label lblTrackerTitle = new Label
+            {
+                Text = "Time Tracker",
+                Font = UiTheme.UiFont(10f, FontStyle.Bold),
+                ForeColor = Color.FromArgb(203, 213, 225),
+                Location = new Point(16, 12),
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+            pnlTrackerCard.Controls.Add(lblTrackerTitle);
+
+            lblTimerDisplay = new Label
+            {
+                Text = "00:00:00",
+                Font = UiTheme.UiFont(24f, FontStyle.Bold),
+                ForeColor = Color.White,
+                Location = new Point(14, 48),
+                AutoSize = true,
+                BackColor = Color.Transparent
+            };
+            pnlTrackerCard.Controls.Add(lblTimerDisplay);
+
+            btnPause = CreateButton("⏸ พักชั่วคราว", UiTheme.Warning, 108, 34, false);
+            btnPause.Location = new Point(14, 134);
+            btnPause.Click += BtnPause_Click;
+            pnlTrackerCard.Controls.Add(btnPause);
+
+            btnCancel = CreateButton("■ ยกเลิก", UiTheme.Danger, 88, 34, false);
+            btnCancel.Location = new Point(128, 134);
+            btnCancel.Click += BtnCancel_Click;
+            pnlTrackerCard.Controls.Add(btnCancel);
+
+            pnlMiddleRow.Controls.Add(pnlControlCard);
+            pnlMiddleRow.Controls.Add(pnlGaugeCard);
+            pnlMiddleRow.Controls.Add(pnlTrackerCard);
+
+            uiTimer = new System.Windows.Forms.Timer { Interval = 1000 };
+            uiTimer.Tick += (s, ev) =>
+            {
+                if (trackerStartTime.HasValue && runningWorkers.Count > 0)
+                {
+                    TimeSpan elapsed = DateTime.Now - trackerStartTime.Value;
+                    lblTimerDisplay.Text = string.Format("{0:00}:{1:00}:{2:00}", (int)elapsed.TotalHours, elapsed.Minutes, elapsed.Seconds);
+                }
+            };
+            uiTimer.Start();
 
             // —— Workers + logs ——
             splitMain = new SplitContainer
             {
                 Dock = DockStyle.Fill,
                 Orientation = Orientation.Horizontal,
-                SplitterDistance = 210,
+                SplitterDistance = 165,
                 SplitterWidth = 8,
                 BackColor = Color.Transparent,
-                Panel1MinSize = 120,
-                Panel2MinSize = 140
+                Panel1MinSize = 110,
+                Panel2MinSize = 130
             };
             splitMain.Panel1.BackColor = Color.Transparent;
             splitMain.Panel2.BackColor = Color.Transparent;
 
             Panel pnlWorkersCard = CreateSurfacePanel(DockStyle.Fill, 0);
-            pnlWorkersCard.Paint += PaintSurfaceCard;
-            pnlWorkersCard.Padding = new Padding(2);
+            pnlWorkersCard.Paint += PaintRoundedCard;
+            pnlWorkersCard.Padding = new Padding(6, 4, 6, 6);
 
             pnlWorkersHeader = new Panel
             {
                 Dock = DockStyle.Top,
-                Height = 44,
+                Height = 40,
                 BackColor = Color.Transparent,
-                Padding = new Padding(14, 8, 14, 4)
+                Padding = new Padding(10, 6, 10, 2)
             };
 
             Label lblWorkersTitle = new Label
             {
                 Text = "หน้าต่าง Chrome ที่กำลังทำงาน / หยุดพัก (จบแล้วลบออกอัตโนมัติ)",
-                Font = UiTheme.UiFont(10.5f, FontStyle.Bold),
-                ForeColor = UiTheme.BrandDeep,
+                Font = UiTheme.UiFont(10f, FontStyle.Bold),
+                ForeColor = UiTheme.Text,
                 AutoSize = true,
-                Location = new Point(14, 12),
+                Location = new Point(10, 10),
                 BackColor = Color.Transparent
             };
             pnlWorkersHeader.Controls.Add(lblWorkersTitle);
 
-            btnPauseWorker = CreateButton("พัก / ต่อ", UiTheme.Warning, 108, 30, false);
+            btnPauseWorker = CreateButton("พัก / ต่อ", UiTheme.Warning, 96, 28, false);
             btnPauseWorker.Click += BtnPause_Click;
             pnlWorkersHeader.Controls.Add(btnPauseWorker);
 
-            btnStop = CreateButton("ยกเลิกที่เลือก", UiTheme.Danger, 124, 30, false);
+            btnStop = CreateButton("ยกเลิกที่เลือก", UiTheme.Danger, 114, 28, false);
             btnStop.Click += BtnCancel_Click;
             pnlWorkersHeader.Controls.Add(btnStop);
-
-            pnlWorkersCard.Controls.Add(pnlWorkersHeader);
 
             lvWorkers = new ListView
             {
@@ -607,40 +1071,35 @@ namespace TSUBotDesktop
                 }
             };
             pnlWorkersCard.Controls.Add(lvWorkers);
-            // Ensure header stays on top of list
-            lvWorkers.BringToFront();
-            pnlWorkersHeader.BringToFront();
-            // Fix z-order: Dock Fill then Dock Top means Top wins for layout; add header first then list is wrong.
-            // Re-add in correct order: list first (fill), header second (top).
-            pnlWorkersCard.Controls.Clear();
-            pnlWorkersCard.Controls.Add(lvWorkers);
             pnlWorkersCard.Controls.Add(pnlWorkersHeader);
 
             splitMain.Panel1.Controls.Add(pnlWorkersCard);
 
             Panel pnlLogsCard = CreateSurfacePanel(DockStyle.Fill, 0);
-            pnlLogsCard.Paint += PaintSurfaceCard;
-            pnlLogsCard.Padding = new Padding(2);
+            pnlLogsCard.Paint += PaintRoundedCard;
+            pnlLogsCard.Padding = new Padding(6, 4, 6, 6);
 
             pnlLogsHeader = new Panel
             {
                 Dock = DockStyle.Top,
-                Height = 40,
+                Height = 36,
                 BackColor = Color.Transparent
             };
             Label lblLogsTitle = new Label
             {
-                Text = "บันทึกการทำงานแยกตามโปรไฟล์ & ตรวจจับ Error (คลิกแท็บเพื่อดูแยกโปรไฟล์)",
-                Font = UiTheme.UiFont(10.5f, FontStyle.Bold),
-                ForeColor = UiTheme.BrandDeep,
+                Text = "บันทึกการทำงานแยกตามโปรไฟล์ & ตรวจจับ Error",
+                Font = UiTheme.UiFont(10f, FontStyle.Bold),
+                ForeColor = UiTheme.Text,
                 AutoSize = true,
-                Location = new Point(14, 10),
+                Location = new Point(10, 8),
                 BackColor = Color.Transparent
             };
             pnlLogsHeader.Controls.Add(lblLogsTitle);
 
-            btnClearLog = CreateButton("ล้าง Log หน้านี้", UiTheme.TextMuted, 118, 28, false);
-            btnClearLog.Location = new Point(840, 6);
+            btnClearLog = CreateButton("ล้าง Log หน้านี้", UiTheme.InfoSoft, 114, 26, false);
+            btnClearLog.ForeColor = UiTheme.Text;
+            btnClearLog.Tag = UiTheme.InfoSoft;
+            btnClearLog.Location = new Point(780, 5);
             btnClearLog.Click += (s, ev) => ClearCurrentLogTab();
             pnlLogsHeader.Controls.Add(btnClearLog);
 
@@ -664,11 +1123,15 @@ namespace TSUBotDesktop
             pnlLogsCard.Controls.Add(pnlLogsHeader);
             splitMain.Panel2.Controls.Add(pnlLogsCard);
 
-            // Add in reverse dock order: Fill first, then Top panels
-            this.Controls.Add(splitMain);
-            this.Controls.Add(spacer);
-            this.Controls.Add(pnlControls);
-            this.Controls.Add(pnlHeader);
+            // Dock order inside pnlMainArea: Fill first, then Top panels in reverse visual order
+            pnlMainArea.Controls.Add(splitMain);
+            pnlMainArea.Controls.Add(pnlMiddleRow);
+            pnlMainArea.Controls.Add(pnlKpiRow);
+            pnlMainArea.Controls.Add(pnlTopRow);
+            pnlMainArea.Controls.Add(pnlHeader);
+
+            this.Controls.Add(pnlMainArea);
+            this.Controls.Add(pnlSidebar);
 
             this.Resize += (s, e) => LayoutChrome();
             LayoutChrome();
@@ -687,40 +1150,115 @@ namespace TSUBotDesktop
             };
         }
 
+        private void FilterCourseCombo(string query)
+        {
+            string q = (query ?? "").Trim();
+            if (string.IsNullOrEmpty(q)) return;
+            for (int i = 0; i < comboCourse.Items.Count; i++)
+            {
+                CourseItem ci = comboCourse.Items[i] as CourseItem;
+                if (ci != null && (ci.Code.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0 || ci.Name.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0))
+                {
+                    comboCourse.SelectedIndex = i;
+                    break;
+                }
+            }
+        }
+
+        private void RefreshDashboardMetrics()
+        {
+            if (this.InvokeRequired)
+            {
+                this.BeginInvoke(new Action(RefreshDashboardMetrics));
+                return;
+            }
+            if (lblKpiTotalProfiles != null) lblKpiTotalProfiles.Text = profiles.Count.ToString();
+            if (lblKpiRunning != null) lblKpiRunning.Text = runningWorkers.Count.ToString();
+            if (lblKpiCourses != null) lblKpiCourses.Text = courses.Count.ToString();
+            if (lblKpiErrors != null) lblKpiErrors.Text = totalErrorCount.ToString();
+
+            ProfileItem selProf = comboProfile != null ? comboProfile.SelectedItem as ProfileItem : null;
+            if (lblTopProfileBadge != null && selProf != null)
+            {
+                lblTopProfileBadge.Text = string.Format("👤 {0}  •  {1}", selProf.Name, IsProfileLoggedIn(selProf) ? "พร้อมใช้งาน" : "รอล็อกอิน");
+            }
+
+            if (runningWorkers.Count > 0)
+            {
+                if (!trackerStartTime.HasValue) trackerStartTime = DateTime.Now;
+            }
+            else
+            {
+                trackerStartTime = null;
+            }
+
+            if (workerProgressPct.Count > 0)
+            {
+                int sum = 0;
+                foreach (int v in workerProgressPct.Values) sum += v;
+                averageProgressPct = sum / workerProgressPct.Count;
+            }
+            else if (runningWorkers.Count == 0)
+            {
+                averageProgressPct = 0;
+            }
+            if (pnlGaugeCard != null) pnlGaugeCard.Invalidate();
+        }
+
         private void LayoutChrome()
         {
-            if (pnlHeader != null && btnCheckUpdate != null)
+            if (pnlHeader != null && lblTopProfileBadge != null)
             {
-                int rightPad = 22;
-                btnCheckUpdate.Location = new Point(
-                    Math.Max(360, pnlHeader.ClientSize.Width - btnCheckUpdate.Width - rightPad),
-                    22);
-                if (lblVersion != null && lblBrand != null)
+                lblTopProfileBadge.Location = new Point(Math.Max(360, pnlHeader.ClientSize.Width - lblTopProfileBadge.Width - 16), 14);
+            }
+
+            if (pnlTopRow != null && btnStartAll != null && btnAddProfile != null)
+            {
+                int right = pnlTopRow.ClientSize.Width - 4;
+                btnAddProfile.Location = new Point(right - btnAddProfile.Width, 12);
+                btnStartAll.Location = new Point(btnAddProfile.Left - 10 - btnStartAll.Width, 12);
+            }
+
+            if (pnlKpiRow != null && pnlKpiRow.Controls.Count == 4)
+            {
+                int gap = 12;
+                int totalW = pnlKpiRow.ClientSize.Width;
+                int cardW = Math.Max(160, (totalW - gap * 3) / 4);
+                for (int i = 0; i < 4; i++)
                 {
-                    lblVersion.Location = new Point(lblBrand.Right + 12, 22);
+                    Control c = pnlKpiRow.Controls[i];
+                    c.Location = new Point(i * (cardW + gap), 0);
+                    c.Size = new Size(cardW, 92);
                 }
-                if (lblUpdateStatus != null)
-                {
-                    lblUpdateStatus.MaximumSize = new Size(
-                        Math.Max(200, btnCheckUpdate.Left - 40),
-                        0);
-                }
-                if (progUpdate != null)
-                {
-                    progUpdate.Width = Math.Max(180, Math.Min(520, btnCheckUpdate.Left - 40));
-                }
+            }
+
+            if (pnlMiddleRow != null && pnlControlCard != null && pnlGaugeCard != null && pnlTrackerCard != null)
+            {
+                int gap = 12;
+                int totalW = pnlMiddleRow.ClientSize.Width;
+                int trackerW = 232;
+                int gaugeW = 200;
+                int ctrlW = Math.Max(540, totalW - trackerW - gaugeW - gap * 2);
+                pnlControlCard.Location = new Point(0, 0);
+                pnlControlCard.Size = new Size(ctrlW, 186);
+
+                pnlGaugeCard.Location = new Point(ctrlW + gap, 0);
+                pnlGaugeCard.Size = new Size(gaugeW, 186);
+
+                pnlTrackerCard.Location = new Point(ctrlW + gap + gaugeW + gap, 0);
+                pnlTrackerCard.Size = new Size(Math.Max(200, totalW - (ctrlW + gap + gaugeW + gap)), 186);
             }
 
             if (pnlWorkersHeader != null && btnStop != null && btnPauseWorker != null)
             {
-                int right = pnlWorkersHeader.ClientSize.Width - 14;
-                btnStop.Location = new Point(right - btnStop.Width, 7);
-                btnPauseWorker.Location = new Point(btnStop.Left - 10 - btnPauseWorker.Width, 7);
+                int right = pnlWorkersHeader.ClientSize.Width - 10;
+                btnStop.Location = new Point(right - btnStop.Width, 6);
+                btnPauseWorker.Location = new Point(btnStop.Left - 8 - btnPauseWorker.Width, 6);
             }
 
             if (pnlLogsHeader != null && btnClearLog != null)
             {
-                btnClearLog.Location = new Point(Math.Max(400, pnlLogsHeader.ClientSize.Width - btnClearLog.Width - 14), 6);
+                btnClearLog.Location = new Point(Math.Max(360, pnlLogsHeader.ClientSize.Width - btnClearLog.Width - 10), 5);
             }
 
             if (lvWorkers != null && lvWorkers.Columns.Count >= 5 && lvWorkers.ClientSize.Width > 100)
@@ -1062,6 +1600,7 @@ namespace TSUBotDesktop
             {
                 suppressModeEvents = false;
                 suppressProfileEvents = false;
+                RefreshDashboardMetrics();
             }
         }
 
@@ -1120,6 +1659,7 @@ namespace TSUBotDesktop
             };
             profiles.Add(np);
             SaveProfiles();
+            RefreshDashboardMetrics();
             return np;
         }
 
@@ -1235,6 +1775,7 @@ namespace TSUBotDesktop
             {
                 totalErrorCount = 0;
                 tabErrorPage.Text = "⚠️ เฉพาะ Error / คำเตือน (0)";
+                RefreshDashboardMetrics();
             }
         }
 
@@ -1294,6 +1835,7 @@ namespace TSUBotDesktop
                 {
                     tabErrorPage.Text = string.Format("⚠️ เฉพาะ Error / คำเตือน ({0})", totalErrorCount);
                 }
+                RefreshDashboardMetrics();
                 TabPage tp;
                 if (profileLogPages.TryGetValue(profileId, out tp))
                 {
@@ -1614,6 +2156,8 @@ namespace TSUBotDesktop
             item.SubItems.Add("กำลังเปิดเบราว์เซอร์ Chrome...");
             item.Tag = workerId;
             lvWorkers.Items.Add(item);
+            workerProgressPct[workerId] = 0;
+            RefreshDashboardMetrics();
 
             Thread t = new Thread(() =>
             {
@@ -1740,6 +2284,15 @@ namespace TSUBotDesktop
                 lvWorkers.Invoke(new Action(() => UpdateWorkerProgress(workerId, progress)));
                 return;
             }
+            Match m = Regex.Match(progress ?? "", @"(\d+)%");
+            if (m.Success)
+            {
+                int pct;
+                if (int.TryParse(m.Groups[1].Value, out pct))
+                {
+                    workerProgressPct[workerId] = pct;
+                }
+            }
             foreach (ListViewItem item in lvWorkers.Items)
             {
                 if (item.Tag != null && item.Tag.ToString() == workerId)
@@ -1748,6 +2301,7 @@ namespace TSUBotDesktop
                     break;
                 }
             }
+            RefreshDashboardMetrics();
         }
 
         private void RemoveWorkerRow(string workerId)
@@ -1757,6 +2311,7 @@ namespace TSUBotDesktop
                 lvWorkers.Invoke(new Action(() => RemoveWorkerRow(workerId)));
                 return;
             }
+            workerProgressPct.Remove(workerId);
             for (int i = lvWorkers.Items.Count - 1; i >= 0; i--)
             {
                 if (lvWorkers.Items[i].Tag != null && lvWorkers.Items[i].Tag.ToString() == workerId)
@@ -1765,6 +2320,7 @@ namespace TSUBotDesktop
                     break;
                 }
             }
+            RefreshDashboardMetrics();
         }
 
         private void BtnPause_Click(object sender, EventArgs e)
