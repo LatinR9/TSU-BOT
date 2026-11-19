@@ -1985,6 +1985,10 @@ class AutomationWorker {
       if (checked.length) {
         this.log(`⏭️ [ข้ามทันที] ${checked.length} รายการขึ้นติ๊กถูกแล้ว — ไม่เปิดทำ: ${checked.map(label).join(', ')}`);
       }
+      if (outline.items.length) {
+        const pctPass = Math.round((checked.length * 100) / outline.items.length);
+        this.setStatus('running', `Progress ${pctPass}% (${checked.length}/${outline.items.length})`);
+      }
       this.onOutline({
         pass, total: outline.items.length,
         checked: checked.map(i => ({ section: i.section, name: i.name, href: i.href })),
@@ -2053,7 +2057,15 @@ class AutomationWorker {
           notes.set(key, `ทำแล้ว (${[...new Set(worked)].map(o => NAMES[o] || o).join('/')}) แต่ยังไม่ขึ้นติ๊ก`);
         }
         // Back to Course tab before the next sibling so we click the matching row, not leftover Next.
-        if (!this.shouldStop) await this.openCourseOutline();
+        if (!this.shouldStop) {
+          const afterOutline = await this.openCourseOutline();
+          if (afterOutline && afterOutline.items && afterOutline.items.length) {
+            const doneNow = afterOutline.items.filter(i => i.done === true).length;
+            const totalNow = afterOutline.items.length;
+            const pctNow = Math.round((doneNow * 100) / totalNow);
+            this.setStatus('running', `Progress ${pctNow}% (${doneNow}/${totalNow})`);
+          }
+        }
       }
     }
 

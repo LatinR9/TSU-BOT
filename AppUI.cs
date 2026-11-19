@@ -139,7 +139,16 @@ namespace TSUBotDesktop
         private CheckBox chkModeDoc;
         private bool suppressModeEvents = false;
         private TextBox txtUrl;
+        private TabControl tabLogs;
         private RichTextBox rtbLogs;
+        private RichTextBox rtbErrorLogs;
+        private TabPage tabErrorPage;
+        private Button btnClearLog;
+        private Panel pnlLogsHeader;
+        private Dictionary<string, TabPage> profileLogPages = new Dictionary<string, TabPage>();
+        private Dictionary<string, RichTextBox> profileLogBoxes = new Dictionary<string, RichTextBox>();
+        private Dictionary<string, int> profileErrorCounts = new Dictionary<string, int>();
+        private int totalErrorCount = 0;
         private ListView lvWorkers;
         private Label lblVersion;
         private Label lblBrand;
@@ -175,7 +184,7 @@ namespace TSUBotDesktop
         private bool updateInProgress = false;
         private Process loginProcess;
         private volatile bool resetInProgress = false;
-        private const string APP_VERSION = "1.2.0";
+        private const string APP_VERSION = "1.2.1";
         // Must match USER_DATA_DIR in worker.js / cli_worker.js / server.js (Playwright persistent profile).
         private const string PROFILE_DIR = "user_profile";
         private const string PROFILES_ROOT_DIR = "user_profiles";
@@ -550,8 +559,8 @@ namespace TSUBotDesktop
 
             Label lblWorkersTitle = new Label
             {
-                Text = "หน้าต่าง Chrome ที่กำลังทำงาน",
-                Font = UiTheme.UiFont(11f, FontStyle.Bold),
+                Text = "หน้าต่าง Chrome ที่กำลังทำงาน / หยุดพัก (จบแล้วลบออกอัตโนมัติ)",
+                Font = UiTheme.UiFont(10.5f, FontStyle.Bold),
                 ForeColor = UiTheme.BrandDeep,
                 AutoSize = true,
                 Location = new Point(14, 12),
@@ -582,10 +591,21 @@ namespace TSUBotDesktop
                 HideSelection = false,
                 GridLines = false
             };
-            lvWorkers.Columns.Add("Worker ID", 120);
-            lvWorkers.Columns.Add("รหัสวิชา", 140);
-            lvWorkers.Columns.Add("โหมด", 100);
-            lvWorkers.Columns.Add("สถานะการทำงาน", 420);
+            lvWorkers.Columns.Add("Worker / โปรไฟล์", 175);
+            lvWorkers.Columns.Add("รหัสวิชา", 110);
+            lvWorkers.Columns.Add("โหมด", 75);
+            lvWorkers.Columns.Add("ความคืบหน้า (%)", 165);
+            lvWorkers.Columns.Add("สถานะการทำงาน", 360);
+            lvWorkers.SelectedIndexChanged += (s, ev) =>
+            {
+                if (lvWorkers.SelectedItems.Count == 0 || lvWorkers.SelectedItems[0].Tag == null) return;
+                string wId = lvWorkers.SelectedItems[0].Tag.ToString();
+                string pId;
+                if (workerProfiles.TryGetValue(wId, out pId) && profileLogPages.ContainsKey(pId))
+                {
+                    tabLogs.SelectedTab = profileLogPages[pId];
+                }
+            };
             pnlWorkersCard.Controls.Add(lvWorkers);
             // Ensure header stays on top of list
             lvWorkers.BringToFront();
@@ -600,8 +620,9 @@ namespace TSUBotDesktop
 
             Panel pnlLogsCard = CreateSurfacePanel(DockStyle.Fill, 0);
             pnlLogsCard.Paint += PaintSurfaceCard;
+            pnlLogsCard.Padding = new Padding(2);
 
-            Panel pnlLogsHeader = new Panel
+            pnlLogsHeader = new Panel
             {
                 Dock = DockStyle.Top,
                 Height = 40,
@@ -609,8 +630,8 @@ namespace TSUBotDesktop
             };
             Label lblLogsTitle = new Label
             {
-                Text = "บันทึกการทำงานเรียลไทม์",
-                Font = UiTheme.UiFont(11f, FontStyle.Bold),
+                Text = "บันทึกการทำงานแยกตามโปรไฟล์ & ตรวจจับ Error (คลิกแท็บเพื่อดูแยกโปรไฟล์)",
+                Font = UiTheme.UiFont(10.5f, FontStyle.Bold),
                 ForeColor = UiTheme.BrandDeep,
                 AutoSize = true,
                 Location = new Point(14, 10),
@@ -618,18 +639,28 @@ namespace TSUBotDesktop
             };
             pnlLogsHeader.Controls.Add(lblLogsTitle);
 
-            rtbLogs = new RichTextBox
+            btnClearLog = CreateButton("ล้าง Log หน้านี้", UiTheme.TextMuted, 118, 28, false);
+            btnClearLog.Location = new Point(840, 6);
+            btnClearLog.Click += (s, ev) => ClearCurrentLogTab();
+            pnlLogsHeader.Controls.Add(btnClearLog);
+
+            tabLogs = new TabControl
             {
                 Dock = DockStyle.Fill,
-                BackColor = UiTheme.LogBg,
-                ForeColor = UiTheme.LogDefault,
-                Font = UiTheme.MonoFont(9.5f),
-                ReadOnly = true,
-                BorderStyle = BorderStyle.None,
-                DetectUrls = false
+                Font = UiTheme.UiFont(9f, FontStyle.Bold)
             };
 
-            pnlLogsCard.Controls.Add(rtbLogs);
+            TabPage tabAll = new TabPage("รวมทั้งหมด (All)");
+            rtbLogs = CreateLogRichTextBox();
+            tabAll.Controls.Add(rtbLogs);
+            tabLogs.TabPages.Add(tabAll);
+
+            tabErrorPage = new TabPage("⚠️ เฉพาะ Error / คำเตือน (0)");
+            rtbErrorLogs = CreateLogRichTextBox();
+            tabErrorPage.Controls.Add(rtbErrorLogs);
+            tabLogs.TabPages.Add(tabErrorPage);
+
+            pnlLogsCard.Controls.Add(tabLogs);
             pnlLogsCard.Controls.Add(pnlLogsHeader);
             splitMain.Panel2.Controls.Add(pnlLogsCard);
 
@@ -687,13 +718,19 @@ namespace TSUBotDesktop
                 btnPauseWorker.Location = new Point(btnStop.Left - 10 - btnPauseWorker.Width, 7);
             }
 
-            if (lvWorkers != null && lvWorkers.Columns.Count >= 4 && lvWorkers.ClientSize.Width > 100)
+            if (pnlLogsHeader != null && btnClearLog != null)
+            {
+                btnClearLog.Location = new Point(Math.Max(400, pnlLogsHeader.ClientSize.Width - btnClearLog.Width - 14), 6);
+            }
+
+            if (lvWorkers != null && lvWorkers.Columns.Count >= 5 && lvWorkers.ClientSize.Width > 100)
             {
                 int w = lvWorkers.ClientSize.Width;
-                lvWorkers.Columns[0].Width = 170;
-                lvWorkers.Columns[1].Width = 140;
-                lvWorkers.Columns[2].Width = 100;
-                lvWorkers.Columns[3].Width = Math.Max(200, w - 420);
+                lvWorkers.Columns[0].Width = 175;
+                lvWorkers.Columns[1].Width = 110;
+                lvWorkers.Columns[2].Width = 75;
+                lvWorkers.Columns[3].Width = 165;
+                lvWorkers.Columns[4].Width = Math.Max(200, w - 535);
             }
         }
 
@@ -1140,6 +1177,84 @@ namespace TSUBotDesktop
             return btn;
         }
 
+        private RichTextBox CreateLogRichTextBox()
+        {
+            return new RichTextBox
+            {
+                Dock = DockStyle.Fill,
+                BackColor = UiTheme.LogBg,
+                ForeColor = UiTheme.LogDefault,
+                Font = UiTheme.MonoFont(9.5f),
+                ReadOnly = true,
+                BorderStyle = BorderStyle.None,
+                DetectUrls = false
+            };
+        }
+
+        private RichTextBox EnsureProfileLogTab(string profileId, string profileName)
+        {
+            if (string.IsNullOrEmpty(profileId)) return rtbLogs;
+            if (tabLogs.InvokeRequired)
+            {
+                return (RichTextBox)tabLogs.Invoke(new Func<RichTextBox>(() => EnsureProfileLogTab(profileId, profileName)));
+            }
+            RichTextBox existing;
+            if (profileLogBoxes.TryGetValue(profileId, out existing))
+            {
+                return existing;
+            }
+            string title = string.IsNullOrEmpty(profileName) ? profileId : profileName;
+            TabPage tp = new TabPage(title);
+            RichTextBox rtb = CreateLogRichTextBox();
+            tp.Controls.Add(rtb);
+            // Insert before the Error tab so Error tab stays visible or after All tab
+            int errIdx = tabLogs.TabPages.IndexOf(tabErrorPage);
+            if (errIdx >= 0) tabLogs.TabPages.Insert(errIdx, tp);
+            else tabLogs.TabPages.Add(tp);
+
+            profileLogPages[profileId] = tp;
+            profileLogBoxes[profileId] = rtb;
+            profileErrorCounts[profileId] = 0;
+            return rtb;
+        }
+
+        private void ClearCurrentLogTab()
+        {
+            if (tabLogs == null || tabLogs.SelectedTab == null) return;
+            TabPage sel = tabLogs.SelectedTab;
+            foreach (Control c in sel.Controls)
+            {
+                RichTextBox rtb = c as RichTextBox;
+                if (rtb != null)
+                {
+                    rtb.Clear();
+                    break;
+                }
+            }
+            if (sel == tabErrorPage)
+            {
+                totalErrorCount = 0;
+                tabErrorPage.Text = "⚠️ เฉพาะ Error / คำเตือน (0)";
+            }
+        }
+
+        private static bool IsErrorOrWarningLine(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return false;
+            return text.Contains("ERROR") || text.Contains("❌") || text.Contains("⚠️")
+                || text.Contains("Error:") || text.Contains("ล้มเหลว") || text.Contains("ไม่สำเร็จ");
+        }
+
+        private static void WriteRtbLine(RichTextBox rtb, string formattedLine, Color color)
+        {
+            if (rtb == null || rtb.IsDisposed) return;
+            rtb.SelectionStart = rtb.TextLength;
+            rtb.SelectionLength = 0;
+            rtb.SelectionColor = color;
+            rtb.AppendText(formattedLine);
+            rtb.ScrollToCaret();
+        }
+
         private void AppendLog(string text, Color? color = null)
         {
             if (rtbLogs.InvokeRequired)
@@ -1147,11 +1262,48 @@ namespace TSUBotDesktop
                 rtbLogs.Invoke(new Action(() => AppendLog(text, color)));
                 return;
             }
-            rtbLogs.SelectionStart = rtbLogs.TextLength;
-            rtbLogs.SelectionLength = 0;
-            rtbLogs.SelectionColor = color ?? UiTheme.LogDefault;
-            rtbLogs.AppendText(string.Format("[{0}] {1}\n", DateTime.Now.ToString("HH:mm:ss"), text));
-            rtbLogs.ScrollToCaret();
+            string line = string.Format("[{0}] {1}\n", DateTime.Now.ToString("HH:mm:ss"), text);
+            Color c = color ?? (IsErrorOrWarningLine(text) ? UiTheme.Danger : UiTheme.LogDefault);
+            WriteRtbLine(rtbLogs, line, c);
+        }
+
+        private void AppendProfileLog(string profileId, string profileName, string courseCode, string text, Color? color = null)
+        {
+            if (rtbLogs.InvokeRequired)
+            {
+                rtbLogs.Invoke(new Action(() => AppendProfileLog(profileId, profileName, courseCode, text, color)));
+                return;
+            }
+            bool isErr = IsErrorOrWarningLine(text) || (color.HasValue && color.Value == UiTheme.Danger);
+            Color c = color ?? (isErr ? UiTheme.Danger : UiTheme.LogDefault);
+            string ts = DateTime.Now.ToString("HH:mm:ss");
+            string tag = string.Format("[{0} | {1}]", profileName, courseCode);
+            string allLine = string.Format("[{0}] {1} {2}\n", ts, tag, text);
+            string profLine = string.Format("[{0}] [{1}] {2}\n", ts, courseCode, text);
+
+            WriteRtbLine(rtbLogs, allLine, c);
+
+            RichTextBox profRtb = EnsureProfileLogTab(profileId, profileName);
+            WriteRtbLine(profRtb, profLine, c);
+
+            if (isErr)
+            {
+                totalErrorCount++;
+                WriteRtbLine(rtbErrorLogs, allLine, UiTheme.Danger);
+                if (tabErrorPage != null)
+                {
+                    tabErrorPage.Text = string.Format("⚠️ เฉพาะ Error / คำเตือน ({0})", totalErrorCount);
+                }
+                TabPage tp;
+                if (profileLogPages.TryGetValue(profileId, out tp))
+                {
+                    int cnt = 0;
+                    profileErrorCounts.TryGetValue(profileId, out cnt);
+                    cnt++;
+                    profileErrorCounts[profileId] = cnt;
+                    tp.Text = string.Format("{0} (!{1})", profileName, cnt);
+                }
+            }
         }
 
         private void LoadCourses()
@@ -1447,14 +1599,18 @@ namespace TSUBotDesktop
             }
 
             string profileDir = GetProfileDataDir(prof);
-            string workerId = string.Format("Worker-{0} ({1})", workerCounter++, prof.Name);
-            workerProfiles[workerId] = prof.Id;
+            string profId = prof.Id;
+            string profName = prof.Name;
+            string workerId = string.Format("Worker-{0} ({1})", workerCounter++, profName);
+            workerProfiles[workerId] = profId;
 
-            AppendLog(string.Format("เริ่มต้น {0} | วิชา: {1} | โหมด: {2} | ทำ: {3}", workerId, courseCode, speed, DescribeModes(modes)), UiTheme.Info);
+            EnsureProfileLogTab(profId, profName);
+            AppendProfileLog(profId, profName, courseCode, string.Format("เริ่มต้น {0} | โหมด: {1} | ทำ: {2}", workerId, speed, DescribeModes(modes)), UiTheme.Info);
 
             ListViewItem item = new ListViewItem(workerId);
             item.SubItems.Add(courseCode);
             item.SubItems.Add(speed);
+            item.SubItems.Add("กำลังตรวจสอบ (0%)");
             item.SubItems.Add("กำลังเปิดเบราว์เซอร์ Chrome...");
             item.Tag = workerId;
             lvWorkers.Items.Add(item);
@@ -1464,7 +1620,7 @@ namespace TSUBotDesktop
                 EnsureDependencies();
                 string script = Path.Combine(appDir, "cli_worker.js");
                 string args = string.Format("\"{0}\" --action run --id \"{1}\" --course \"{2}\" --speed \"{3}\" --modes \"{4}\" --profile \"{5}\" --profile-dir \"{6}\"",
-                    script, workerId, courseCode, speed, modes, prof.Name, profileDir);
+                    script, workerId, courseCode, speed, modes, profName, profileDir);
                 if (!string.IsNullOrEmpty(customUrl))
                 {
                     args += string.Format(" --url \"{0}\"", customUrl);
@@ -1496,29 +1652,64 @@ namespace TSUBotDesktop
                         if (line.StartsWith("[LOG] "))
                         {
                             string msg = line.Substring(6);
-                            AppendLog(string.Format("[{0}] {1}", workerId, msg));
+                            AppendProfileLog(profId, profName, courseCode, msg);
                             UpdateWorkerStatus(workerId, msg);
+                            Match mCourse = Regex.Match(msg, @"ทั้งหมด\s+(\d+)\s+รายการ\s*\|\s*ติ๊กแล้ว\s+(\d+)");
+                            if (mCourse.Success)
+                            {
+                                int tot = int.Parse(mCourse.Groups[1].Value);
+                                int dn = int.Parse(mCourse.Groups[2].Value);
+                                int pct = tot > 0 ? (dn * 100) / tot : 0;
+                                UpdateWorkerProgress(workerId, string.Format("{0}% ({1}/{2})", pct, dn, tot));
+                            }
+                        }
+                        else if (line.StartsWith("[STATUS] "))
+                        {
+                            string json = line.Substring(9);
+                            Match mStep = Regex.Match(json, "\"step\"\\s*:\\s*\"([^\"]+)\"");
+                            if (mStep.Success)
+                            {
+                                string step = mStep.Groups[1].Value;
+                                Match mPct = Regex.Match(step, @"Progress\s+(\d+%\s*\([^)]+\))");
+                                if (mPct.Success)
+                                {
+                                    UpdateWorkerProgress(workerId, mPct.Groups[1].Value);
+                                }
+                            }
+                        }
+                        else if (line.StartsWith("[PROGRESS] "))
+                        {
+                            string json = line.Substring(11);
+                            Match mComp = Regex.Match(json, "\"completion\"\\s*:\\s*(\\d+)");
+                            if (mComp.Success)
+                            {
+                                UpdateWorkerProgress(workerId, string.Format("{0}% (ยืนยันแล้ว)", mComp.Groups[1].Value));
+                            }
                         }
                     };
 
                     p.ErrorDataReceived += (s, ev) =>
                     {
                         if (!string.IsNullOrEmpty(ev.Data))
-                            AppendLog(string.Format("[{0} ERROR] {1}", workerId, ev.Data), UiTheme.Danger);
+                            AppendProfileLog(profId, profName, courseCode, "[ERROR] " + ev.Data, UiTheme.Danger);
                     };
 
                     p.BeginOutputReadLine();
                     p.BeginErrorReadLine();
                     p.WaitForExit();
 
-                    UpdateWorkerStatus(workerId, "เสร็จสิ้น / ปิดหน้าต่างแล้ว");
+                    AppendProfileLog(profId, profName, courseCode, "เสร็จสิ้นการทำงานและปิดหน้าต่างเรียบร้อยแล้ว", UiTheme.Success);
                     runningWorkers.Remove(workerId);
                     workerProfiles.Remove(workerId);
+                    if (workerPausedStates.ContainsKey(workerId)) workerPausedStates.Remove(workerId);
+                    RemoveWorkerRow(workerId);
                 }
                 catch (Exception ex)
                 {
-                    AppendLog(string.Format("[{0}] Error: {1}", workerId, ex.Message), UiTheme.Danger);
+                    AppendProfileLog(profId, profName, courseCode, "Error: " + ex.Message, UiTheme.Danger);
+                    runningWorkers.Remove(workerId);
                     workerProfiles.Remove(workerId);
+                    RemoveWorkerRow(workerId);
                 }
             });
             t.IsBackground = true;
@@ -1536,7 +1727,41 @@ namespace TSUBotDesktop
             {
                 if (item.Tag != null && item.Tag.ToString() == workerId)
                 {
-                    item.SubItems[3].Text = status;
+                    if (item.SubItems.Count > 4) item.SubItems[4].Text = status;
+                    break;
+                }
+            }
+        }
+
+        private void UpdateWorkerProgress(string workerId, string progress)
+        {
+            if (lvWorkers.InvokeRequired)
+            {
+                lvWorkers.Invoke(new Action(() => UpdateWorkerProgress(workerId, progress)));
+                return;
+            }
+            foreach (ListViewItem item in lvWorkers.Items)
+            {
+                if (item.Tag != null && item.Tag.ToString() == workerId)
+                {
+                    if (item.SubItems.Count > 3) item.SubItems[3].Text = progress;
+                    break;
+                }
+            }
+        }
+
+        private void RemoveWorkerRow(string workerId)
+        {
+            if (lvWorkers.InvokeRequired)
+            {
+                lvWorkers.Invoke(new Action(() => RemoveWorkerRow(workerId)));
+                return;
+            }
+            for (int i = lvWorkers.Items.Count - 1; i >= 0; i--)
+            {
+                if (lvWorkers.Items[i].Tag != null && lvWorkers.Items[i].Tag.ToString() == workerId)
+                {
+                    lvWorkers.Items.RemoveAt(i);
                     break;
                 }
             }
@@ -1705,10 +1930,10 @@ namespace TSUBotDesktop
                 t.Start();
 
                 AppendLog(string.Format("[ยกเลิก] {0} ได้รับคำสั่งยกเลิกการทำงานและกำลังปิดหน้าต่าง", workerId), UiTheme.Danger);
-                UpdateWorkerStatus(workerId, "ยกเลิกการทำงานแล้ว (Stopped)");
                 runningWorkers.Remove(workerId);
                 workerProfiles.Remove(workerId);
                 if (workerPausedStates.ContainsKey(workerId)) workerPausedStates.Remove(workerId);
+                RemoveWorkerRow(workerId);
             }
             catch (Exception ex)
             {
@@ -1759,7 +1984,7 @@ namespace TSUBotDesktop
                 runningWorkers.Remove(id);
                 workerProfiles.Remove(id);
                 if (workerPausedStates.ContainsKey(id)) workerPausedStates.Remove(id);
-                UpdateWorkerStatus(id, "หยุดเพื่อล้างแคชเบราว์เซอร์");
+                RemoveWorkerRow(id);
             }
             lock (loginProcesses)
             {
