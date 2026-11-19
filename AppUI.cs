@@ -240,6 +240,8 @@ namespace TSUBotDesktop
         private ProgressBar progUpdate;
         private Panel pnlHeader;
         private Panel pnlSidebar;
+        private Button btnToggleSidebar;
+        private bool sidebarCollapsed = false;
         private Panel pnlMainArea;
         private Panel pnlTopRow;
         private Panel pnlKpiRow;
@@ -276,7 +278,7 @@ namespace TSUBotDesktop
         private bool updateInProgress = false;
         private Process loginProcess;
         private volatile bool resetInProgress = false;
-        private const string APP_VERSION = "1.3.3";
+        private const string APP_VERSION = "1.3.4";
         // Must match USER_DATA_DIR in worker.js / cli_worker.js / server.js (Playwright persistent profile).
         private const string PROFILE_DIR = "user_profile";
         private const string PROFILES_ROOT_DIR = "user_profiles";
@@ -803,7 +805,7 @@ namespace TSUBotDesktop
                 Padding = new Padding(12, 0, 0, 0)
             };
 
-            // Top bar (Search + Profile Badge)
+            // Top bar (Sidebar Toggle + Search + Profile Badge)
             pnlHeader = new RoundedPanel
             {
                 Dock = DockStyle.Top,
@@ -813,12 +815,27 @@ namespace TSUBotDesktop
             };
             pnlHeader.Paint += PaintRoundedCard;
 
+            btnToggleSidebar = CreateButton("◀ ซ่อนเมนู", UiTheme.InfoSoft, 102, 32, false);
+            btnToggleSidebar.ForeColor = UiTheme.Text;
+            btnToggleSidebar.Tag = UiTheme.InfoSoft;
+            btnToggleSidebar.Location = new Point(12, 12);
+            btnToggleSidebar.Click += (s, ev) =>
+            {
+                sidebarCollapsed = !sidebarCollapsed;
+                pnlSidebar.Visible = !sidebarCollapsed;
+                pnlMainArea.Padding = new Padding(sidebarCollapsed ? 0 : 12, 0, 0, 0);
+                btnToggleSidebar.Text = sidebarCollapsed ? "☰ เมนู" : "◀ ซ่อนเมนู";
+                LayoutChrome();
+            };
+            new ToolTip().SetToolTip(btnToggleSidebar, "หุบพับ/แสดงแถบเมนูด้านซ้าย เพื่อให้เหลือเฉพาะ Dashboard");
+            pnlHeader.Controls.Add(btnToggleSidebar);
+
             Label lblSearchIcon = new Label
             {
                 Text = "🔍",
                 Font = UiTheme.UiFont(10f, FontStyle.Regular),
                 ForeColor = UiTheme.TextMuted,
-                Location = new Point(14, 17),
+                Location = new Point(126, 17),
                 AutoSize = true,
                 BackColor = Color.Transparent
             };
@@ -826,8 +843,8 @@ namespace TSUBotDesktop
 
             txtSearchCourse = new TextBox
             {
-                Location = new Point(40, 15),
-                Width = 280,
+                Location = new Point(152, 15),
+                Width = 240,
                 BorderStyle = BorderStyle.None,
                 BackColor = UiTheme.Surface,
                 ForeColor = UiTheme.Text,
@@ -842,7 +859,7 @@ namespace TSUBotDesktop
                 Text = "พิมพ์รหัส/ชื่อวิชา เพื่อค้นหาเร็ว",
                 Font = UiTheme.UiFont(8f, FontStyle.Regular),
                 ForeColor = UiTheme.TextMuted,
-                Location = new Point(328, 19),
+                Location = new Point(400, 19),
                 AutoSize = true,
                 BackColor = Color.Transparent
             };
