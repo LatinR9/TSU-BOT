@@ -125,6 +125,69 @@ namespace TSUBotDesktop
         }
     }
 
+    internal class RoundedPanel : Panel
+    {
+        public RoundedPanel()
+        {
+            this.DoubleBuffered = true;
+            this.ResizeRedraw = true;
+            this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
+        }
+    }
+
+    internal class PillButton : Button
+    {
+        public int CornerRadius { get; set; }
+        public Color BorderColor { get; set; }
+        public bool HasBorder { get; set; }
+        private bool isHovered = false;
+        private bool isPressed = false;
+
+        public PillButton()
+        {
+            CornerRadius = 16;
+            BorderColor = UiTheme.Line;
+            HasBorder = false;
+            this.DoubleBuffered = true;
+            this.ResizeRedraw = true;
+            this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
+        }
+
+        protected override void OnMouseEnter(EventArgs e) { isHovered = true; Invalidate(); base.OnMouseEnter(e); }
+        protected override void OnMouseLeave(EventArgs e) { isHovered = false; isPressed = false; Invalidate(); base.OnMouseLeave(e); }
+        protected override void OnMouseDown(MouseEventArgs e) { isPressed = true; Invalidate(); base.OnMouseDown(e); }
+        protected override void OnMouseUp(MouseEventArgs e) { isPressed = false; Invalidate(); base.OnMouseUp(e); }
+
+        protected override void OnPaint(PaintEventArgs pevent)
+        {
+            Graphics g = pevent.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.Clear(this.Parent != null ? this.Parent.BackColor : UiTheme.Surface);
+
+            Color baseBg = (this.Tag is Color) ? (Color)this.Tag : this.BackColor;
+            Color fill = baseBg;
+            if (!this.Enabled) fill = UiTheme.BgMist;
+            else if (isPressed) fill = UiTheme.Darken(baseBg, 16);
+            else if (isHovered) fill = (baseBg.R > 235 && baseBg.G > 235 && baseBg.B > 235) ? UiTheme.SurfaceSoft : UiTheme.Lighten(baseBg, 14);
+
+            Rectangle r = new Rectangle(0, 0, Math.Max(4, this.Width - 1), Math.Max(4, this.Height - 1));
+            int rad = Math.Min(CornerRadius, Math.Min(r.Width, r.Height) / 2);
+            using (GraphicsPath gp = MainForm.CreateRoundedPathPublic(r, rad))
+            using (SolidBrush br = new SolidBrush(fill))
+            {
+                g.FillPath(br, gp);
+                if (HasBorder)
+                {
+                    using (Pen pen = new Pen(BorderColor, 1f))
+                        g.DrawPath(pen, gp);
+                }
+            }
+
+            Color txtColor = this.Enabled ? this.ForeColor : UiTheme.TextMuted;
+            TextRenderer.DrawText(g, this.Text, this.Font, r, txtColor, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine);
+        }
+    }
+
     public class MainForm : Form
     {
         private ComboBox comboProfile;
@@ -203,7 +266,7 @@ namespace TSUBotDesktop
         private bool updateInProgress = false;
         private Process loginProcess;
         private volatile bool resetInProgress = false;
-        private const string APP_VERSION = "1.3.0";
+        private const string APP_VERSION = "1.3.1";
         // Must match USER_DATA_DIR in worker.js / cli_worker.js / server.js (Playwright persistent profile).
         private const string PROFILE_DIR = "user_profile";
         private const string PROFILES_ROOT_DIR = "user_profiles";
@@ -312,6 +375,11 @@ namespace TSUBotDesktop
             {
                 e.Graphics.FillRectangle(br, rect);
             }
+        }
+
+        public static GraphicsPath CreateRoundedPathPublic(Rectangle rect, int radius)
+        {
+            return CreateRoundedPath(rect, radius);
         }
 
         private static GraphicsPath CreateRoundedPath(Rectangle rect, int radius)
@@ -455,6 +523,7 @@ namespace TSUBotDesktop
                 ForeColor = active ? UiTheme.BrandDeep : UiTheme.TextMuted,
                 BackColor = Color.Transparent,
                 Cursor = Cursors.Hand,
+                UseMnemonic = false,
                 Padding = new Padding(8, 0, 0, 0)
             };
             lbl.Click += onClick;
@@ -465,10 +534,10 @@ namespace TSUBotDesktop
 
         private Panel CreateKpiCard(string title, out Label lblValue, string subtext, bool isHero)
         {
-            Panel card = new Panel
+            RoundedPanel card = new RoundedPanel
             {
-                BackColor = Color.Transparent,
-                Padding = new Padding(14, 12, 14, 12)
+                BackColor = UiTheme.BgWash,
+                Padding = new Padding(16, 12, 16, 12)
             };
             if (isHero) card.Paint += PaintGradientBlueCard;
             else card.Paint += PaintRoundedCard;
@@ -478,8 +547,9 @@ namespace TSUBotDesktop
                 Text = title,
                 Font = UiTheme.UiFont(9.5f, FontStyle.Bold),
                 ForeColor = isHero ? Color.FromArgb(219, 234, 254) : UiTheme.TextMuted,
-                Location = new Point(14, 12),
+                Location = new Point(16, 12),
                 AutoSize = true,
+                UseMnemonic = false,
                 BackColor = Color.Transparent
             };
             card.Controls.Add(lblTitle);
@@ -487,13 +557,25 @@ namespace TSUBotDesktop
             Label lblArrow = new Label
             {
                 Text = "↗",
-                Font = UiTheme.UiFont(10f, FontStyle.Bold),
+                Font = UiTheme.UiFont(9.5f, FontStyle.Bold),
                 ForeColor = isHero ? UiTheme.BrandDeep : UiTheme.Text,
-                BackColor = isHero ? Color.White : UiTheme.SurfaceSoft,
-                Size = new Size(24, 24),
+                BackColor = Color.Transparent,
+                Size = new Size(26, 26),
                 TextAlign = ContentAlignment.MiddleCenter,
                 Anchor = AnchorStyles.Top | AnchorStyles.Right,
-                Location = new Point(card.Width - 36, 10)
+                Location = new Point(card.Width - 38, 10)
+            };
+            lblArrow.Paint += (s, ev) =>
+            {
+                ev.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                Rectangle ar = new Rectangle(0, 0, lblArrow.Width - 1, lblArrow.Height - 1);
+                using (SolidBrush br = new SolidBrush(isHero ? Color.White : UiTheme.SurfaceSoft))
+                using (Pen pn = new Pen(isHero ? Color.White : UiTheme.Line, 1f))
+                {
+                    ev.Graphics.FillEllipse(br, ar);
+                    ev.Graphics.DrawEllipse(pn, ar);
+                }
+                TextRenderer.DrawText(ev.Graphics, "↗", lblArrow.Font, ar, lblArrow.ForeColor, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
             };
             card.Controls.Add(lblArrow);
 
@@ -502,7 +584,7 @@ namespace TSUBotDesktop
                 Text = "0",
                 Font = UiTheme.UiFont(22f, FontStyle.Bold),
                 ForeColor = isHero ? Color.White : UiTheme.Text,
-                Location = new Point(12, 34),
+                Location = new Point(14, 34),
                 AutoSize = true,
                 BackColor = Color.Transparent
             };
@@ -513,8 +595,9 @@ namespace TSUBotDesktop
                 Text = subtext,
                 Font = UiTheme.UiFont(8f, FontStyle.Regular),
                 ForeColor = isHero ? Color.FromArgb(191, 219, 254) : UiTheme.TextMuted,
-                Location = new Point(14, 72),
+                Location = new Point(16, 72),
                 AutoSize = true,
+                UseMnemonic = false,
                 BackColor = Color.Transparent
             };
             card.Controls.Add(lblSub);
@@ -535,11 +618,11 @@ namespace TSUBotDesktop
             this.Padding = new Padding(12);
 
             // —— Left Sidebar ——
-            pnlSidebar = new Panel
+            pnlSidebar = new RoundedPanel
             {
                 Dock = DockStyle.Left,
                 Width = 212,
-                BackColor = Color.Transparent,
+                BackColor = UiTheme.BgWash,
                 Padding = new Padding(12, 16, 12, 12)
             };
             pnlSidebar.Paint += PaintRoundedCard;
@@ -601,11 +684,11 @@ namespace TSUBotDesktop
             pnlLogoBox.Controls.Add(lblTagline);
 
             // Bottom update card inside sidebar
-            Panel pnlSideUpdate = new Panel
+            Panel pnlSideUpdate = new RoundedPanel
             {
                 Dock = DockStyle.Bottom,
                 Height = 128,
-                BackColor = Color.Transparent,
+                BackColor = UiTheme.Surface,
                 Padding = new Padding(12)
             };
             pnlSideUpdate.Paint += PaintDarkTrackerCard;
@@ -710,11 +793,11 @@ namespace TSUBotDesktop
             };
 
             // Top bar (Search + Profile Badge)
-            pnlHeader = new Panel
+            pnlHeader = new RoundedPanel
             {
                 Dock = DockStyle.Top,
                 Height = 56,
-                BackColor = Color.Transparent,
+                BackColor = UiTheme.BgWash,
                 Padding = new Padding(14, 10, 14, 10)
             };
             pnlHeader.Paint += PaintRoundedCard;
@@ -803,8 +886,8 @@ namespace TSUBotDesktop
 
             btnAddProfile = CreateButton("+ เพิ่มโปรไฟล์", UiTheme.Surface, 128, 36, false);
             btnAddProfile.ForeColor = UiTheme.Text;
-            btnAddProfile.FlatAppearance.BorderSize = 1;
-            btnAddProfile.FlatAppearance.BorderColor = UiTheme.Line;
+            PillButton pbAdd = btnAddProfile as PillButton;
+            if (pbAdd != null) { pbAdd.HasBorder = true; pbAdd.BorderColor = UiTheme.Line; }
             btnAddProfile.Tag = UiTheme.Surface;
             btnAddProfile.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnAddProfile.Click += BtnAddProfile_Click;
@@ -815,7 +898,7 @@ namespace TSUBotDesktop
             {
                 Dock = DockStyle.Top,
                 Height = 102,
-                BackColor = Color.Transparent,
+                BackColor = UiTheme.BgWash,
                 Padding = new Padding(0, 2, 0, 8)
             };
             Panel kpi1 = CreateKpiCard("โปรไฟล์ทั้งหมด", out lblKpiTotalProfiles, "แยกเซสชัน Chrome อิสระ", true);
@@ -832,11 +915,11 @@ namespace TSUBotDesktop
             {
                 Dock = DockStyle.Top,
                 Height = 196,
-                BackColor = Color.Transparent,
+                BackColor = UiTheme.BgWash,
                 Padding = new Padding(0, 0, 0, 10)
             };
 
-            pnlControlCard = new Panel { BackColor = Color.Transparent };
+            pnlControlCard = new RoundedPanel { BackColor = UiTheme.BgWash };
             pnlControlCard.Paint += PaintRoundedCard;
 
             Label lblCtrlHdr = new Label
@@ -844,33 +927,34 @@ namespace TSUBotDesktop
                 Text = "ควบคุมโปรไฟล์ & เลือกรายวิชา",
                 Font = UiTheme.UiFont(10.5f, FontStyle.Bold),
                 ForeColor = UiTheme.Text,
-                Location = new Point(14, 10),
+                Location = new Point(16, 10),
                 AutoSize = true,
+                UseMnemonic = false,
                 BackColor = Color.Transparent
             };
             pnlControlCard.Controls.Add(lblCtrlHdr);
 
-            Label lblProfile = CreateFieldLabel("โปรไฟล์:", new Point(14, 42));
+            Label lblProfile = CreateFieldLabel("โปรไฟล์:", new Point(16, 42));
             pnlControlCard.Controls.Add(lblProfile);
-            comboProfile = CreateCombo(new Point(74, 38), 186);
+            comboProfile = CreateCombo(new Point(76, 38), 186);
             comboProfile.SelectedIndexChanged += ComboProfile_SelectedIndexChanged;
             pnlControlCard.Controls.Add(comboProfile);
 
             btnManageProfiles = CreateButton("จัดการทุกโปรไฟล์", UiTheme.InfoSoft, 126, 30, false);
             btnManageProfiles.ForeColor = UiTheme.Text;
             btnManageProfiles.Tag = UiTheme.InfoSoft;
-            btnManageProfiles.Location = new Point(268, 36);
+            btnManageProfiles.Location = new Point(270, 36);
             btnManageProfiles.Click += BtnManageProfiles_Click;
             pnlControlCard.Controls.Add(btnManageProfiles);
 
             btnLogin = CreateButton("ล็อกอินโปรไฟล์นี้", UiTheme.Success, 134, 30, true);
-            btnLogin.Location = new Point(402, 36);
+            btnLogin.Location = new Point(404, 36);
             btnLogin.Click += BtnLogin_Click;
             pnlControlCard.Controls.Add(btnLogin);
 
-            Label lblCourse = CreateFieldLabel("วิชาที่ทำ:", new Point(14, 78));
+            Label lblCourse = CreateFieldLabel("วิชาที่ทำ:", new Point(16, 78));
             pnlControlCard.Controls.Add(lblCourse);
-            comboCourse = CreateCombo(new Point(74, 74), 310);
+            comboCourse = CreateCombo(new Point(76, 74), 310);
             comboCourse.SelectedIndexChanged += (s, ev) =>
             {
                 CourseItem ci = comboCourse.SelectedItem as CourseItem;
@@ -879,17 +963,17 @@ namespace TSUBotDesktop
             };
             pnlControlCard.Controls.Add(comboCourse);
 
-            comboSpeed = CreateCombo(new Point(392, 74), 144);
+            comboSpeed = CreateCombo(new Point(394, 74), 144);
             comboSpeed.Items.AddRange(new object[] { "turbo (สายฟ้า)", "normal (สมดุล)", "safe (ปลอดภัย)" });
             comboSpeed.SelectedIndex = 1;
             comboSpeed.SelectedIndexChanged += (s, ev) => SyncCurrentControlsToSelectedProfile();
             pnlControlCard.Controls.Add(comboSpeed);
 
-            Label lblModes = CreateFieldLabel("ให้บอททำ:", new Point(14, 112));
+            Label lblModes = CreateFieldLabel("ให้บอททำ:", new Point(16, 112));
             pnlControlCard.Controls.Add(lblModes);
-            chkModeQuiz = CreateModeCheckBox("แบบฝึก", new Point(80, 110));
-            chkModeVideo = CreateModeCheckBox("วิดีโอ", new Point(158, 110));
-            chkModeDoc = CreateModeCheckBox("เอกสาร", new Point(230, 110));
+            chkModeQuiz = CreateModeCheckBox("แบบฝึก", new Point(82, 110));
+            chkModeVideo = CreateModeCheckBox("วิดีโอ", new Point(160, 110));
+            chkModeDoc = CreateModeCheckBox("เอกสาร", new Point(232, 110));
             pnlControlCard.Controls.Add(chkModeQuiz);
             pnlControlCard.Controls.Add(chkModeVideo);
             pnlControlCard.Controls.Add(chkModeDoc);
@@ -897,25 +981,25 @@ namespace TSUBotDesktop
             btnSettings = CreateButton("ตั้งค่าวิชา", UiTheme.InfoSoft, 96, 26, false);
             btnSettings.ForeColor = UiTheme.Text;
             btnSettings.Tag = UiTheme.InfoSoft;
-            btnSettings.Location = new Point(332, 108);
+            btnSettings.Location = new Point(334, 108);
             btnSettings.Click += BtnSettings_Click;
             pnlControlCard.Controls.Add(btnSettings);
 
             btnResetBrowser = CreateButton("ล้างแคช", UiTheme.DangerSoft, 96, 26, false);
             btnResetBrowser.ForeColor = UiTheme.Danger;
             btnResetBrowser.Tag = UiTheme.DangerSoft;
-            btnResetBrowser.Location = new Point(436, 108);
+            btnResetBrowser.Location = new Point(438, 108);
             btnResetBrowser.Click += BtnResetBrowser_Click;
             pnlControlCard.Controls.Add(btnResetBrowser);
 
-            Label lblUrl = CreateFieldLabel("URL:", new Point(14, 148));
+            Label lblUrl = CreateFieldLabel("URL:", new Point(16, 148));
             pnlControlCard.Controls.Add(lblUrl);
-            txtUrl = CreateTextBox(new Point(54, 144), 328);
+            txtUrl = CreateTextBox(new Point(56, 144), 328);
             txtUrl.TextChanged += (s, ev) => SyncCurrentControlsToSelectedProfile();
             pnlControlCard.Controls.Add(txtUrl);
 
             btnStart = CreateButton("▶ เริ่มโปรไฟล์นี้", UiTheme.Brand, 146, 34, true);
-            btnStart.Location = new Point(390, 140);
+            btnStart.Location = new Point(392, 140);
             btnStart.Click += BtnStart_Click;
             pnlControlCard.Controls.Add(btnStart);
 
@@ -923,7 +1007,7 @@ namespace TSUBotDesktop
             btnAddCourse = btnSettings;
 
             // Gauge Card
-            pnlGaugeCard = new Panel { BackColor = Color.Transparent };
+            pnlGaugeCard = new RoundedPanel { BackColor = UiTheme.BgWash };
             pnlGaugeCard.Paint += PaintProgressGauge;
             Label lblGaugeTitle = new Label
             {
@@ -948,7 +1032,7 @@ namespace TSUBotDesktop
             pnlGaugeCard.Controls.Add(lblGaugeLegend);
 
             // Dark Time Tracker Card
-            pnlTrackerCard = new Panel { BackColor = Color.Transparent };
+            pnlTrackerCard = new RoundedPanel { BackColor = UiTheme.BgWash };
             pnlTrackerCard.Paint += PaintDarkTrackerCard;
             Label lblTrackerTitle = new Label
             {
@@ -1091,6 +1175,7 @@ namespace TSUBotDesktop
                 Font = UiTheme.UiFont(10f, FontStyle.Bold),
                 ForeColor = UiTheme.Text,
                 AutoSize = true,
+                UseMnemonic = false,
                 Location = new Point(10, 8),
                 BackColor = Color.Transparent
             };
@@ -1210,6 +1295,7 @@ namespace TSUBotDesktop
             if (pnlHeader != null && lblTopProfileBadge != null)
             {
                 lblTopProfileBadge.Location = new Point(Math.Max(360, pnlHeader.ClientSize.Width - lblTopProfileBadge.Width - 16), 14);
+                pnlHeader.Invalidate();
             }
 
             if (pnlTopRow != null && btnStartAll != null && btnAddProfile != null)
@@ -1229,6 +1315,7 @@ namespace TSUBotDesktop
                     Control c = pnlKpiRow.Controls[i];
                     c.Location = new Point(i * (cardW + gap), 0);
                     c.Size = new Size(cardW, 92);
+                    c.Invalidate();
                 }
             }
 
@@ -1236,17 +1323,45 @@ namespace TSUBotDesktop
             {
                 int gap = 12;
                 int totalW = pnlMiddleRow.ClientSize.Width;
-                int trackerW = 232;
-                int gaugeW = 200;
+                int trackerW = 236;
+                int gaugeW = 204;
                 int ctrlW = Math.Max(540, totalW - trackerW - gaugeW - gap * 2);
                 pnlControlCard.Location = new Point(0, 0);
                 pnlControlCard.Size = new Size(ctrlW, 186);
+
+                // Responsive layout inside pnlControlCard
+                int padR = 16;
+                if (btnLogin != null && btnManageProfiles != null && comboProfile != null)
+                {
+                    btnLogin.Location = new Point(ctrlW - padR - btnLogin.Width, 36);
+                    btnManageProfiles.Location = new Point(btnLogin.Left - 8 - btnManageProfiles.Width, 36);
+                    comboProfile.Width = Math.Max(140, btnManageProfiles.Left - 8 - comboProfile.Left);
+                }
+                if (comboSpeed != null && comboCourse != null)
+                {
+                    comboSpeed.Location = new Point(ctrlW - padR - comboSpeed.Width, 74);
+                    comboCourse.Width = Math.Max(200, comboSpeed.Left - 8 - comboCourse.Left);
+                }
+                if (btnResetBrowser != null && btnSettings != null)
+                {
+                    btnResetBrowser.Location = new Point(ctrlW - padR - btnResetBrowser.Width, 108);
+                    btnSettings.Location = new Point(btnResetBrowser.Left - 8 - btnSettings.Width, 108);
+                }
+                if (btnStart != null && txtUrl != null)
+                {
+                    btnStart.Location = new Point(ctrlW - padR - btnStart.Width, 140);
+                    txtUrl.Width = Math.Max(180, btnStart.Left - 10 - txtUrl.Left);
+                }
 
                 pnlGaugeCard.Location = new Point(ctrlW + gap, 0);
                 pnlGaugeCard.Size = new Size(gaugeW, 186);
 
                 pnlTrackerCard.Location = new Point(ctrlW + gap + gaugeW + gap, 0);
                 pnlTrackerCard.Size = new Size(Math.Max(200, totalW - (ctrlW + gap + gaugeW + gap)), 186);
+
+                pnlControlCard.Invalidate();
+                pnlGaugeCard.Invalidate();
+                pnlTrackerCard.Invalidate();
             }
 
             if (pnlWorkersHeader != null && btnStop != null && btnPauseWorker != null)
@@ -1274,11 +1389,11 @@ namespace TSUBotDesktop
 
         private Panel CreateSurfacePanel(DockStyle dock, int height)
         {
-            Panel p = new Panel
+            RoundedPanel p = new RoundedPanel
             {
                 Dock = dock,
                 Height = height,
-                BackColor = UiTheme.Surface
+                BackColor = UiTheme.BgWash
             };
             return p;
         }
@@ -1686,7 +1801,7 @@ namespace TSUBotDesktop
 
         private Button CreateButton(string text, Color bg, int width, int height, bool primary)
         {
-            Button btn = new Button
+            PillButton btn = new PillButton
             {
                 Text = text,
                 Width = width,
@@ -1697,23 +1812,12 @@ namespace TSUBotDesktop
                 Cursor = Cursors.Hand,
                 Font = UiTheme.UiFont(primary ? 9.5f : 9f, FontStyle.Bold),
                 TextAlign = ContentAlignment.MiddleCenter,
-                UseVisualStyleBackColor = false
+                UseVisualStyleBackColor = false,
+                CornerRadius = height / 2
             };
             btn.FlatAppearance.BorderSize = 0;
-            btn.FlatAppearance.MouseOverBackColor = UiTheme.Lighten(bg, 18);
-            btn.FlatAppearance.MouseDownBackColor = UiTheme.Darken(bg, 18);
-            btn.Padding = new Padding(4, 0, 4, 0);
+            btn.Padding = new Padding(6, 0, 6, 0);
             btn.Tag = bg;
-
-            btn.MouseEnter += (s, e) =>
-            {
-                Color baseBg = (btn.Tag is Color) ? (Color)btn.Tag : btn.BackColor;
-                btn.BackColor = UiTheme.Lighten(baseBg, 14);
-            };
-            btn.MouseLeave += (s, e) =>
-            {
-                if (btn.Tag is Color) btn.BackColor = (Color)btn.Tag;
-            };
             return btn;
         }
 
