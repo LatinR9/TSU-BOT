@@ -140,6 +140,7 @@ namespace TSUBotDesktop
         public int CornerRadius { get; set; }
         public Color BorderColor { get; set; }
         public bool HasBorder { get; set; }
+        public Color OuterColor { get; set; }
         private bool isHovered = false;
         private bool isPressed = false;
 
@@ -148,6 +149,7 @@ namespace TSUBotDesktop
             CornerRadius = 16;
             BorderColor = UiTheme.Line;
             HasBorder = false;
+            OuterColor = Color.Empty;
             this.DoubleBuffered = true;
             this.ResizeRedraw = true;
             this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
@@ -158,11 +160,19 @@ namespace TSUBotDesktop
         protected override void OnMouseDown(MouseEventArgs e) { isPressed = true; Invalidate(); base.OnMouseDown(e); }
         protected override void OnMouseUp(MouseEventArgs e) { isPressed = false; Invalidate(); base.OnMouseUp(e); }
 
+        private Color ResolveOuterColor()
+        {
+            if (OuterColor != Color.Empty && OuterColor.A == 255) return OuterColor;
+            if (this.Parent is RoundedPanel) return UiTheme.Surface;
+            if (this.Parent != null && this.Parent.BackColor.A == 255) return this.Parent.BackColor;
+            return UiTheme.BgWash;
+        }
+
         protected override void OnPaint(PaintEventArgs pevent)
         {
             Graphics g = pevent.Graphics;
             g.SmoothingMode = SmoothingMode.AntiAlias;
-            g.Clear(this.Parent != null ? this.Parent.BackColor : UiTheme.Surface);
+            g.Clear(ResolveOuterColor());
 
             Color baseBg = (this.Tag is Color) ? (Color)this.Tag : this.BackColor;
             Color fill = baseBg;
@@ -266,7 +276,7 @@ namespace TSUBotDesktop
         private bool updateInProgress = false;
         private Process loginProcess;
         private volatile bool resetInProgress = false;
-        private const string APP_VERSION = "1.3.1";
+        private const string APP_VERSION = "1.3.2";
         // Must match USER_DATA_DIR in worker.js / cli_worker.js / server.js (Playwright persistent profile).
         private const string PROFILE_DIR = "user_profile";
         private const string PROFILES_ROOT_DIR = "user_profiles";
@@ -728,6 +738,7 @@ namespace TSUBotDesktop
             pnlSideUpdate.Controls.Add(progUpdate);
 
             btnCheckUpdate = CreateButton("เช็คอัปเดต", UiTheme.Brand, 164, 32, false);
+            if (btnCheckUpdate is PillButton) ((PillButton)btnCheckUpdate).OuterColor = Color.FromArgb(22, 33, 52);
             btnCheckUpdate.Location = new Point(12, 84);
             btnCheckUpdate.Click += (s, e) => CheckUpdateAsync(true);
             pnlSideUpdate.Controls.Add(btnCheckUpdate);
@@ -855,7 +866,7 @@ namespace TSUBotDesktop
             {
                 Dock = DockStyle.Top,
                 Height = 62,
-                BackColor = Color.Transparent
+                BackColor = UiTheme.BgWash
             };
             Label lblDashTitle = new Label
             {
@@ -1057,11 +1068,13 @@ namespace TSUBotDesktop
             pnlTrackerCard.Controls.Add(lblTimerDisplay);
 
             btnPause = CreateButton("⏸ พักชั่วคราว", UiTheme.Warning, 108, 34, false);
+            if (btnPause is PillButton) ((PillButton)btnPause).OuterColor = Color.FromArgb(22, 33, 52);
             btnPause.Location = new Point(14, 134);
             btnPause.Click += BtnPause_Click;
             pnlTrackerCard.Controls.Add(btnPause);
 
             btnCancel = CreateButton("■ ยกเลิก", UiTheme.Danger, 88, 34, false);
+            if (btnCancel is PillButton) ((PillButton)btnCancel).OuterColor = Color.FromArgb(22, 33, 52);
             btnCancel.Location = new Point(128, 134);
             btnCancel.Click += BtnCancel_Click;
             pnlTrackerCard.Controls.Add(btnCancel);
