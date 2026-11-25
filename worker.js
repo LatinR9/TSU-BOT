@@ -240,9 +240,9 @@ function parseCourseOutline() {
     }
     if (/text-success|complete/.test(cls) && /check/.test(blob)) return { done: true, how: 'success icon class' };
     if (/text-success/.test(cls) && /check/.test(blob)) return { done: true, how: 'success icon class' };
-    // Colour heuristic only for check-circle / unnamed Paragon completion icons, never for type icons.
+    // Colour heuristic only for explicit check/complete icons, never for unrelated content icons.
     const m = getComputedStyle(icon).color.match(/(\d+),\s*(\d+),\s*(\d+)/);
-    if (m && (/check/.test(blob) || /pgn__icon/.test(cls) || !name)) {
+    if (m && (/check/.test(blob) || /complete/.test(blob))) {
       const [r, g, b] = m.slice(1).map(Number);
       return Math.max(r, g, b) - Math.min(r, g, b) < 24 && r > 120 ? { done: false, how: 'grey icon colour' } : { done: true, how: 'coloured icon' };
     }
@@ -327,8 +327,15 @@ function unitCompletionProbe(problemDoneReason) {
       const name = (icon.getAttribute('data-icon') || '').toLowerCase();
       const cls = `${icon.getAttribute('class') || ''} ${icon.parentElement ? icon.parentElement.getAttribute('class') : ''}`.toLowerCase();
       if (prefix === 'far') continue;
-      if (/incomplete|not completed|outline|-o\b/.test(`${name} ${cls}`)) continue;
-      if (/check/.test(name) || /complete-checkmark|fa-check/.test(cls)) return true;
+      if (/incomplete|not completed|outline|-o\b|text-gray|text-muted|text-light/.test(`${name} ${cls}`)) continue;
+      if (/check/.test(name) || /complete-checkmark|fa-check/.test(cls)) {
+        const m = getComputedStyle(icon).color.match(/(\d+),\s*(\d+),\s*(\d+)/);
+        if (m) {
+          const [r, g, b] = m.slice(1).map(Number);
+          if (Math.max(r, g, b) - Math.min(r, g, b) < 24 && r > 120) continue;
+        }
+        return true;
+      }
     }
     return false;
   };
@@ -458,6 +465,19 @@ class AutomationWorker {
         headless: false,
         viewport: null,
         args: ['--disable-blink-features=AutomationControlled', '--mute-audio', '--start-maximized']
+      });
+
+      // Close accidental external/YouTube tabs if an embedded video link is triggered
+      this.browserContext.on('page', async (newPage) => {
+        try {
+          if (this.page && newPage !== this.page) {
+            const u = newPage.url() || '';
+            if (!u || /youtube\.com|youtu\.be/i.test(u)) {
+              await newPage.close().catch(() => {});
+              await this.page.bringToFront().catch(() => {});
+            }
+          }
+        } catch (e) {}
       });
 
       this.page = this.browserContext.pages().length > 0 ? this.browserContext.pages()[0] : await this.browserContext.newPage();
@@ -835,6 +855,8 @@ class AutomationWorker {
         try {
           const el = await f.$(sel);
           if (el) {
+            await el.scrollIntoViewIfNeeded().catch(() => {});
+            await this.sleep(150);
             const b = await el.boundingBox();
             if (b && b.width > 60 && b.height > 60) {
               playerBox = b;
@@ -852,6 +874,8 @@ class AutomationWorker {
           try {
             const el = await f.$(sel);
             if (el) {
+              await el.scrollIntoViewIfNeeded().catch(() => {});
+              await this.sleep(150);
               const b = await el.boundingBox();
               if (b && b.width > 60 && b.height > 60) {
                 playerBox = b;
@@ -865,38 +889,38 @@ class AutomationWorker {
     }
 
     // 3. STEP 1: MAKE VIDEO START PLAYING
-    this.log(`▶️ [ขั้นตอนที่ 1] สั่งให้วิดีโอเริ่มเล่น (User Gesture & Click Play)...`);
+    this.log(`▶️ [ขั้นตอนที่ 1] สั่งให้วิดีโอเริ่มเล่น (คลิกตรงกลางวิดีโอเพื่อไม่ให้โดนชื่อคลิป)...`);
 
-    // A. Physical real mouse click in the exact CENTER of the video player
+    // A. Physical real mouse click in the exact CENTER of the video player (avoids YouTube title bar at top)
     if (playerBox) {
       const cx = playerBox.x + playerBox.width / 2;
       const cy = playerBox.y + playerBox.height / 2;
       await this.page.mouse.click(cx, cy).catch(() => {});
-      await this.sleep(500);
-
-      // Also click bottom-left play button area
-      await this.page.mouse.click(playerBox.x + 35, playerBox.y + playerBox.height - 25).catch(() => {});
-      await this.sleep(300);
+      await this.sleep(600);
     }
 
-    // B. Click visible play buttons across all frames
+    // Close any accidental YouTube tab if opened
+    if (this.browserContext) {
+      for (const pg of this.browserContext.pages()) {
+        if (pg !== this.page && /youtube\.com|youtu\.be/i.test(pg.url() || '')) {
+          await pg.close().catch(() => {});
+          await this.page.bringToFront().catch(() => {});
+        }
+      }
+    }
+
+    // B. Click explicit play button controls (never click <a> links or generic wrappers)
     const playBtnSelectors = [
       'button[aria-label*="Play" i]',
       'button[aria-label*="เล่น" i]',
-      'div[role="button"][aria-label*="Play" i]',
-      'div[role="button"][aria-label*="เล่น" i]',
-      '.btn-play',
-      '.video-play-button',
-      '.play-btn',
-      '.play',
-      '.vjs-play-control',
-      '.vjs-big-play-button',
       '.ytp-large-play-button',
       '.ytp-play-button',
-      '.video-control.play-pause',
+      '.vjs-big-play-button',
+      '.vjs-play-control',
+      '.btn-play',
+      '.video-play-button',
       'button.control.play',
-      '.play-button',
-      'video'
+      '.video-control.play-pause'
     ];
 
     for (const f of allFrames) {
@@ -1073,9 +1097,10 @@ class AutomationWorker {
     this.log(`⏳ [ขั้นตอนที่ 3] กำลังเล่นช่วง 10 วินาทีสุดท้ายเพื่อบันทึกผลการเรียนลงระบบ TSU...`);
     const result = await this.waitForVideoCompletion(allFrames);
     if (!result) {
-      // No readable <video> (e.g. cross-origin YouTube embed): keep it playing for a fixed time.
-      await this.sleep(5000);
-      this.log(`✅ เล่นช่วงท้ายคลิปครบ 5 วินาที (อ่านเวลาวิดีโอไม่ได้ เช่น YouTube) เตรียมกด Next.`);
+      // No readable <video> (e.g. cross-origin YouTube embed): keep it playing for at least 8s and poll completion.
+      const waitMs = Math.max(8000, this.delays.docDelay + 3000);
+      await this.sleep(waitMs);
+      this.log(`✅ เล่นช่วงท้ายคลิปครบ ${Math.round(waitMs / 1000)} วินาที (YouTube/Iframe) เตรียมกด Next.`);
     } else if (result.ended || result.cur >= result.dur * 0.97) {
       this.log(`✅ วิดีโอเล่นถึง ${Math.round((result.cur / result.dur) * 100)}%${result.ended ? ' (จบคลิป)' : ''} ผ่านเกณฑ์บันทึกผลแล้ว เตรียมกด Next ทันที.`);
     } else {
