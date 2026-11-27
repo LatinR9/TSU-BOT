@@ -814,6 +814,286 @@ class AutomationWorker {
     this.log(`✅ เอกสาร/ชีทอ่านครบ 5 วินาทีเรียบร้อยตามเกณฑ์ TSU พร้อมกด Next ทันที.`);
   }
 
+  async closeAccidentalYoutubeTabs() {
+    if (!this.browserContext) return;
+    for (const pg of this.browserContext.pages()) {
+      if (pg !== this.page && /youtube\.com|youtu\.be/i.test(pg.url() || '')) {
+        await pg.close().catch(() => {});
+        await this.page.bringToFront().catch(() => {});
+      }
+    }
+  }
+
+  static parseDurationText(text) {
+    const clean = String(text || '').trim();
+    if (!clean.includes(':')) return 0;
+    const parts = clean.split(':').map(p => Number(p.trim()));
+    if (parts.some(n => !Number.isFinite(n) || n < 0)) return 0;
+    if (parts.length === 2) return parts[0] * 60 + parts[1];
+    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    return 0;
+  }
+
+  async readVideoSnapshot(frames) {
+    let bestVideo = null;
+    let ytPlaying = false;
+    let ytPaused = false;
+    let ytDuration = 0;
+
+    for (const f of frames) {
+      const info = await f.evaluate(() => {
+        const out = { video: null, ytPlaying: false, ytPaused: false, ytDuration: 0 };
+        const videos = Array.from(document.querySelectorAll('video'));
+        const v = videos.find(el => el.duration > 0 && isFinite(el.duration)) || videos[0];
+        if (v) {
+          out.video = {
+            cur: Number(v.currentTime) || 0,
+            dur: Number.isFinite(v.duration) && v.duration > 0 ? v.duration : 0,
+            paused: !!v.paused,
+            ended: !!v.ended,
+            readyState: Number(v.readyState) || 0
+          };
+        }
+        const yt = document.querySelector('.html5-video-player');
+        if (yt) {
+          if (yt.classList.contains('playing-mode')) out.ytPlaying = true;
+          if (yt.classList.contains('paused-mode') || yt.classList.contains('unstarted-mode')) out.ytPaused = true;
+        }
+        const bar = document.querySelector('.ytp-progress-bar[aria-valuemax]');
+        if (bar) {
+          const maxVal = parseFloat(bar.getAttribute('aria-valuemax'));
+          if (Number.isFinite(maxVal) && maxVal > 0) out.ytDuration = maxVal;
+        }
+        return out;
+      }).catch(() => null);
+      if (!info) continue;
+      if (info.ytPlaying) ytPlaying = true;
+      if (info.ytPaused) ytPaused = true;
+      if (info.ytDuration > ytDuration) ytDuration = info.ytDuration;
+      if (info.video) {
+        if (!bestVideo || (info.video.dur > 0 && bestVideo.dur === 0) || (!info.video.paused && bestVideo.paused)) {
+          bestVideo = { ...info.video, frame: f };
+        }
+      }
+    }
+    return { video: bestVideo, ytPlaying, ytPaused, ytDuration };
+  }
+
+  async ensureHtml5Playing(frames) {
+    for (const f of frames) {
+      await f.evaluate(() => {
+        document.querySelectorAll('video').forEach(v => {
+          try {
+            v.muted = true;
+            v.volume = 0;
+            if (v.paused && !v.ended) {
+              const p = v.play();
+              if (p && p.catch) p.catch(() => {});
+            }
+          } catch (e) {}
+        });
+      }).catch(() => {});
+    }
+  }
+
+  // Starts playback without ever toggling an already-playing video back into pause.
+  async ensureVideoPlaying(allFrames, playerBox) {
+    let snap = await this.readVideoSnapshot(allFrames);
+    const isPlayingNow = s => !!((s.video && !s.video.paused && !s.video.ended) || s.ytPlaying);
+
+    if (!isPlayingNow(snap)) {
+      // One physical click in the exact center of the player gives a trusted gesture
+      // for YouTube/autoplay without clicking top title links.
+      if (playerBox) {
+        const cx = playerBox.x + playerBox.width / 2;
+        const cy = playerBox.y + playerBox.height / 2;
+        await this.page.mouse.click(cx, cy).catch(() => {});
+        await this.sleep(1000);
+        await this.closeAccidentalYoutubeTabs();
+        snap = await this.readVideoSnapshot(allFrames);
+      }
+    }
+
+    if (!isPlayingNow(snap)) {
+      await this.ensureHtml5Playing(allFrames);
+      await this.sleep(700);
+      snap = await this.readVideoSnapshot(allFrames);
+    }
+
+    // Only click an explicit Play-only control if STILL paused (never toggle .ytp-play-button / Space / k blindly)
+    if (!isPlayingNow(snap)) {
+      const explicitPlayBtns = [
+        '.ytp-large-play-button',
+        '.vjs-big-play-button',
+        '.btn-play',
+        '.video-play-button',
+        'button.control.play',
+        'button[aria-label*="Play" i]:not([aria-label*="Pause" i])',
+        'button[aria-label*="เล่น" i]:not([aria-label*="หยุด" i])'
+      ];
+      let clickedBtn = false;
+      for (const f of allFrames) {
+        if (clickedBtn) break;
+        const alreadyPlaying = await f.evaluate(() => !!document.querySelector('.html5-video-player.playing-mode, .vjs-playing')).catch(() => false);
+        if (alreadyPlaying) break;
+        for (const sel of explicitPlayBtns) {
+          try {
+            const btn = await f.$(sel);
+            if (btn && await btn.isVisible().catch(() => false)) {
+              await btn.click({ force: true }).catch(() => {});
+              clickedBtn = true;
+              break;
+            }
+          } catch (e) {}
+        }
+      }
+      if (clickedBtn) {
+        await this.sleep(800);
+        await this.closeAccidentalYoutubeTabs();
+      }
+    }
+
+    // Wait passively (no toggle clicks) until playback stabilizes past initial buffering/saved-position restore (~0.8s)
+    const waitStart = Date.now();
+    let loggedStart = false;
+    while (!this.shouldStop && Date.now() - waitStart < 4500) {
+      snap = await this.readVideoSnapshot(allFrames);
+      if (snap.video && snap.video.paused && !snap.video.ended) {
+        await this.ensureHtml5Playing(allFrames);
+      }
+      const cur = snap.video ? snap.video.cur : 0;
+      const ready = snap.video ? snap.video.readyState : 0;
+      if (snap.video && !snap.video.paused && ready >= 2 && cur >= 0.8) {
+        this.log(`▶️ คลิปวิดีโอเริ่มเล่นแล้ว (เวลาเดิน ${cur.toFixed(1)}s)...`);
+        loggedStart = true;
+        break;
+      }
+      if (!snap.video && snap.ytPlaying && Date.now() - waitStart >= 1200) {
+        this.log(`▶️ คลิป YouTube กำลังเล่นแล้ว...`);
+        loggedStart = true;
+        break;
+      }
+      await this.sleep(350);
+    }
+
+    if (!loggedStart) {
+      snap = await this.readVideoSnapshot(allFrames);
+      if (snap.video && snap.video.cur > 0.1) {
+        this.log(`▶️ คลิปวิดีโอเริ่มเล่นแล้ว (เวลาเดิน ${snap.video.cur.toFixed(1)}s)...`);
+      }
+    }
+    return snap;
+  }
+
+  async clickVideoProgressBar(allFrames, playerBox, targetRatio) {
+    const ratio = Math.min(0.96, Math.max(0.85, targetRatio || 0.94));
+    if (playerBox) {
+      // Hover near bottom of player so auto-hiding progress bars become visible
+      await this.page.mouse.move(
+        playerBox.x + playerBox.width * 0.5,
+        playerBox.y + Math.max(10, playerBox.height - 24)
+      ).catch(() => {});
+      await this.sleep(150);
+    }
+
+    const progressSelectors = [
+      '.ytp-progress-bar',
+      '.ytp-progress-bar-container',
+      '.vjs-progress-holder',
+      '.vjs-progress-control',
+      '.video-slider',
+      '.slider',
+      '[role="slider"]'
+    ];
+
+    for (const f of allFrames) {
+      for (const pSel of progressSelectors) {
+        try {
+          const bars = await f.$$(pSel);
+          for (const bar of bars) {
+            const meta = await bar.evaluate(el => {
+              const cls = String(el.className || '') + ' ' + String(el.getAttribute('aria-label') || '') + ' ' + String(el.getAttribute('title') || '');
+              return cls.toLowerCase();
+            }).catch(() => '');
+            if (/volume|เสียง|speed|playback/.test(meta)) continue;
+            const b = await bar.boundingBox();
+            if (!b || b.width <= 40 || b.height <= 0) continue;
+            if (playerBox && (b.x + b.width < playerBox.x - 10 || b.x > playerBox.x + playerBox.width + 10)) continue;
+            const clickX = Math.min(b.x + b.width - 8, b.x + b.width * ratio);
+            const clickY = b.y + b.height / 2;
+            await this.page.mouse.click(clickX, clickY).catch(() => {});
+            await this.closeAccidentalYoutubeTabs();
+            return true;
+          }
+        } catch (e) {}
+      }
+    }
+
+    if (playerBox) {
+      const clickX = Math.min(playerBox.x + playerBox.width - 12, playerBox.x + playerBox.width * ratio);
+      const clickY = playerBox.y + playerBox.height - 18;
+      await this.page.mouse.click(clickX, clickY).catch(() => {});
+      await this.closeAccidentalYoutubeTabs();
+      return true;
+    }
+    return false;
+  }
+
+  async resolveVideoDuration(allFrames, snap) {
+    if (snap && snap.video && snap.video.dur > 0) return snap.video.dur;
+    if (snap && snap.ytDuration > 0) return snap.ytDuration;
+
+    for (const f of allFrames) {
+      const metaDur = await f.evaluate(() => {
+        const el = document.querySelector('.video[data-metadata]');
+        if (el) {
+          try { return JSON.parse(el.getAttribute('data-metadata')).duration || 0; } catch (e) {}
+        }
+        return 0;
+      }).catch(() => 0);
+      if (metaDur > 0) return metaDur;
+    }
+
+    for (const f of allFrames) {
+      const durText = await f.evaluate(() => {
+        const el = document.querySelector('.duration, .vjs-duration-display, .ytp-time-duration, span[class*="duration"]');
+        return el ? el.innerText.trim() : '';
+      }).catch(() => '');
+      const parsed = AutomationWorker.parseDurationText(durText);
+      if (parsed > 0) return parsed;
+    }
+    return 0;
+  }
+
+  async seekHtml5Video(allFrames, targetSec) {
+    let applied = false;
+    for (const f of allFrames) {
+      const ok = await f.evaluate((t) => {
+        const v = document.querySelector('video');
+        if (!v) return false;
+        try {
+          v.muted = true;
+          v.currentTime = t;
+          v.dispatchEvent(new Event('seeking'));
+          v.dispatchEvent(new Event('timeupdate'));
+          v.dispatchEvent(new Event('seeked'));
+          if (v.paused && !v.ended) {
+            const p = v.play();
+            if (p && p.catch) p.catch(() => {});
+          }
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }, targetSec).catch(() => false);
+      if (ok) {
+        applied = true;
+        break;
+      }
+    }
+    return applied;
+  }
+
   async handleVideo(frame) {
     this.setStatus('running', 'Watching Video');
     this.log(`🎬 ตรวจพบคลิปวิดีโอ เริ่มต้นขั้นตอนการเล่นและข้ามไป 10 วินาทีสุดท้าย...`);
@@ -846,7 +1126,6 @@ class AutomationWorker {
       '.tc-wrapper'
     ];
 
-    // Prefer the real player inside the frame that holds the video over the whole unit iframe.
     const playerSelectors = videoSelectors.filter(s => s !== 'iframe#unit-iframe');
     const searchFrames = [frame, ...allFrames.filter(f => f !== frame)].filter(Boolean);
     let playerBox = null;
@@ -888,216 +1167,66 @@ class AutomationWorker {
       }
     }
 
-    // 3. STEP 1: MAKE VIDEO START PLAYING
+    // 3. STEP 1: MAKE VIDEO START PLAYING (click center once, never toggle play/pause)
     this.log(`▶️ [ขั้นตอนที่ 1] สั่งให้วิดีโอเริ่มเล่น (คลิกตรงกลางวิดีโอเพื่อไม่ให้โดนชื่อคลิป)...`);
+    let snap = await this.ensureVideoPlaying(allFrames, playerBox);
+    if (this.shouldStop) return;
 
-    // A. Physical real mouse click in the exact CENTER of the video player (avoids YouTube title bar at top)
-    if (playerBox) {
-      const cx = playerBox.x + playerBox.width / 2;
-      const cy = playerBox.y + playerBox.height / 2;
-      await this.page.mouse.click(cx, cy).catch(() => {});
-      await this.sleep(600);
-    }
+    // 4. STEP 2: SEEK TO LAST 10 SECONDS AND VERIFY IT HOLDS
+    const seekMargin = this.delays.videoSeekMargin || 10;
+    this.log(`⏩ [ขั้นตอนที่ 2] ข้ามไปยังช่วง ${seekMargin} วินาทีสุดท้ายของคลิป...`);
 
-    // Close any accidental YouTube tab if opened
-    if (this.browserContext) {
-      for (const pg of this.browserContext.pages()) {
-        if (pg !== this.page && /youtube\.com|youtu\.be/i.test(pg.url() || '')) {
-          await pg.close().catch(() => {});
-          await this.page.bringToFront().catch(() => {});
-        }
-      }
-    }
-
-    // B. Click explicit play button controls (never click <a> links or generic wrappers)
-    const playBtnSelectors = [
-      'button[aria-label*="Play" i]',
-      'button[aria-label*="เล่น" i]',
-      '.ytp-large-play-button',
-      '.ytp-play-button',
-      '.vjs-big-play-button',
-      '.vjs-play-control',
-      '.btn-play',
-      '.video-play-button',
-      'button.control.play',
-      '.video-control.play-pause'
-    ];
-
-    for (const f of allFrames) {
-      for (const sel of playBtnSelectors) {
-        try {
-          const btn = await f.$(sel);
-          if (btn) {
-            const isVis = await btn.isVisible().catch(() => false);
-            if (isVis) {
-              await btn.click({ force: true }).catch(() => {});
-              break;
-            }
-          }
-        } catch (e) {}
-      }
-    }
-
-    // C. Programmatic muted play on any HTML5 video
-    for (const f of allFrames) {
-      await f.evaluate(() => {
-        document.querySelectorAll('video').forEach(v => {
-          try {
-            v.muted = true;
-            v.volume = 0;
-            const p = v.play();
-            if (p && p.catch) p.catch(() => {});
-          } catch (e) {}
-        });
-      }).catch(() => {});
-    }
-
-    // D. Press Space key — only once focus is inside the player; otherwise Space would hit the
-    // still-focused MFE "Next" button and leave the unit.
-    if (playerBox) await this.page.keyboard.press('Space').catch(() => {});
-    await this.sleep(1500);
-
-    // Verify playback started
-    let totalDur = 0;
-    let currentSec = 0;
-
-    for (let i = 0; i < 5; i++) {
-      if (this.shouldStop) return;
-
-      for (const f of allFrames) {
-        try {
-          const info = await f.evaluate(() => {
-            const v = document.querySelector('video');
-            if (v) return { cur: v.currentTime, dur: v.duration || 0, paused: v.paused };
-            return null;
-          }).catch(() => null);
-
-          if (info) {
-            currentSec = info.cur;
-            if (info.dur > 0) totalDur = info.dur;
-            if (currentSec > 0.1 || !info.paused) break;
-          }
-        } catch (e) {}
-      }
-
-      if (currentSec > 0.1) {
-        this.log(`▶️ คลิปวิดีโอเริ่มเล่นแล้ว (เวลาเดิน ${currentSec.toFixed(1)}s)...`);
-        break;
-      }
-
-      // If still not moving, re-click center and press 'k' (YouTube play shortcut)
-      if (playerBox) {
-        await this.page.mouse.click(playerBox.x + playerBox.width / 2, playerBox.y + playerBox.height / 2).catch(() => {});
-        await this.page.keyboard.press('k').catch(() => {});
-      }
-      await this.sleep(1000);
-    }
-
-    // 4. STEP 2: SEEK TO LAST 10 SECONDS
-    this.log(`⏩ [ขั้นตอนที่ 2] ข้ามไปยังช่วง 10 วินาทีสุดท้ายของคลิป...`);
-
-    // Obtain duration if not yet known
-    if (totalDur <= 0) {
-      for (const f of allFrames) {
-        const metaDur = await f.evaluate(() => {
-          const el = document.querySelector('.video[data-metadata]');
-          if (el) {
-            try { return JSON.parse(el.getAttribute('data-metadata')).duration || 0; } catch (e) {}
-          }
-          return 0;
-        }).catch(() => 0);
-        if (metaDur > 0) { totalDur = metaDur; break; }
-      }
-    }
-
-    // Check duration text (e.g. "05:30")
-    if (totalDur <= 0) {
-      for (const f of allFrames) {
-        const durText = await f.evaluate(() => {
-          const el = document.querySelector('.duration, .vjs-duration-display, .ytp-time-duration, span[class*="duration"]');
-          return el ? el.innerText.trim() : '';
-        }).catch(() => '');
-
-        if (durText && durText.includes(':')) {
-          const parts = durText.split(':').map(Number);
-          if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-            totalDur = parts[0] * 60 + parts[1];
-            break;
-          }
-        }
-      }
-    }
-
+    const totalDur = await this.resolveVideoDuration(allFrames, snap);
     let seeked = false;
 
-    // A. Direct HTML5 video seek
     if (totalDur > 15) {
-      const seekTarget = Math.max(0, totalDur - 10);
-      for (const f of allFrames) {
-        const ok = await f.evaluate((t) => {
-          const v = document.querySelector('video');
-          if (v) {
-            v.currentTime = t;
-            v.dispatchEvent(new Event('timeupdate'));
-            v.dispatchEvent(new Event('seeked'));
-            return true;
-          }
-          return false;
-        }, seekTarget).catch(() => false);
-
-        if (ok) {
-          this.log(`⏩ เลื่อนคลิปไปที่ ${Math.round(seekTarget)}s / ${Math.round(totalDur)}s เรียบร้อย`);
+      const seekTarget = Math.max(0, totalDur - seekMargin);
+      const targetRatio = Math.min(0.96, seekTarget / totalDur);
+      const htmlSeeked = await this.seekHtml5Video(allFrames, seekTarget);
+      if (htmlSeeked) {
+        await this.sleep(500);
+        snap = await this.readVideoSnapshot(allFrames);
+        if (snap.video && snap.video.cur >= seekTarget - 8) {
+          this.log(`⏩ เลื่อนคลิปไปที่ ${Math.round(snap.video.cur)}s / ${Math.round(totalDur)}s เรียบร้อย`);
           seeked = true;
-          break;
+        } else {
+          // Player snapped back toward start: seek via progress bar UI + re-apply HTML5 currentTime
+          this.log(`⏩ คลิปเด้งกลับตอนเลื่อน — กำลังคลิกแถบเวลาไปยังช่วงท้ายคลิป...`);
+          await this.clickVideoProgressBar(allFrames, playerBox, targetRatio);
+          await this.sleep(450);
+          snap = await this.readVideoSnapshot(allFrames);
+          if (snap.video && snap.video.cur < seekTarget - 8) {
+            await this.seekHtml5Video(allFrames, seekTarget);
+            await this.sleep(450);
+            snap = await this.readVideoSnapshot(allFrames);
+          }
+          const landed = snap.video ? Math.round(snap.video.cur) : Math.round(seekTarget);
+          this.log(`⏩ เลื่อนคลิปไปที่ ${landed}s / ${Math.round(totalDur)}s เรียบร้อย`);
+          seeked = true;
         }
       }
     }
 
-    // B. Click progress bar / slider at 94%
-    const progressSelectors = [
-      '.slider',
-      '.video-slider',
-      '.progress-bar',
-      '.ytp-progress-bar',
-      '.ytp-progress-bar-container',
-      '.vjs-progress-control',
-      '.vjs-progress-holder',
-      '.vjs-play-progress',
-      '[role="slider"]'
-    ];
-
-    for (const f of allFrames) {
-      for (const pSel of progressSelectors) {
-        try {
-          const bar = await f.$(pSel);
-          if (bar) {
-            const b = await bar.boundingBox();
-            if (b && b.width > 40) {
-              await this.page.mouse.click(b.x + b.width * 0.94, b.y + b.height / 2);
-              this.log(`⏩ คลิกแถบเวลาไปยังช่วงท้ายคลิปเรียบร้อย`);
-              seeked = true;
-              break;
-            }
-          }
-        } catch (e) {}
+    if (!seeked) {
+      const barClicked = await this.clickVideoProgressBar(allFrames, playerBox, 0.94);
+      if (barClicked) {
+        this.log(`⏩ คลิกแถบเวลาไปยังช่วงท้ายคลิปเรียบร้อย`);
+        await this.sleep(500);
+        snap = await this.readVideoSnapshot(allFrames);
+        if (snap.video && snap.video.dur > 15 && snap.video.cur < snap.video.dur - seekMargin - 8) {
+          const tardyTarget = Math.max(0, snap.video.dur - seekMargin);
+          await this.seekHtml5Video(allFrames, tardyTarget);
+        }
+        seeked = true;
+      } else {
+        await this.page.keyboard.press('9').catch(() => {});
       }
-      if (seeked) break;
     }
-
-    // C. Physical click on bottom of video player (where progress bar sits)
-    if (!seeked && playerBox) {
-      await this.page.mouse.click(playerBox.x + playerBox.width * 0.94, playerBox.y + playerBox.height - 18).catch(() => {});
-      seeked = true;
-    }
-
-    // D. Press media shortcut key '9' (jumps to 90%)
-    await this.page.keyboard.press('9').catch(() => {});
 
     // 5. STEP 3: PLAY IN THE LAST 10 SECONDS UNTIL THE COMPLETION MARK IS PASSED
-    this.log(`⏳ [ขั้นตอนที่ 3] กำลังเล่นช่วง 10 วินาทีสุดท้ายเพื่อบันทึกผลการเรียนลงระบบ TSU...`);
-    const result = await this.waitForVideoCompletion(allFrames);
+    this.log(`⏳ [ขั้นตอนที่ 3] กำลังเล่นช่วง ${seekMargin} วินาทีสุดท้ายเพื่อบันทึกผลการเรียนลงระบบ TSU...`);
+    const result = await this.waitForVideoCompletion(allFrames, { playerBox, seekMargin });
     if (!result) {
-      // No readable <video> (e.g. cross-origin YouTube embed): keep it playing for at least 8s and poll completion.
       const waitMs = Math.max(8000, this.delays.docDelay + 3000);
       await this.sleep(waitMs);
       this.log(`✅ เล่นช่วงท้ายคลิปครบ ${Math.round(waitMs / 1000)} วินาที (YouTube/Iframe) เตรียมกด Next.`);
@@ -1109,11 +1238,17 @@ class AutomationWorker {
   }
 
   // Keeps the clip playing until it passes ~97% (Open edX marks video complete at 95% by
-  // default) or ends. Returns the last { cur, dur, ended } seen, or null if no <video> is readable.
-  async waitForVideoCompletion(frames) {
+  // default) or ends, automatically recovering if the player resets currentTime back to start.
+  async waitForVideoCompletion(frames, opts = {}) {
+    const playerBox = opts.playerBox || null;
+    const seekMargin = opts.seekMargin || this.delays.videoSeekMargin || 10;
     const started = Date.now();
+    let tailStarted = started;
+    let lastSeekAt = started;
+    let reseekCount = 0;
     let last = null;
-    while (!this.shouldStop && Date.now() - started < 25000) {
+
+    while (!this.shouldStop && Date.now() - started < 28000) {
       let info = null;
       for (const f of frames) {
         info = await f.evaluate(() => {
@@ -1130,7 +1265,22 @@ class AutomationWorker {
       }
       if (!info) return last;
       last = info;
-      if (info.ended || (Date.now() - started >= 3000 && info.cur >= info.dur * 0.97)) return info;
+
+      if (info.ended || (Date.now() - tailStarted >= 3500 && info.cur >= info.dur * 0.97)) {
+        return info;
+      }
+
+      // If the player reverted playback back before 85%, re-seek to the last N seconds
+      if (info.dur > 20 && info.cur < info.dur * 0.85 && reseekCount < 4 && Date.now() - lastSeekAt >= 2000) {
+        reseekCount++;
+        lastSeekAt = Date.now();
+        tailStarted = Date.now();
+        const seekTarget = Math.max(0, info.dur - seekMargin);
+        const ratio = Math.min(0.96, seekTarget / info.dur);
+        await this.clickVideoProgressBar(frames, playerBox, ratio);
+        await this.seekHtml5Video(frames, seekTarget);
+      }
+
       await this.sleep(400);
     }
     return last;
