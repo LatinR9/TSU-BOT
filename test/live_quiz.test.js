@@ -158,3 +158,62 @@ test('a block is submitted only after every one of its dropdowns is set', async 
   assert.strictEqual(Object.keys(got).length, 9, r.msg);
   assert.ok(r.logs.some(l => l.includes('blank 2') && l.includes('wouldn')), r.msg);
 });
+
+test('U5C4 resumes the four unanswered zero-article radio questions from the log', async () => {
+  const result = await runQuiz(fixture('live_u5c4_articles.html'), {
+    prepare: () => {
+      const questions = {
+        3: '3. She’s tired. She’s going to go to_______ now.',
+        5: '5. What time do they have _____lunch?',
+        6: '6. Susan loves ____cheese.',
+        9: "9. Sadly, Martin doesn't like_______ Italian food."
+      };
+      document.querySelectorAll('.problems-wrapper').forEach((block, index) => {
+        const input = block.querySelector('input[type="text"]');
+        const question = questions[index + 1];
+        if (!question) {
+          block.querySelector('.submission-feedback').textContent = 'You have used 1 of 2 attempts';
+          return;
+        }
+        const response = input.closest('.capa_inputtype');
+        const stem = document.createElement('p');
+        stem.textContent = question;
+        response.prepend(stem);
+        const choices = document.createElement('fieldset');
+        for (const value of ['the', '-']) {
+          const label = document.createElement('label');
+          const radio = Object.assign(document.createElement('input'), { type: 'radio', name: input.name, value });
+          label.append(radio, value);
+          choices.append(label);
+        }
+        input.replaceWith(choices);
+      });
+    }
+  });
+  assert.deepStrictEqual(byBlock(result.submits), { b3: ['-'], b5: ['-'], b6: ['-'], b9: ['-'] }, result.msg);
+  assert.strictEqual(result.worker.leftovers.size, 0, result.msg);
+});
+
+test('English Post-Test submits the confirmed dash pair as one radio choice', async () => {
+  const choices = ['the / the', 'the / a', 'the / bus', '- / -', 'a / a'];
+  const result = await runQuiz(`
+    <title>แบบทดสอบหลังเรียน (Post-Test)</title>
+    <div class="problems-wrapper">
+      <div class="problem">
+        <p>She goes to ________ school every day by ________ bus.</p>
+        <fieldset>${choices.map((label, i) => `<label><input type="radio" name="q24" value="${i}">${label}</label>`).join('')}</fieldset>
+      </div>
+      <button class="submit">Submit</button>
+      <div class="submission-feedback"></div>
+    </div>
+    <script>
+      window.__submits = [];
+      document.querySelector('button.submit').onclick = () => {
+        window.__submits.push(document.querySelector('input:checked')?.value);
+        document.querySelector('.submission-feedback').textContent = 'You have used 1 of 4 attempts';
+      };
+    </script>
+  `);
+  assert.deepStrictEqual(result.submits, ['3'], result.msg);
+  assert.strictEqual(result.worker.leftovers.size, 0, result.msg);
+});

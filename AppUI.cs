@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
@@ -278,7 +279,7 @@ namespace TSUBotDesktop
         private bool updateInProgress = false;
         private Process loginProcess;
         private volatile bool resetInProgress = false;
-        private const string APP_VERSION = "1.3.7";
+        private const string APP_VERSION = "1.3.8";
         // Must match USER_DATA_DIR in worker.js / cli_worker.js / server.js (Playwright persistent profile).
         private const string PROFILE_DIR = "user_profile";
         private const string PROFILES_ROOT_DIR = "user_profiles";
@@ -300,11 +301,43 @@ namespace TSUBotDesktop
             {
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
+                InstallBundledScript("worker.js");
+                InstallBundledScript("db_manager.js");
                 Application.Run(new MainForm());
             }
             catch (Exception ex)
             {
                 ReportCrash("startup", ex, true);
+            }
+        }
+
+        private static void InstallBundledScript(string name)
+        {
+            string scriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, name);
+            using (Stream resource = typeof(MainForm).Assembly.GetManifestResourceStream("TSUBot." + name))
+            using (var buffer = new MemoryStream())
+            {
+                if (resource == null)
+                    throw new InvalidOperationException("Bundled " + name + " is missing.");
+                resource.CopyTo(buffer);
+                byte[] script = buffer.ToArray();
+                if (File.Exists(scriptPath) && File.ReadAllBytes(scriptPath).SequenceEqual(script))
+                    return;
+
+                string temporaryPath = scriptPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
+                try
+                {
+                    File.WriteAllBytes(temporaryPath, script);
+                    if (File.Exists(scriptPath))
+                        File.Replace(temporaryPath, scriptPath, null);
+                    else
+                        File.Move(temporaryPath, scriptPath);
+                }
+                finally
+                {
+                    if (File.Exists(temporaryPath))
+                        File.Delete(temporaryPath);
+                }
             }
         }
 
@@ -3675,8 +3708,6 @@ namespace TSUBotDesktop
                     wc.DownloadFile(baseRaw + "tsu_answers.json?t=" + ticks, Path.Combine(appDir, "tsu_answers.json"));
                     try { wc.DownloadFile(baseRaw + "tsu_missing.json?t=" + ticks, Path.Combine(appDir, "tsu_missing.json")); } catch { }
                     wc.DownloadFile(baseRaw + "cli_worker.js?t=" + ticks, Path.Combine(appDir, "cli_worker.js"));
-                    wc.DownloadFile(baseRaw + "worker.js?t=" + ticks, Path.Combine(appDir, "worker.js"));
-                    wc.DownloadFile(baseRaw + "db_manager.js?t=" + ticks, Path.Combine(appDir, "db_manager.js"));
                 }
                 LoadCourses();
                 AppendLog("ซิงค์ฐานเฉลยและไฟล์ระบบล่าสุดเรียบร้อยแล้ว!", UiTheme.Success);

@@ -51,10 +51,10 @@ This compiles `AppUI.cs` to `TSU-BOT-Pro.exe`, copies it to `dist\TSU-BOT-Pro.ex
 Manual equivalent:
 
 ```bat
-%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\csc.exe /target:winexe /optimize+ /out:TSU-BOT-Pro.exe /reference:System.dll /reference:System.Drawing.dll /reference:System.Windows.Forms.dll /reference:System.Core.dll AppUI.cs
+%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\csc.exe /target:winexe /optimize+ /out:TSU-BOT-Pro.exe /reference:System.dll /reference:System.Drawing.dll /reference:System.Windows.Forms.dll /reference:System.Core.dll /resource:worker.js,TSUBot.worker.js /resource:db_manager.js,TSUBot.db_manager.js AppUI.cs
 ```
 
-Linux CI / Cloud Agent environments cannot produce a trustworthy Windows WinForms PE here (no Windows `csc` / Wine toolchain in this image). Ship polished `AppUI.cs` and rebuild the `.exe` on a Windows machine with the script above.
+The desktop executable embeds `worker.js` and `db_manager.js` and installs both scripts beside the executable at startup. Run the Windows smoke workflow to verify WinForms startup and the installed worker.
 
 In-app updates read `version.json` from GitHub (`version`, `changelog`, `sha256`), verify the downloaded exe hash before swap, keep `TSU-BOT-Pro.exe.bak`, and refuse mismatch/missing hashes. Optional local `github_token.txt` is supported for private repos — never commit it.
 

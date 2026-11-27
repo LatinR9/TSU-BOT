@@ -261,3 +261,17 @@ test('TSUPT00014 (ฟาร์มสุขปลูกเอง): all 5 chapters
   });
   assert.strictEqual(postSeed.choiceText, 'เปอร์เซ็นต์ความงอก และความบริสุทธิ์ของเมล็ดพันธุ์');
 });
+
+test('punctuation-only article options match exactly without selecting an empty label', () => {
+  assert.strictEqual(db.matchChoice(['', 'the', '-'], '–').index, 2);
+  assert.strictEqual(db.matchChoice(['the / a', '- / -', ''], '- / -').index, 1);
+  assert.strictEqual(db.matchChoice(['', 'the'], '-'), null);
+  assert.strictEqual(db.matchChoice(['-', 'the'], '-', ['-']), null);
+  const postTest = db.decideProblem({
+    courseCode: 'TSUGE00152', section: 'แบบทดสอบหลังเรียน (Post-Test)', index: 23,
+    texts: ['She goes to ________ school every day by ________ bus.'],
+    slots: [{ kind: 'choice', choices: ['the / the', 'the / a', 'the / bus', '- / -', 'a / a'] }]
+  });
+  assert.strictEqual(postTest.action, 'fill');
+  assert.strictEqual(postTest.fills[0].index, 3);
+});

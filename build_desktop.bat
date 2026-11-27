@@ -32,6 +32,8 @@ echo [1/3] Compiling AppUI.cs ...
     /reference:System.Drawing.dll ^
     /reference:System.Windows.Forms.dll ^
     /reference:System.Core.dll ^
+    /resource:worker.js,TSUBot.worker.js ^
+    /resource:db_manager.js,TSUBot.db_manager.js ^
     AppUI.cs
 if errorlevel 1 (
     echo [ERROR] Compile failed.

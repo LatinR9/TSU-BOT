@@ -434,9 +434,10 @@ class DBManager {
     if (!answer || !Array.isArray(choiceTexts) || choiceTexts.length === 0) return null;
     const stripMarker = s => normalizeText(s).replace(/^(?:[a-hก-ฌ]|\d{1,2})[.)]\s+/i, '');
     const target = stripMarker(answer);
+    if (!target) return null;
     const targetLoose = looseKey(target);
-    if (!targetLoose) return null;
-    const wrongLoose = new Set((knownWrong || []).map(looseKey).filter(Boolean));
+    const wrong = (knownWrong || []).map(stripMarker);
+    const wrongLoose = new Set(wrong.map(looseKey).filter(Boolean));
     wrongLoose.delete(targetLoose);
 
     const labels = choiceTexts.map(t => {
@@ -445,8 +446,14 @@ class DBManager {
     });
     const usable = (l) => l.loose && !wrongLoose.has(l.loose);
 
-    const exact = labels.map((l, i) => (usable(l) && l.norm === target ? i : -1)).filter(i => i >= 0);
+    // A dash is an actual option in zero-article quizzes. Match punctuation-only
+    // labels exactly and never treat them as empty labels or fuzzy candidates.
+    const exact = labels.map((l, i) => {
+      if (l.norm !== target) return -1;
+      return (targetLoose ? usable(l) : !wrong.includes(l.norm)) ? i : -1;
+    }).filter(i => i >= 0);
     if (exact.length) return { index: exact[0], method: 'exact', score: 1, duplicates: exact };
+    if (!targetLoose) return null;
 
     const loose = labels.map((l, i) => (usable(l) && l.loose === targetLoose ? i : -1)).filter(i => i >= 0);
     if (loose.length) return { index: loose[0], method: 'exact-loose', score: 0.99, duplicates: loose };
@@ -498,7 +505,8 @@ class DBManager {
     const sameStemUnanswered = cands.filter(c => c.score >= topScore - 0.02 && !answerable(c) && (!section || c.section === section));
     const blockOtherSections = !!section && sameStemUnanswered.length > 0;
     const extraWrong = sameStemUnanswered.flatMap(c => c.known_wrong_answers || []);
-    const extraWrongLoose = new Set(extraWrong.map(looseKey));
+    const answerKey = text => looseKey(text) || normalizeText(text);
+    const extraWrongKeys = new Set(extraWrong.map(answerKey).filter(Boolean));
     let failure = '';
 
     const fillSlot = (slot, part, wrong) => {
@@ -523,7 +531,7 @@ class DBManager {
     const fromEntry = (cand, extra = {}) => {
       if (!answerable(cand)) return null;
       let ans = String(cand.correct_answer).trim();
-      if (extraWrongLoose.has(looseKey(ans))) return null;
+      if (extraWrongKeys.has(answerKey(ans))) return null;
       const parts = slots.length === 1 ? [ans] : ans.split(MULTI_PART_SPLIT_RE);
       if (parts.length !== slots.length) {
         failure = failure || `bank answer "${ans}" has ${parts.length} part(s) but the block has ${slots.length} blanks`;

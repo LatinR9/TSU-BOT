@@ -3,9 +3,9 @@ name: Windows exe build + smoke test
 on:
   push:
     branches: [ 'cursor/**' ]
-    paths: [ 'AppUI.cs', 'TSU-BOT-Pro.exe', 'dist/TSU-BOT-Pro.exe', 'version.json', '.github/workflows/exe-smoke.yml' ]
+    paths: [ 'AppUI.cs', 'worker.js', 'db_manager.js', 'build_desktop.bat', 'TSU-BOT-Pro.exe', 'dist/TSU-BOT-Pro.exe', 'version.json', '.github/workflows/exe-smoke.yml' ]
   pull_request:
-    paths: [ 'AppUI.cs', 'TSU-BOT-Pro.exe', 'dist/TSU-BOT-Pro.exe', 'version.json', '.github/workflows/exe-smoke.yml' ]
+    paths: [ 'AppUI.cs', 'worker.js', 'db_manager.js', 'build_desktop.bat', 'TSU-BOT-Pro.exe', 'dist/TSU-BOT-Pro.exe', 'version.json', '.github/workflows/exe-smoke.yml' ]
   workflow_dispatch:
 
 jobs:
@@ -21,7 +21,7 @@ jobs:
           New-Item -ItemType Directory -Force cand, out | Out-Null
           $csc = "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
           $refs = '/reference:System.dll', '/reference:System.Drawing.dll', '/reference:System.Windows.Forms.dll', '/reference:System.Core.dll'
-          & $csc /nologo /target:winexe /optimize+ /platform:anycpu /out:out\TSU-BOT-Pro.exe @refs AppUI.cs
+          & $csc /nologo /target:winexe /optimize+ /platform:anycpu /out:out\TSU-BOT-Pro.exe '/resource:worker.js,TSUBot.worker.js' '/resource:db_manager.js,TSUBot.db_manager.js' @refs AppUI.cs
           if ($LASTEXITCODE -ne 0) { throw 'csc failed' }
           Copy-Item out\TSU-BOT-Pro.exe cand\csc-build.exe
           Copy-Item TSU-BOT-Pro.exe cand\committed.exe
@@ -31,7 +31,7 @@ jobs:
             'LoadModeSettings();' + "`r`n" , 'LoadModeSettings(); throw new InvalidOperationException("crash-probe");' + "`r`n").Replace(
             'LoadModeSettings();' + "`n" , 'LoadModeSettings(); throw new InvalidOperationException("crash-probe");' + "`n") |
             Set-Content -Encoding UTF8 probe.cs
-          & $csc /nologo /target:winexe /platform:anycpu /out:cand\crash-probe.exe @refs probe.cs
+          & $csc /nologo /target:winexe /platform:anycpu /out:cand\crash-probe.exe '/resource:worker.js,TSUBot.worker.js' '/resource:db_manager.js,TSUBot.db_manager.js' @refs probe.cs
           if ($LASTEXITCODE -ne 0) { throw 'csc (probe) failed' }
 
       - name: Verify committed exe matches version.json and dist/
@@ -95,6 +95,12 @@ jobs:
             } else {
               if (-not $alive) { $bad += "$name (exited)" }
               if ($hasLog) { $bad += "$name (crash.log written)" }
+              foreach ($script in 'worker.js', 'db_manager.js') {
+                $installed = Join-Path $dir $script
+                if (!(Test-Path $installed) -or (Get-FileHash $installed).Hash -ne (Get-FileHash $script).Hash) {
+                  $bad += "$name (installed $script differs from source)"
+                }
+              }
             }
           }
           Write-Host "===== Application event log ====="
