@@ -834,155 +834,108 @@ class AutomationWorker {
     return 0;
   }
 
-  async readVideoSnapshot(frames) {
-    let bestVideo = null;
-    let ytPlaying = false;
-    let ytPaused = false;
-    let ytDuration = 0;
-
-    for (const f of frames) {
-      const info = await f.evaluate(() => {
-        const out = { video: null, ytPlaying: false, ytPaused: false, ytDuration: 0 };
-        const videos = Array.from(document.querySelectorAll('video'));
-        const v = videos.find(el => el.duration > 0 && isFinite(el.duration)) || videos[0];
-        if (v) {
-          out.video = {
-            cur: Number(v.currentTime) || 0,
-            dur: Number.isFinite(v.duration) && v.duration > 0 ? v.duration : 0,
-            paused: !!v.paused,
-            ended: !!v.ended,
-            readyState: Number(v.readyState) || 0
-          };
-        }
-        const yt = document.querySelector('.html5-video-player');
-        if (yt) {
-          if (yt.classList.contains('playing-mode')) out.ytPlaying = true;
-          if (yt.classList.contains('paused-mode') || yt.classList.contains('unstarted-mode')) out.ytPaused = true;
-        }
-        const bar = document.querySelector('.ytp-progress-bar[aria-valuemax]');
-        if (bar) {
-          const maxVal = parseFloat(bar.getAttribute('aria-valuemax'));
-          if (Number.isFinite(maxVal) && maxVal > 0) out.ytDuration = maxVal;
-        }
-        return out;
-      }).catch(() => null);
-      if (!info) continue;
-      if (info.ytPlaying) ytPlaying = true;
-      if (info.ytPaused) ytPaused = true;
-      if (info.ytDuration > ytDuration) ytDuration = info.ytDuration;
-      if (info.video) {
-        if (!bestVideo || (info.video.dur > 0 && bestVideo.dur === 0) || (!info.video.paused && bestVideo.paused)) {
-          bestVideo = { ...info.video, frame: f };
-        }
-      }
-    }
-    return { video: bestVideo, ytPlaying, ytPaused, ytDuration };
+  getFrames() {
+    if (!this.page || this.page.isClosed()) return [];
+    const main = this.page.mainFrame();
+    return [main, ...this.page.frames().filter(f => f !== main)];
   }
 
-  async ensureHtml5Playing(frames) {
+  // Read currentTime from any accessible <video> element. Returns { cur, dur, paused, ended } or null.
+  async readVideoTime(allFrames) {
+    const frames = (allFrames && allFrames.length) ? allFrames : this.getFrames();
+    for (const f of frames) {
+      const info = await f.evaluate(() => {
+        const v = document.querySelector('video');
+        if (!v) return null;
+        return {
+          cur: Number(v.currentTime) || 0,
+          dur: Number.isFinite(v.duration) && v.duration > 0 ? v.duration : 0,
+          paused: !!v.paused,
+          ended: !!v.ended
+        };
+      }).catch(() => null);
+      if (info) return info;
+    }
+    return null;
+  }
+
+  async clickInitialPlayButtons(allFrames) {
+    const playBtnSelectors = [
+      '.ytp-large-play-button',
+      '.vjs-big-play-button',
+      '.btn-play',
+      '.video-play-button',
+      'button.control.play',
+      'button[aria-label="Play"]',
+      'button[aria-label="Play video" i]',
+      'button[aria-label="เล่น"]',
+      'button[aria-label="เล่นวิดีโอ"]'
+    ];
+    for (const f of allFrames) {
+      for (const sel of playBtnSelectors) {
+        try {
+          const btn = await f.$(sel);
+          if (btn && await btn.isVisible().catch(() => false)) {
+            await btn.click({ force: true }).catch(() => {});
+            return true;
+          }
+        } catch (e) {}
+      }
+    }
+    return false;
+  }
+
+  // Fire all play actions unconditionally: click center, programmatic play, click initial play buttons.
+  // No state checking before acting — just make the video start, avoiding toggle controls after playback begins.
+  async fireAllPlayActions(allFrames, playerBox) {
+    // A. Physical click on the exact center of the video player (avoids YouTube title bar)
+    if (playerBox) {
+      const cx = playerBox.x + playerBox.width / 2;
+      const cy = playerBox.y + playerBox.height / 2;
+      await this.page.mouse.click(cx, cy).catch(() => {});
+      await this.sleep(600);
+    }
+
+    // Close any accidental YouTube tab
+    await this.closeAccidentalYoutubeTabs();
+
+    const liveFrames = this.getFrames();
+    const frames = liveFrames.length ? liveFrames : allFrames;
+
+    // B. Programmatic muted play on every HTML5 <video>
     for (const f of frames) {
       await f.evaluate(() => {
         document.querySelectorAll('video').forEach(v => {
           try {
             v.muted = true;
             v.volume = 0;
-            if (v.paused && !v.ended) {
-              const p = v.play();
-              if (p && p.catch) p.catch(() => {});
-            }
+            const p = v.play();
+            if (p && p.catch) p.catch(() => {});
           } catch (e) {}
         });
       }).catch(() => {});
     }
+
+    // C. Click explicit initial/overlay play buttons only if still paused or no HTML5 video detected
+    const state = await this.readVideoTime(frames);
+    if (!state || state.paused) {
+      await this.clickInitialPlayButtons(frames);
+    }
+
+    await this.closeAccidentalYoutubeTabs();
   }
 
-  // Starts playback without ever toggling an already-playing video back into pause.
-  async ensureVideoPlaying(allFrames, playerBox) {
-    let snap = await this.readVideoSnapshot(allFrames);
-    const isPlayingNow = s => !!((s.video && !s.video.paused && !s.video.ended) || s.ytPlaying);
-
-    if (!isPlayingNow(snap)) {
-      // One physical click in the exact center of the player gives a trusted gesture
-      // for YouTube/autoplay without clicking top title links.
-      if (playerBox) {
-        const cx = playerBox.x + playerBox.width / 2;
-        const cy = playerBox.y + playerBox.height / 2;
-        await this.page.mouse.click(cx, cy).catch(() => {});
-        await this.sleep(1000);
-        await this.closeAccidentalYoutubeTabs();
-        snap = await this.readVideoSnapshot(allFrames);
-      }
-    }
-
-    if (!isPlayingNow(snap)) {
-      await this.ensureHtml5Playing(allFrames);
-      await this.sleep(700);
-      snap = await this.readVideoSnapshot(allFrames);
-    }
-
-    // Only click an explicit Play-only control if STILL paused (never toggle .ytp-play-button / Space / k blindly)
-    if (!isPlayingNow(snap)) {
-      const explicitPlayBtns = [
-        '.ytp-large-play-button',
-        '.vjs-big-play-button',
-        '.btn-play',
-        '.video-play-button',
-        'button.control.play',
-        'button[aria-label*="Play" i]:not([aria-label*="Pause" i])',
-        'button[aria-label*="เล่น" i]:not([aria-label*="หยุด" i])'
-      ];
-      let clickedBtn = false;
-      for (const f of allFrames) {
-        if (clickedBtn) break;
-        const alreadyPlaying = await f.evaluate(() => !!document.querySelector('.html5-video-player.playing-mode, .vjs-playing')).catch(() => false);
-        if (alreadyPlaying) break;
-        for (const sel of explicitPlayBtns) {
-          try {
-            const btn = await f.$(sel);
-            if (btn && await btn.isVisible().catch(() => false)) {
-              await btn.click({ force: true }).catch(() => {});
-              clickedBtn = true;
-              break;
-            }
-          } catch (e) {}
-        }
-      }
-      if (clickedBtn) {
-        await this.sleep(800);
-        await this.closeAccidentalYoutubeTabs();
-      }
-    }
-
-    // Wait passively (no toggle clicks) until playback stabilizes past initial buffering/saved-position restore (~0.8s)
-    const waitStart = Date.now();
-    let loggedStart = false;
-    while (!this.shouldStop && Date.now() - waitStart < 4500) {
-      snap = await this.readVideoSnapshot(allFrames);
-      if (snap.video && snap.video.paused && !snap.video.ended) {
-        await this.ensureHtml5Playing(allFrames);
-      }
-      const cur = snap.video ? snap.video.cur : 0;
-      const ready = snap.video ? snap.video.readyState : 0;
-      if (snap.video && !snap.video.paused && ready >= 2 && cur >= 0.8) {
-        this.log(`▶️ คลิปวิดีโอเริ่มเล่นแล้ว (เวลาเดิน ${cur.toFixed(1)}s)...`);
-        loggedStart = true;
-        break;
-      }
-      if (!snap.video && snap.ytPlaying && Date.now() - waitStart >= 1200) {
-        this.log(`▶️ คลิป YouTube กำลังเล่นแล้ว...`);
-        loggedStart = true;
-        break;
-      }
-      await this.sleep(350);
-    }
-
-    if (!loggedStart) {
-      snap = await this.readVideoSnapshot(allFrames);
-      if (snap.video && snap.video.cur > 0.1) {
-        this.log(`▶️ คลิปวิดีโอเริ่มเล่นแล้ว (เวลาเดิน ${snap.video.cur.toFixed(1)}s)...`);
-      }
-    }
-    return snap;
+  // Verify video is ACTUALLY advancing by comparing two readings 1s apart.
+  // Returns true if currentTime moved forward by >= 0.3s.
+  async isVideoActuallyAdvancing(allFrames) {
+    const frames1 = this.getFrames();
+    const t1 = await this.readVideoTime(frames1.length ? frames1 : allFrames);
+    if (!t1) return false;
+    await this.sleep(1000);
+    const frames2 = this.getFrames();
+    const t2 = await this.readVideoTime(frames2.length ? frames2 : allFrames);
+    if (!t2) return false;
+    return (t2.cur - t1.cur) >= 0.3;
   }
 
   async clickVideoProgressBar(allFrames, playerBox, targetRatio) {
@@ -1039,10 +992,12 @@ class AutomationWorker {
     return false;
   }
 
-  async resolveVideoDuration(allFrames, snap) {
-    if (snap && snap.video && snap.video.dur > 0) return snap.video.dur;
-    if (snap && snap.ytDuration > 0) return snap.ytDuration;
+  async resolveVideoDuration(allFrames) {
+    // 1. HTML5 <video> duration
+    const vt = await this.readVideoTime(allFrames);
+    if (vt && vt.dur > 0) return vt.dur;
 
+    // 2. edX video xblock data-metadata
     for (const f of allFrames) {
       const metaDur = await f.evaluate(() => {
         const el = document.querySelector('.video[data-metadata]');
@@ -1054,6 +1009,7 @@ class AutomationWorker {
       if (metaDur > 0) return metaDur;
     }
 
+    // 3. Duration text on screen (mm:ss or hh:mm:ss)
     for (const f of allFrames) {
       const durText = await f.evaluate(() => {
         const el = document.querySelector('.duration, .vjs-duration-display, .ytp-time-duration, span[class*="duration"]');
@@ -1062,11 +1018,20 @@ class AutomationWorker {
       const parsed = AutomationWorker.parseDurationText(durText);
       if (parsed > 0) return parsed;
     }
+
+    // 4. YouTube progress bar aria-valuemax
+    for (const f of allFrames) {
+      const ytDur = await f.evaluate(() => {
+        const bar = document.querySelector('.ytp-progress-bar[aria-valuemax]');
+        if (bar) { const v = parseFloat(bar.getAttribute('aria-valuemax')); if (v > 0) return v; }
+        return 0;
+      }).catch(() => 0);
+      if (ytDur > 0) return ytDur;
+    }
     return 0;
   }
 
   async seekHtml5Video(allFrames, targetSec) {
-    let applied = false;
     for (const f of allFrames) {
       const ok = await f.evaluate((t) => {
         const v = document.querySelector('video');
@@ -1082,151 +1047,188 @@ class AutomationWorker {
             if (p && p.catch) p.catch(() => {});
           }
           return true;
-        } catch (e) {
-          return false;
-        }
+        } catch (e) { return false; }
       }, targetSec).catch(() => false);
-      if (ok) {
-        applied = true;
-        break;
-      }
+      if (ok) return true;
     }
-    return applied;
+    return false;
   }
 
   async handleVideo(frame) {
     this.setStatus('running', 'Watching Video');
     this.log(`🎬 ตรวจพบคลิปวิดีโอ เริ่มต้นขั้นตอนการเล่นและข้ามไป 10 วินาทีสุดท้าย...`);
 
-    const allFrames = [this.page.mainFrame(), ...this.page.frames()];
+    let allFrames = this.getFrames();
 
     // 1. Check if video has already been watched/completed
-    const isVideoDone = await this.page.evaluate(() => {
-      const v = document.querySelector('video');
-      if (v && v.duration > 0 && v.currentTime >= v.duration - 3) return true;
-      return false;
-    }).catch(() => false);
-
-    if (isVideoDone) {
+    const preRead = await this.readVideoTime(allFrames);
+    if (preRead && preRead.dur > 0 && preRead.cur >= preRead.dur - 3) {
       this.log(`⏭️ [ข้ามวิดีโอ] วิดีโอนี้ดูจบแล้ว (Completed) ข้ามไปหน่วยถัดไปทันที...`);
       return;
     }
 
-    // 2. Locate video player element on the page
-    const videoSelectors = [
-      'video',
-      '.video-player',
-      '.video-wrapper',
-      'div[data-component-type="video"]',
-      'div[data-block-type="video"]',
-      '.video',
-      'iframe[src*="youtube"]',
-      'iframe[src*="youtu.be"]',
-      'iframe#unit-iframe',
-      '.tc-wrapper'
-    ];
-
-    const playerSelectors = videoSelectors.filter(s => s !== 'iframe#unit-iframe');
-    const searchFrames = [frame, ...allFrames.filter(f => f !== frame)].filter(Boolean);
-    let playerBox = null;
-    for (const f of searchFrames) {
-      for (const sel of playerSelectors) {
-        try {
-          const el = await f.$(sel);
-          if (el) {
-            await el.scrollIntoViewIfNeeded().catch(() => {});
-            await this.sleep(150);
-            const b = await el.boundingBox();
-            if (b && b.width > 60 && b.height > 60) {
-              playerBox = b;
-              break;
-            }
-          }
-        } catch (e) {}
+    // Wait briefly if a YouTube/video iframe is still booting before clicking
+    if (!preRead) {
+      for (let w = 0; w < 5 && !this.shouldStop; w++) {
+        await this.sleep(400);
+        allFrames = this.getFrames();
+        if (await this.readVideoTime(allFrames)) break;
       }
-      if (playerBox) break;
     }
 
-    if (!playerBox) {
-      for (const f of [this.page.mainFrame()]) {
-        for (const sel of videoSelectors) {
+    // 2. Locate video player element on the page (prefer exact <video> or YouTube iframe over outer wrappers)
+    const videoSelectors = [
+      'video', 'iframe[src*="youtube"]', 'iframe[src*="youtu.be"]',
+      '.video-player', '.video-wrapper',
+      'div[data-component-type="video"]', 'div[data-block-type="video"]',
+      '.video', 'iframe#unit-iframe', '.tc-wrapper'
+    ];
+    const playerSelectors = videoSelectors.filter(s => s !== 'iframe#unit-iframe');
+    const locatePlayerBox = async (frames) => {
+      const searchFrames = [frame, ...frames.filter(f => f !== frame)].filter(Boolean);
+      for (const f of searchFrames) {
+        for (const sel of playerSelectors) {
           try {
             const el = await f.$(sel);
             if (el) {
               await el.scrollIntoViewIfNeeded().catch(() => {});
               await this.sleep(150);
               const b = await el.boundingBox();
-              if (b && b.width > 60 && b.height > 60) {
-                playerBox = b;
-                break;
-              }
+              if (b && b.width > 60 && b.height > 60) return b;
             }
           } catch (e) {}
         }
-        if (playerBox) break;
+      }
+      for (const sel of videoSelectors) {
+        try {
+          const el = await this.page.mainFrame().$(sel);
+          if (el) {
+            await el.scrollIntoViewIfNeeded().catch(() => {});
+            await this.sleep(150);
+            const b = await el.boundingBox();
+            if (b && b.width > 60 && b.height > 60) return b;
+          }
+        } catch (e) {}
+      }
+      return null;
+    };
+    let playerBox = await locatePlayerBox(allFrames);
+
+    // ===== STEP 1: MAKE VIDEO START PLAYING =====
+    // Fire ALL play actions unconditionally (click center, programmatic play, play buttons)
+    // then VERIFY video is actually advancing by comparing two currentTime readings.
+    this.log(`▶️ [ขั้นตอนที่ 1] สั่งให้วิดีโอเริ่มเล่น (คลิกตรงกลางวิดีโอเพื่อไม่ให้โดนชื่อคลิป)...`);
+
+    let videoConfirmedPlaying = false;
+    for (let attempt = 0; attempt < 5 && !this.shouldStop; attempt++) {
+      allFrames = this.getFrames();
+      if (!playerBox) playerBox = await locatePlayerBox(allFrames);
+
+      if (attempt === 0) {
+        await this.fireAllPlayActions(allFrames, playerBox);
+        await this.sleep(800);
+      } else {
+        this.log(`▶️ วิดีโอยังไม่เดิน ลองกดเล่นอีกครั้ง (ครั้งที่ ${attempt + 1})...`);
+        const curState = await this.readVideoTime(allFrames);
+        // Only click center toggle when explicitly paused, or once on attempt 1 if iframe had no readable <video>.
+        // Never blindly toggle-click an already-unpaused or buffered player 5 times.
+        if (curState && curState.paused) {
+          if (playerBox) {
+            await this.page.mouse.click(playerBox.x + playerBox.width / 2, playerBox.y + playerBox.height / 2).catch(() => {});
+            await this.sleep(400);
+          }
+          await this.clickInitialPlayButtons(this.getFrames());
+        } else if (!curState) {
+          const clickedBtn = await this.clickInitialPlayButtons(allFrames);
+          if (!clickedBtn && attempt === 1 && playerBox) {
+            await this.page.mouse.click(playerBox.x + playerBox.width / 2, playerBox.y + playerBox.height / 2).catch(() => {});
+            await this.sleep(400);
+          }
+        }
+        for (const f of this.getFrames()) {
+          await f.evaluate(() => {
+            document.querySelectorAll('video').forEach(v => {
+              try { v.muted = true; const p = v.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+            });
+          }).catch(() => {});
+        }
+        await this.closeAccidentalYoutubeTabs();
+        await this.sleep(800);
+      }
+
+      // Verify: take two readings 1s apart — currentTime must advance by >= 0.3s
+      allFrames = this.getFrames();
+      const advancing = await this.isVideoActuallyAdvancing(allFrames);
+      if (advancing) {
+        const t = await this.readVideoTime(this.getFrames());
+        this.log(`▶️ คลิปวิดีโอเริ่มเล่นแล้ว (เวลาเดิน ${t ? t.cur.toFixed(1) : '?'}s)...`);
+        videoConfirmedPlaying = true;
+        break;
       }
     }
 
-    // 3. STEP 1: MAKE VIDEO START PLAYING (click center once, never toggle play/pause)
-    this.log(`▶️ [ขั้นตอนที่ 1] สั่งให้วิดีโอเริ่มเล่น (คลิกตรงกลางวิดีโอเพื่อไม่ให้โดนชื่อคลิป)...`);
-    let snap = await this.ensureVideoPlaying(allFrames, playerBox);
+    allFrames = this.getFrames();
+
+    if (!videoConfirmedPlaying) {
+      // Last resort: the video may be cross-origin YouTube iframe — no readable <video>.
+      // Just wait a moment and proceed; seek via progress bar click will follow.
+      this.log(`⚠️ ไม่สามารถยืนยันว่าวิดีโอเล่นจริง — จะลองข้ามไปท้ายคลิปต่อ...`, 'warn');
+    }
     if (this.shouldStop) return;
 
-    // 4. STEP 2: SEEK TO LAST 10 SECONDS AND VERIFY IT HOLDS
+    // ===== STEP 2: SEEK TO LAST 10 SECONDS =====
     const seekMargin = this.delays.videoSeekMargin || 10;
     this.log(`⏩ [ขั้นตอนที่ 2] ข้ามไปยังช่วง ${seekMargin} วินาทีสุดท้ายของคลิป...`);
 
-    const totalDur = await this.resolveVideoDuration(allFrames, snap);
-    let seeked = false;
+    const totalDur = await this.resolveVideoDuration(allFrames);
+    let seekVerified = false;
 
     if (totalDur > 15) {
       const seekTarget = Math.max(0, totalDur - seekMargin);
       const targetRatio = Math.min(0.96, seekTarget / totalDur);
-      const htmlSeeked = await this.seekHtml5Video(allFrames, seekTarget);
-      if (htmlSeeked) {
-        await this.sleep(500);
-        snap = await this.readVideoSnapshot(allFrames);
-        if (snap.video && snap.video.cur >= seekTarget - 8) {
-          this.log(`⏩ เลื่อนคลิปไปที่ ${Math.round(snap.video.cur)}s / ${Math.round(totalDur)}s เรียบร้อย`);
-          seeked = true;
+
+      // Try seeking up to 3 times: HTML5 set + verify → progress bar click + verify
+      for (let seekAttempt = 0; seekAttempt < 3 && !seekVerified && !this.shouldStop; seekAttempt++) {
+        if (seekAttempt === 0) {
+          // First: direct HTML5 seek
+          await this.seekHtml5Video(allFrames, seekTarget);
+          await this.sleep(600);
         } else {
-          // Player snapped back toward start: seek via progress bar UI + re-apply HTML5 currentTime
-          this.log(`⏩ คลิปเด้งกลับตอนเลื่อน — กำลังคลิกแถบเวลาไปยังช่วงท้ายคลิป...`);
+          // Fallback: click progress bar + re-apply HTML5 seek
+          this.log(`⏩ เลื่อนไม่สำเร็จ — ลองคลิกแถบเวลา (ครั้งที่ ${seekAttempt + 1})...`);
           await this.clickVideoProgressBar(allFrames, playerBox, targetRatio);
-          await this.sleep(450);
-          snap = await this.readVideoSnapshot(allFrames);
-          if (snap.video && snap.video.cur < seekTarget - 8) {
-            await this.seekHtml5Video(allFrames, seekTarget);
-            await this.sleep(450);
-            snap = await this.readVideoSnapshot(allFrames);
-          }
-          const landed = snap.video ? Math.round(snap.video.cur) : Math.round(seekTarget);
-          this.log(`⏩ เลื่อนคลิปไปที่ ${landed}s / ${Math.round(totalDur)}s เรียบร้อย`);
-          seeked = true;
+          await this.sleep(500);
+          await this.seekHtml5Video(allFrames, seekTarget);
+          await this.sleep(500);
+        }
+
+        // Verify seek: read currentTime, must be near target
+        const afterSeek = await this.readVideoTime(allFrames);
+        if (afterSeek && afterSeek.cur >= seekTarget - 15) {
+          this.log(`⏩ เลื่อนคลิปไปที่ ${Math.round(afterSeek.cur)}s / ${Math.round(totalDur)}s เรียบร้อย`);
+          seekVerified = true;
         }
       }
     }
 
-    if (!seeked) {
+    if (!seekVerified) {
+      // No duration known or all seek attempts failed: click progress bar at 94% as best effort
       const barClicked = await this.clickVideoProgressBar(allFrames, playerBox, 0.94);
       if (barClicked) {
         this.log(`⏩ คลิกแถบเวลาไปยังช่วงท้ายคลิปเรียบร้อย`);
-        await this.sleep(500);
-        snap = await this.readVideoSnapshot(allFrames);
-        if (snap.video && snap.video.dur > 15 && snap.video.cur < snap.video.dur - seekMargin - 8) {
-          const tardyTarget = Math.max(0, snap.video.dur - seekMargin);
-          await this.seekHtml5Video(allFrames, tardyTarget);
-        }
-        seeked = true;
       } else {
+        // Last resort: YouTube keyboard shortcut
         await this.page.keyboard.press('9').catch(() => {});
+        this.log(`⏩ กดปุ่ม 9 เพื่อข้ามไป 90% ของคลิป`);
       }
+      await this.sleep(500);
     }
 
-    // 5. STEP 3: PLAY IN THE LAST 10 SECONDS UNTIL THE COMPLETION MARK IS PASSED
+    // ===== STEP 3: WAIT FOR VIDEO COMPLETION =====
     this.log(`⏳ [ขั้นตอนที่ 3] กำลังเล่นช่วง ${seekMargin} วินาทีสุดท้ายเพื่อบันทึกผลการเรียนลงระบบ TSU...`);
     const result = await this.waitForVideoCompletion(allFrames, { playerBox, seekMargin });
     if (!result) {
+      // No readable <video> (cross-origin YouTube embed): just wait
       const waitMs = Math.max(8000, this.delays.docDelay + 3000);
       await this.sleep(waitMs);
       this.log(`✅ เล่นช่วงท้ายคลิปครบ ${Math.round(waitMs / 1000)} วินาที (YouTube/Iframe) เตรียมกด Next.`);
@@ -1237,8 +1239,8 @@ class AutomationWorker {
     }
   }
 
-  // Keeps the clip playing until it passes ~97% (Open edX marks video complete at 95% by
-  // default) or ends, automatically recovering if the player resets currentTime back to start.
+  // Keeps the clip playing until it passes ~97% or ends.
+  // Automatically recovers if the player resets currentTime back toward the start.
   async waitForVideoCompletion(frames, opts = {}) {
     const playerBox = opts.playerBox || null;
     const seekMargin = opts.seekMargin || this.delays.videoSeekMargin || 10;
@@ -1270,7 +1272,7 @@ class AutomationWorker {
         return info;
       }
 
-      // If the player reverted playback back before 85%, re-seek to the last N seconds
+      // If the player reverted playback before 85%, re-seek to the last N seconds
       if (info.dur > 20 && info.cur < info.dur * 0.85 && reseekCount < 4 && Date.now() - lastSeekAt >= 2000) {
         reseekCount++;
         lastSeekAt = Date.now();
